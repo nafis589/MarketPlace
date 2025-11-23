@@ -1,0 +1,206 @@
+'use client';
+
+'use client';
+
+import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import MenuLink from './MenuLink';
+import MegaMenu from './MegaMenu';
+import Button from './Button';
+import MobileMenu from './MobileMenu';
+import { navItems } from '@/app/lib/navigation';
+import { megaMenuData } from '@/app/lib/megamenu-data';
+
+const Navbar = () => {
+    const [activeMenu, setActiveMenu] = useState<string | null>(null);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isScrolled, setIsScrolled] = useState(false);
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const pathname = usePathname();
+
+    // Handle Scroll Effect
+    useEffect(() => {
+        const handleScroll = () => {
+            setIsScrolled(window.scrollY > 10);
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    // Close menu on route change
+    useEffect(() => {
+        setActiveMenu(null);
+        setIsMobileMenuOpen(false);
+    }, [pathname]);
+
+    // Handle Hover with Delay to prevent flickering
+    const handleMouseEnter = (key: string) => {
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        setActiveMenu(key);
+    };
+
+    const handleMouseLeave = () => {
+        timeoutRef.current = setTimeout(() => {
+            setActiveMenu(null);
+        }, 150); // Small delay for better UX
+    };
+
+    // Get MegaMenu columns based on active key (Desktop)
+    // We need to adapt the new data structure to the old MegaMenu format or update MegaMenu
+    // For now, let's map the new structure to a flat list of columns for desktop compatibility
+    // The new structure has 'discover' and 'categories'.
+    // Desktop expects columns. We can treat 'discover' as one column and 'categories' as others.
+
+    const activeData = activeMenu ? (megaMenuData[activeMenu] || megaMenuData['default']) : null;
+
+    // Transform new data structure to old column structure for Desktop MegaMenu
+    const activeColumns = activeData ? [
+        {
+            title: "DÉCOUVRIR",
+            items: activeData.discover
+        },
+        ...activeData.categories
+    ] : [];
+
+
+    return (
+        <>
+            <nav
+                className={`fixed top-0 left-0 right-0 z-50 bg-white transition-all duration-300 border-b border-gray-100 ${isScrolled ? 'shadow-sm' : ''
+                    }`}
+                onMouseLeave={handleMouseLeave}
+            >
+                <div className="container mx-auto px-4 md:px-8">
+
+                    {/* Top Row: Search - Logo - Actions */}
+                    <div className="flex items-center justify-between py-4 gap-4">
+
+                        {/* Mobile Menu Button (Visible only on mobile) */}
+                        <button
+                            className="lg:hidden p-2 -ml-2"
+                            onClick={() => setIsMobileMenuOpen(true)}
+                            aria-label="Open menu"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                            </svg>
+                        </button>
+
+                        {/* Left: Search Bar (Hidden on mobile, visible on desktop) */}
+                        <div className="hidden lg:flex flex-1 max-w-md">
+                            <div className="relative w-full">
+                                <input
+                                    type="text"
+                                    placeholder="Rechercher par marque, article..."
+                                    className="w-full bg-gray-100 border-none rounded-sm py-2.5 pl-10 pr-4 text-sm focus:ring-1 focus:ring-black outline-none transition-all"
+                                />
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        {/* Center: Logo */}
+                        <div className="flex-shrink-0 flex-1 lg:flex-none text-center lg:text-left">
+                            <Link href="/" className="text-2xl md:text-3xl font-serif font-bold tracking-tighter">
+                                FRIPERIE<span className="font-light italic">LUXE</span>
+                            </Link>
+                        </div>
+
+                        {/* Right: Actions */}
+                        <div className="flex items-center justify-end flex-1 gap-6">
+                            <Button variant="primary" size="sm" className="hidden lg:flex font-bold px-6">Vendre un article</Button>
+
+                            <div className="hidden lg:flex items-center gap-4 text-sm font-medium text-gray-700">
+                                <Link href="/login" className="hover:text-black transition-colors">Se connecter</Link>
+                                <Link href="/register" className="hover:text-black transition-colors">S'inscrire</Link>
+                            </div>
+
+                            <button className="p-2 hover:bg-gray-100 rounded-full transition-colors relative">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 5c.07.286-.06.586-.343.648a.75.75 0 01-.343 0l-1.263-5a.75.75 0 01.343-.648zM3.75 21h16.5M4.5 3h15M9 3v2.25M15 3v2.25" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6a3 3 0 00-3-3h-3a3 3 0 00-3 3v4.5m13.5 0h-15v9a2.25 2.25 0 002.25 2.25h10.5A2.25 2.25 0 0019.5 19.5v-9z" />
+                                </svg>
+                                <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">2</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Bottom Row: Navigation Links */}
+                    <div className="hidden lg:flex items-center justify-center gap-1 pb-0">
+                        {navItems.map((item) => (
+                            <MenuLink
+                                key={item.key}
+                                label={item.label}
+                                href={item.href}
+                                isActive={activeMenu === item.key}
+                                isSale={item.isSale}
+                                onMouseEnter={() => handleMouseEnter(item.key)}
+                                onMouseLeave={() => { }} // Handled by parent nav
+                            />
+                        ))}
+                    </div>
+                </div>
+
+                {/* Mega Menu Container (Desktop) */}
+                <div className="relative">
+                    <MegaMenu
+                        columns={activeColumns}
+                        isVisible={!!activeMenu}
+                        onMouseEnter={() => handleMouseEnter(activeMenu!)}
+                        onMouseLeave={handleMouseLeave}
+                    />
+                </div>
+
+                {/* Mobile Menu Component */}
+                <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
+
+            </nav>
+
+            {/* Bottom Navigation Bar (Mobile Only) */}
+            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 lg:hidden pb-safe">
+                <div className="flex justify-around items-center h-16">
+                    <Link href="/" className="flex flex-col items-center justify-center w-full h-full text-gray-900">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 mb-1">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+                        </svg>
+                        <span className="text-[10px] font-medium">Accueil</span>
+                    </Link>
+
+                    <Link href="/favoris" className="flex flex-col items-center justify-center w-full h-full text-gray-500 hover:text-gray-900">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 mb-1">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                        </svg>
+                        <span className="text-[10px] font-medium">Favoris</span>
+                    </Link>
+
+                    <Link href="/vendre" className="flex flex-col items-center justify-center w-full h-full text-gray-500 hover:text-gray-900">
+                        <div className="mb-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <span className="text-[10px] font-medium">Vendre</span>
+                    </Link>
+
+                    <Link href="/notifications" className="flex flex-col items-center justify-center w-full h-full text-gray-500 hover:text-gray-900">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 mb-1">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                        </svg>
+                        <span className="text-[10px] font-medium">Notifications</span>
+                    </Link>
+
+                    <Link href="/login" className="flex flex-col items-center justify-center w-full h-full text-gray-500 hover:text-gray-900">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 mb-1">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                        </svg>
+                        <span className="text-[10px] font-medium">Moi</span>
+                    </Link>
+                </div>
+            </div>
+        </>
+    );
+};
+
+export default Navbar;
