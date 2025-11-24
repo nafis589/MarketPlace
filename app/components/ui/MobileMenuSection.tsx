@@ -20,29 +20,31 @@ const MobileMenuSection: React.FC<MobileMenuSectionProps> = ({ data, onClose }) 
     return (
         <div className="flex flex-col">
             {/* Block 1: Découvrir */}
-            <div className="mb-2">
-                <MobileAccordion
-                    isOpen={isDiscoverOpen}
-                    onToggle={() => setIsDiscoverOpen(!isDiscoverOpen)}
-                    title={<span className="text-sm font-bold text-gray-500 uppercase tracking-widest">DÉCOUVRIR</span>}
-                    headerClassName="py-3 px-4 bg-gray-50"
-                    contentClassName="bg-white"
-                >
-                    <ul className="flex flex-col">
-                        {data.discover.map((item, idx) => (
-                            <li key={idx}>
-                                <Link
-                                    href={item.href}
-                                    className="block px-4 py-3 text-base text-gray-900 border-b border-gray-100 last:border-none hover:bg-gray-50"
-                                    onClick={onClose}
-                                >
-                                    {item.label}
-                                </Link>
-                            </li>
-                        ))}
-                    </ul>
-                </MobileAccordion>
-            </div>
+            {data.discover && data.discover.length > 0 && (
+                <div className="mb-2">
+                    <MobileAccordion
+                        isOpen={isDiscoverOpen}
+                        onToggle={() => setIsDiscoverOpen(!isDiscoverOpen)}
+                        title={<span className="text-sm font-bold text-gray-500 uppercase tracking-widest">DÉCOUVRIR</span>}
+                        headerClassName="py-3 px-4 bg-gray-50"
+                        contentClassName="bg-white"
+                    >
+                        <ul className="flex flex-col">
+                            {data.discover.map((item, idx) => (
+                                <li key={idx}>
+                                    <Link
+                                        href={item.href}
+                                        className="block px-4 py-3 text-base text-gray-900 border-b border-gray-100 last:border-none hover:bg-gray-50"
+                                        onClick={onClose}
+                                    >
+                                        {item.label}
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
+                    </MobileAccordion>
+                </div>
+            )}
 
             {/* Block 2: Catégories */}
             <div>

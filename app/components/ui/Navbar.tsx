@@ -1,7 +1,5 @@
 'use client';
 
-'use client';
-
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -47,22 +45,16 @@ const Navbar = () => {
     };
 
     // Get MegaMenu columns based on active key (Desktop)
-    // We need to adapt the new data structure to the old MegaMenu format or update MegaMenu
-    // For now, let's map the new structure to a flat list of columns for desktop compatibility
-    // The new structure has 'discover' and 'categories'.
-    // Desktop expects columns. We can treat 'discover' as one column and 'categories' as others.
-
     const activeData = activeMenu ? (megaMenuData[activeMenu] || megaMenuData['default']) : null;
 
     // Transform new data structure to old column structure for Desktop MegaMenu
     const activeColumns = activeData ? [
-        {
+        ...(activeData.discover ? [{
             title: "DÉCOUVRIR",
             items: activeData.discover
-        },
+        }] : []),
         ...activeData.categories
     ] : [];
-
 
     return (
         <>
@@ -147,7 +139,7 @@ const Navbar = () => {
                 <div className="relative">
                     <MegaMenu
                         columns={activeColumns}
-                        isVisible={!!activeMenu}
+                        isVisible={!!activeMenu && activeColumns.length > 0}
                         onMouseEnter={() => handleMouseEnter(activeMenu!)}
                         onMouseLeave={handleMouseLeave}
                     />
