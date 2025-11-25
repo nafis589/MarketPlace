@@ -13,7 +13,9 @@ const WeLoveSection = () => {
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                     {weLove.map((product) => (
-                        <ProductCard key={product.id} product={product} />
+                        <Link key={product.id} href={`/product/${product.slug}`}>
+                            <ProductCard product={product} />
+                        </Link>
                     ))}
                 </div>
                 <div className="mt-12 text-center">

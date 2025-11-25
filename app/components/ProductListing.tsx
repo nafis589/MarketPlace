@@ -1,55 +1,22 @@
 import React from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { allProducts } from '@/app/lib/data';
 
 // --- Types ---
 export interface Product {
     id: number;
     brand: string;
     category: string;
-    size: string;
+    size?: string;
     price: number;
-    imageUrl: string;
-    currency: string;
+    imageUrl?: string;
+    image?: string;
+    currency?: string;
+    slug?: string;
+    condition?: string;
+    name?: string;
 }
-
-// --- Mock Data (Basé sur votre image) ---
-const PRODUCTS: Product[] = [
-    {
-        id: 1,
-        brand: 'CHROME HEARTS',
-        category: 'Chemise',
-        size: 'S International',
-        price: 575,
-        currency: '$',
-        imageUrl: 'https://images.vestiairecollective.com/cdn-cgi/image/w=500,h=500,f=auto,q=80/produit/40562627-1_1.jpg', // Placeholder ou URL réelle si dispo
-    },
-    {
-        id: 2,
-        brand: 'BURBERRY',
-        category: 'Chemise',
-        size: 'XXL International',
-        price: 249,
-        currency: '$',
-        imageUrl: 'https://images.vestiairecollective.com/cdn-cgi/image/w=500,h=500,f=auto,q=80/produit/40498711-1_1.jpg',
-    },
-    {
-        id: 3,
-        brand: 'BODE',
-        category: 'Chemise',
-        size: 'S International',
-        price: 279,
-        currency: '$',
-        imageUrl: 'https://images.vestiairecollective.com/cdn-cgi/image/w=500,h=500,f=auto,q=80/produit/38983465-1_1.jpg',
-    },
-    {
-        id: 4,
-        brand: 'HERON PRESTON',
-        category: 'Chemise',
-        size: 'M International',
-        price: 96,
-        currency: '$',
-        imageUrl: 'https://images.vestiairecollective.com/cdn-cgi/image/w=500,h=500,f=auto,q=80/produit/39924322-1_1.jpg',
-    },
-];
 
 const FILTERS = [
     { label: 'Trier Par', hasDropdown: true },
@@ -108,47 +75,63 @@ const FilterChip: React.FC<FilterChipProps> = ({ label, hasDropdown, isActive })
 
 // 2. Carte Produit réutilisable
 const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
+    const productSlug = product.slug || `product-${product.id}`;
+    const productImage = product.imageUrl || product.image || 'https://images.unsplash.com/photo-1591561954557-26941169b49e?q=80&w=800&auto=format&fit=crop';
+
     return (
-        <div className="flex flex-col p-4 group cursor-pointer">
-            {/* Zone Image */}
-            <div className="relative w-full aspect-[4/5] flex items-center justify-center mb-4 overflow-hidden">
-                {/* Placeholder pour l'image - Remplacer src par product.imageUrl */}
-                <img
-                    src={product.imageUrl}
-                    alt={product.brand}
-                    className="object-contain w-full h-full max-h-64 group-hover:scale-105 transition-transform duration-300"
-                />
-            </div>
-
-            {/* Infos Produit */}
-            <div className="mt-auto space-y-1">
-                <div className="flex justify-between items-start">
-                    <h3 className="font-bold text-sm text-black uppercase tracking-wide">
-                        {product.brand}
-                    </h3>
-                    <HeartIcon />
+        <Link href={`/product/${productSlug}`}>
+            <div className="flex flex-col p-4 group cursor-pointer">
+                {/* Zone Image */}
+                <div className="relative w-full aspect-[4/5] flex items-center justify-center mb-4 overflow-hidden">
+                    <Image
+                        src={productImage}
+                        alt={product.brand}
+                        fill
+                        className="object-contain group-hover:scale-105 transition-transform duration-300"
+                    />
                 </div>
 
-                <p className="text-sm text-gray-600">{product.category}</p>
-                <p className="text-sm text-gray-500">{product.size}</p>
+                {/* Infos Produit */}
+                <div className="mt-auto space-y-1">
+                    <div className="flex justify-between items-start">
+                        <h3 className="font-bold text-sm text-black uppercase tracking-wide">
+                            {product.brand}
+                        </h3>
+                        <HeartIcon />
+                    </div>
 
-                <div className="pt-2">
-                    <span className="font-bold text-base text-gray-900">
-                        {product.currency}{product.price}
-                    </span>
+                    <p className="text-sm text-gray-600">{product.name || product.category}</p>
+                    {product.condition && <p className="text-xs text-gray-500">{product.condition}</p>}
+                    {product.size && <p className="text-sm text-gray-500">{product.size}</p>}
+
+                    <div className="pt-2">
+                        <span className="font-bold text-base text-gray-900">
+                            {product.price} {product.currency || '€'}
+                        </span>
+                    </div>
                 </div>
             </div>
-        </div>
+        </Link>
     );
 };
 
 interface ProductListingProps {
     title?: string;
     breadcrumbs?: Array<{ label: string; href: string }>;
+    categoryFilter?: string;
 }
 
 // --- Main Layout ---
-export default function ProductListing({ title = "Chemises", breadcrumbs }: ProductListingProps) {
+export default function ProductListing({
+    title = "Tous les produits",
+    breadcrumbs,
+    categoryFilter
+}: ProductListingProps) {
+    // Filter products if a category is specified
+    const products = categoryFilter
+        ? allProducts.filter(p => p.category === categoryFilter)
+        : allProducts;
+
     return (
         <div className="min-h-screen bg-white font-sans">
             <div className="max-w-[1600px] mx-auto px-6 py-8">
@@ -159,9 +142,9 @@ export default function ProductListing({ title = "Chemises", breadcrumbs }: Prod
                         {breadcrumbs.map((crumb, index) => (
                             <span key={crumb.href} className="flex items-center">
                                 {index > 0 && <span className="mx-2">/</span>}
-                                <a href={crumb.href} className="hover:text-black transition-colors">
+                                <Link href={crumb.href} className="hover:text-black transition-colors">
                                     {crumb.label}
-                                </a>
+                                </Link>
                             </span>
                         ))}
                     </nav>
@@ -197,12 +180,20 @@ export default function ProductListing({ title = "Chemises", breadcrumbs }: Prod
                 {/* Product Grid */}
                 <div className="border-t border-gray-200">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-gray-200 border-b border-gray-200">
-                        {PRODUCTS.map((product) => (
+                        {products.map((product) => (
                             <ProductCard key={product.id} product={product} />
                         ))}
                     </div>
                 </div>
+
+                {/* No products message */}
+                {products.length === 0 && (
+                    <div className="text-center py-16">
+                        <p className="text-gray-500 text-lg">Aucun produit trouvé dans cette catégorie.</p>
+                    </div>
+                )}
             </div>
         </div>
     );
 }
+

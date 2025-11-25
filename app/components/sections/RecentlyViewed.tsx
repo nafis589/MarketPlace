@@ -1,6 +1,7 @@
 import React from 'react';
 import ProductCard from '../ui/ProductCard';
 import { recentlyViewed } from '@/app/lib/data';
+import Link from 'next/link';
 
 const RecentlyViewed = () => {
     return (
@@ -8,7 +9,9 @@ const RecentlyViewed = () => {
             <h2 className="text-2xl font-serif font-medium mb-8">Récemment consultés</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 {recentlyViewed.map((product) => (
-                    <ProductCard key={product.id} product={product} />
+                    <Link key={product.id} href={`/product/${product.slug}`}>
+                        <ProductCard product={product} />
+                    </Link>
                 ))}
             </div>
         </section>

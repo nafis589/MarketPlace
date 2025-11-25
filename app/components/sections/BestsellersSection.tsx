@@ -14,7 +14,9 @@ const BestsellersSection = () => {
 
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
                     {bestsellers.map((product) => (
-                        <ProductCard key={product.id} product={product} />
+                        <Link key={product.id} href={`/product/${product.slug}`}>
+                            <ProductCard product={product} />
+                        </Link>
                     ))}
                 </div>
 
