@@ -59,11 +59,11 @@ const Navbar = () => {
     return (
         <>
             <nav
-                className={`fixed top-0 left-0 right-0 z-50 bg-white transition-all duration-300 border-b border-gray-100 ${isScrolled ? 'shadow-sm' : ''
+                className={`fixed top-0 left-0 right-0 z-50 bg-white transition-all duration-300 border-b border-gray-100 max-w-full overflow-x-clip ${isScrolled ? 'shadow-sm' : ''
                     }`}
                 onMouseLeave={handleMouseLeave}
             >
-                <div className="container mx-auto px-4 md:px-8">
+                <div className="container mx-auto px-4 md:px-8 max-w-full">
 
                     {/* Top Row: Search - Logo - Actions */}
                     <div className="flex items-center justify-between py-4 gap-4">
@@ -151,8 +151,8 @@ const Navbar = () => {
             </nav>
 
             {/* Bottom Navigation Bar (Mobile Only) */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 lg:hidden pb-safe">
-                <div className="flex justify-around items-center h-16">
+            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 lg:hidden pb-safe max-w-full">
+                <div className="flex justify-around items-center h-16 max-w-full">
                     <Link href="/" className="flex flex-col items-center justify-center w-full h-full text-gray-900">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 mb-1">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />

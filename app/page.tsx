@@ -14,7 +14,7 @@ import Footer from './components/sections/Footer';
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-white max-w-full overflow-x-clip">
       <Header />
       <div className="pt-[72px] md:pt-[88px]"> {/* Offset for fixed header */}
         <HeroBanner />

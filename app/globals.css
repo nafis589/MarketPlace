@@ -21,8 +21,28 @@
   animation: marquee 30s linear infinite;
 }
 
+/* Global scroll fixes - Prevent horizontal overflow */
+html {
+  overflow-x: clip; /* Modern approach: clips overflow without affecting scroll */
+  max-width: 100vw;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+  overflow-x: clip; /* Clip horizontal overflow */
+  max-width: 100vw;
+  position: relative;
+}
+
+/* Ensure all direct children respect viewport width */
+* {
+  box-sizing: border-box;
+}
+
+/* Prevent images and media from causing overflow */
+img, video, iframe {
+  max-width: 100%;
+  height: auto;
 }
