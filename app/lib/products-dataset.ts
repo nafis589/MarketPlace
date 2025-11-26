@@ -39,8 +39,8 @@ export const products: Product[] = [
         color: 'Noir',
         material: 'Polyester',
         images: [
-            'https://cdn.example.com/femme/vetements/robes/robe-plissee-noire-1.jpg',
-            'https://cdn.example.com/femme/vetements/robes/robe-plissee-noire-2.jpg',
+            'https://res.cloudinary.com/dlxwncnrf/image/upload/v1764149823/WhatsApp_Image_2025-11-25_%C3%A0_14.30.24_a2cbe183_-_Copie_khrlhv.jpg',
+            'https://res.cloudinary.com/dlxwncnrf/image/upload/v1764149823/WhatsApp_Image_2025-11-25_%C3%A0_14.30.24_a2cbe183_-_Copie_khrlhv.jpg',
         ],
         seller: sellers[0],
         likes: 24,

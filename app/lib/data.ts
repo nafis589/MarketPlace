@@ -80,7 +80,7 @@ export const journalArticles = [
 export const weLove = [
     { id: 25, brand: "Bottega Veneta", name: "Cassette", price: 1900, image: "https://images.unsplash.com/photo-1591561954557-26941169b49e?q=80&w=800&auto=format&fit=crop", condition: "Comme neuf", category: "sacs", slug: createSlug("Cassette Bottega Veneta", "26") },
     { id: 26, brand: "Cartier", name: "Tank Watch", price: 2800, image: "https://images.unsplash.com/photo-1524592094714-0f0654e20314?q=80&w=800&auto=format&fit=crop", condition: "Très bon état", category: "accessoires", slug: createSlug("Tank Watch Cartier", "27") },
-    { id: 27, brand: "Toteme", name: "Manteau Laine", price: 550, image: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?q=80&w=800&auto=format&fit=crop", condition: "Excellent état", category: "vetements", slug: createSlug("Manteau Laine Toteme", "28") },
+    { id: 27, brand: "Toteme", name: "Manteau Laine", price: 550, image: "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764149607/WhatsApp_Image_2025-11-22_%C3%A0_16.41.18_22d39c6f_-_Copie_utj9va.jpg", condition: "Excellent état", category: "vetements", slug: createSlug("Manteau Laine Toteme", "28") },
     { id: 28, brand: "Chanel", name: "Ballerines", price: 600, image: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=800&auto=format&fit=crop", condition: "Bon état", category: "chaussures", slug: createSlug("Ballerines Chanel", "29") },
 ];
 
