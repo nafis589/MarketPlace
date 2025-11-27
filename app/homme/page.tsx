@@ -2,7 +2,8 @@
 
 import React from 'react';
 import Link from 'next/link';
-import CloudinaryProductGrid from '@/app/components/ui/CloudinaryProductGrid';
+import ProductGrid from '@/app/components/ProductGrid';
+import EmptyState from '@/app/components/EmptyState';
 import { getHommeProducts, getCategoryImages } from '@/app/lib/cloudinaryHelper';
 
 import Header from '@/app/components/sections/Header';
@@ -58,7 +59,11 @@ export default function HommePage() {
                     {/* All Products Grid */}
                     <div className="mb-8">
                         <h2 className="text-xl font-bold mb-6">Tous les produits ({products.length})</h2>
-                        <CloudinaryProductGrid products={products} />
+                        {products.length > 0 ? (
+                            <ProductGrid products={products} />
+                        ) : (
+                            <EmptyState message="Aucun produit trouvé." />
+                        )}
                     </div>
 
                 </div>
