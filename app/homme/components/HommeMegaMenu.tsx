@@ -2,7 +2,8 @@
 
 import React from 'react';
 import MegaMenuImages from '@/app/components/ui/MegaMenuImages';
-import { getUniqueCategories, getUniqueTypesByCategory, cloudinaryProducts } from '@/app/lib/cloudinaryHelper';
+import { getUniqueCategories, getUniqueTypesByCategory } from '@/app/lib/cloudinaryHelper';
+import { cloudinaryProducts } from '@/data/cloudinaryProducts';
 
 interface HommeMegaMenuProps {
     isVisible: boolean;
