@@ -4,6 +4,7 @@ import React, { use } from 'react';
 import Link from 'next/link';
 import ProductGrid from '@/app/components/ProductGrid';
 import EmptyState from '@/app/components/EmptyState';
+import CategoryHeader from '@/app/components/ui/CategoryHeader';
 import {
     getHommeProductsByCategory,
     getHommeProductsByType,
@@ -48,25 +49,20 @@ export default function HommeCategoryPage({ params }: PageProps) {
             <div className="pt-[72px] md:pt-[88px]">
                 <div className="max-w-[1600px] mx-auto px-6 py-8">
 
-                    {/* Breadcrumbs */}
-                    <nav className="flex text-sm text-gray-500 mb-4 capitalize">
-                        <Link href="/" className="hover:text-black transition-colors">Accueil</Link>
-                        <span className="mx-2">/</span>
-                        <Link href="/homme" className="hover:text-black transition-colors">Homme</Link>
-                        <span className="mx-2">/</span>
-                        {type ? (
-                            <>
-                                <Link href={`/homme/${category}`} className="hover:text-black transition-colors">{category}</Link>
-                                <span className="mx-2">/</span>
-                                <span className="text-black font-medium">{type}</span>
-                            </>
-                        ) : (
-                            <span className="text-black font-medium">{category}</span>
-                        )}
-                    </nav>
-
-                    {/* Header Title */}
-                    <h1 className="text-4xl font-serif mb-8 text-gray-900 capitalize">{title}</h1>
+                    <CategoryHeader
+                        title={title}
+                        count={products.length}
+                        breadcrumbs={[
+                            { label: 'Accueil', href: '/' },
+                            { label: 'Homme', href: '/homme' },
+                            ...(type ? [
+                                { label: category, href: `/homme/${category}` },
+                                { label: type, href: `/homme/${category}/${type}` }
+                            ] : [
+                                { label: category, href: `/homme/${category}` }
+                            ])
+                        ]}
+                    />
 
                     {/* Sub-categories Navigation (only on Category page) */}
                     {!type && subCategories.length > 0 && (

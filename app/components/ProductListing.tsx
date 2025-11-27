@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { allProducts } from '@/app/lib/data';
+import EmptyState from '@/app/components/EmptyState';
 
 // --- Types ---
 export interface Product {
@@ -140,12 +141,13 @@ interface ProductListingProps {
 export default function ProductListing({
     title = "Tous les produits",
     breadcrumbs,
-    categoryFilter
-}: ProductListingProps) {
-    // Filter products if a category is specified
-    const products = categoryFilter
+    categoryFilter,
+    products: propProducts
+}: ProductListingProps & { products?: Product[] }) {
+    // Use passed products or filter from allProducts (legacy support)
+    const products = propProducts || (categoryFilter
         ? allProducts.filter(p => p.category === categoryFilter)
-        : allProducts;
+        : []); // Default to empty if no products passed and no filter, to show EmptyState for unhandled pages
 
     return (
         <div className="min-h-screen bg-white font-sans">
@@ -153,7 +155,7 @@ export default function ProductListing({
 
                 {/* Breadcrumbs (Optional) */}
                 {breadcrumbs && (
-                    <nav className="flex text-sm text-gray-500 mb-4">
+                    <nav className="flex text-sm text-gray-500 mb-4 capitalize">
                         {breadcrumbs.map((crumb, index) => (
                             <span key={crumb.href} className="flex items-center">
                                 {index > 0 && <span className="mx-2">/</span>}
@@ -193,17 +195,14 @@ export default function ProductListing({
                 </div>
 
                 {/* Product Grid - With uniform sizing and borders */}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
-                    {products.map((product) => (
-                        <ProductCard key={product.id} product={product} />
-                    ))}
-                </div>
-
-                {/* No products message */}
-                {products.length === 0 && (
-                    <div className="text-center py-16">
-                        <p className="text-gray-500 text-lg">Aucun produit trouvé dans cette catégorie.</p>
+                {products.length > 0 ? (
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
+                        {products.map((product) => (
+                            <ProductCard key={product.id} product={product} />
+                        ))}
                     </div>
+                ) : (
+                    <EmptyState message={`Aucun produit trouvé pour ${title}.`} />
                 )}
             </div>
         </div>

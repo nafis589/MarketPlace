@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import ProductGrid from '@/app/components/ProductGrid';
 import EmptyState from '@/app/components/EmptyState';
+import CategoryHeader from '@/app/components/ui/CategoryHeader';
 import { getHommeProducts, getCategoryImages } from '@/app/lib/cloudinaryHelper';
 
 import Header from '@/app/components/sections/Header';
@@ -19,15 +20,14 @@ export default function HommePage() {
             <div className="pt-[72px] md:pt-[88px]">
                 <div className="max-w-[1600px] mx-auto px-6 py-8">
 
-                    {/* Breadcrumbs */}
-                    <nav className="flex text-sm text-gray-500 mb-4">
-                        <Link href="/" className="hover:text-black transition-colors">Accueil</Link>
-                        <span className="mx-2">/</span>
-                        <span className="text-black font-medium">Homme</span>
-                    </nav>
-
-                    {/* Header Title */}
-                    <h1 className="text-4xl font-serif mb-8 text-gray-900">Mode Homme</h1>
+                    <CategoryHeader
+                        title="Mode Homme"
+                        count={products.length}
+                        breadcrumbs={[
+                            { label: 'Accueil', href: '/' },
+                            { label: 'Homme', href: '/homme' }
+                        ]}
+                    />
 
                     {/* Categories Navigation */}
                     <div className="mb-12">
