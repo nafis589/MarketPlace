@@ -3,7 +3,6 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { allProducts } from '@/app/lib/data';
 import EmptyState from '@/app/components/EmptyState';
 
 // --- Types ---
@@ -142,12 +141,10 @@ export default function ProductListing({
     title = "Tous les produits",
     breadcrumbs,
     categoryFilter,
-    products: propProducts
+    products = []
 }: ProductListingProps & { products?: Product[] }) {
-    // Use passed products or filter from allProducts (legacy support)
-    const products = propProducts || (categoryFilter
-        ? allProducts.filter(p => p.category === categoryFilter)
-        : []); // Default to empty if no products passed and no filter, to show EmptyState for unhandled pages
+    // Use passed products
+
 
     return (
         <div className="min-h-screen bg-white font-sans pt-[100px] md:pt-[120px]">

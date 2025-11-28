@@ -1,40 +1,49 @@
-import React from 'react';
-import SectionTitle from '../../components/ui/SectionTitle';
-import ProductGrid from '../../components/ui/ProductGrid';
-import { getProductsByCategory, categories } from '../../lib/data';
-import { notFound } from 'next/navigation';
+'use client';
+
+import React, { use } from 'react';
+import ProductGrid from '@/app/components/ProductGrid';
+import EmptyState from '@/app/components/EmptyState';
+import CategoryHeader from '@/app/components/ui/CategoryHeader';
+import { getProductsByCategory } from '@/app/lib/cloudinaryHelper';
+import Header from '@/app/components/sections/Header';
+import Footer from '@/app/components/sections/Footer';
 
 interface PageProps {
-    params: Promise<{ slug: string }>;
+    params: Promise<{
+        slug: string;
+    }>;
 }
 
-export async function generateStaticParams() {
-    return categories.map((category) => ({
-        slug: category.slug,
-    }));
-}
-
-export default async function CategoryPage({ params }: PageProps) {
-    const { slug } = await params;
-    const category = categories.find((c) => c.slug === slug);
-
-    if (!category) {
-        notFound();
-    }
-
+export default function CategoryPage({ params }: PageProps) {
+    const { slug } = use(params);
     const products = getProductsByCategory(slug);
+    const title = slug.charAt(0).toUpperCase() + slug.slice(1);
 
     return (
-        <main className="pt-[100px] pb-20 px-4 md:px-8 max-w-[1600px] mx-auto">
-            <SectionTitle
-                title={category.name}
-                subtitle={`Découvrez notre sélection de ${category.name.toLowerCase()}.`}
-            />
-            {products.length > 0 ? (
-                <ProductGrid products={products} />
-            ) : (
-                <p className="text-gray-500 text-lg">Aucun article trouvé dans cette catégorie pour le moment.</p>
-            )}
+        <main className="min-h-screen bg-white font-sans">
+            <Header />
+            <div className="pt-[100px] md:pt-[120px]">
+                <div className="max-w-[1600px] mx-auto px-6 py-8">
+
+                    <CategoryHeader
+                        title={title}
+                        count={products.length}
+                        breadcrumbs={[
+                            { label: 'Accueil', href: '/' },
+                            { label: title, href: `/categories/${slug}` },
+                        ]}
+                    />
+
+                    {/* Products Grid */}
+                    {products.length > 0 ? (
+                        <ProductGrid products={products} />
+                    ) : (
+                        <EmptyState message={`Oups ! Aucun produit trouvé dans la catégorie ${title} pour le moment.`} />
+                    )}
+
+                </div>
+            </div>
+            <Footer />
         </main>
     );
 }

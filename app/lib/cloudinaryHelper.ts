@@ -46,3 +46,7 @@ export const getCategoryImages = () => {
         };
     });
 };
+
+export const getProductsByCategory = (category: string) => {
+    return cloudinaryProducts.filter(p => p.category === category);
+};
