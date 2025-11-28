@@ -1,12 +1,13 @@
 'use client';
 
 import React from 'react';
-import HomeProductSection from '../ui/HomeProductSection';
-import { getRandomProducts } from '@/app/utils/productMapper';
+import HomeProductSection, { Product } from '../ui/HomeProductSection';
 
-export default function WeLoveSection() {
-    const products = getRandomProducts(10);
+interface WeLoveSectionProps {
+    products: Product[];
+}
 
+export default function WeLoveSection({ products }: WeLoveSectionProps) {
     return (
         <HomeProductSection
             title="We Love"

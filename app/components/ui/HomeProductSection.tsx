@@ -72,7 +72,7 @@ export default function HomeProductSection({ title, products }: HomeProductSecti
                     style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                 >
                     {products.map((product) => (
-                        <div key={product.id} className="snap-start shrink-0 w-[280px] sm:w-[300px] group relative p-4 flex flex-col hover:bg-gray-50 transition-colors cursor-pointer min-h-[420px]">
+                        <div key={product.id} className="snap-start shrink-0 w-1/2 sm:w-[280px] md:w-[300px] group relative p-4 flex flex-col hover:bg-gray-50 transition-colors cursor-pointer min-h-[420px]">
 
                             {/* Image Container */}
                             <div className="relative aspect-[3/3.5] mb-3 w-full flex items-center justify-center overflow-hidden">

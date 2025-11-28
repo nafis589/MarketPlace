@@ -1,12 +1,13 @@
 'use client';
 
 import React from 'react';
-import HomeProductSection from '../ui/HomeProductSection';
-import { getRandomProducts } from '@/app/utils/productMapper';
+import HomeProductSection, { Product } from '../ui/HomeProductSection';
 
-const TrendingNow = () => {
-    const products = getRandomProducts(10);
+interface TrendingNowProps {
+    products: Product[];
+}
 
+const TrendingNow = ({ products }: TrendingNowProps) => {
     return (
         <HomeProductSection
             title="Tendances du moment"

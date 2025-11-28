@@ -10,11 +10,11 @@ export const cloudinaryProducts = [
   },
   {
     "id": "08a8c1b4827ecf8629fabe52f3b47e0f",
-    "title": "Pantalon homme",
+    "title": "Homme",
     "gender": "homme",
     "category": "vetements",
     "type": "pantalons",
-    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764150241/WhatsApp_Image_2025-11-22_%C3%A0_16.41.27_00f58002_z4ytjx.jpg",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764147730/WhatsApp_Image_2025-11-22_%C3%A0_16.27.11_8bd8ffa6_rropgj.jpg",
     "folder": "homme/vetements/pantalons"
   },
   {

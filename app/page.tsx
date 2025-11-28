@@ -12,7 +12,16 @@ import JournalSection from './components/sections/JournalSection';
 import WeLoveSection from './components/sections/WeLoveSection';
 import Footer from './components/sections/Footer';
 
+import { getRandomProducts } from '@/app/utils/productMapper';
+
 export default function Home() {
+  const bestsellers = getRandomProducts(10);
+  const recentlyViewed = getRandomProducts(10);
+  const topDeals = getRandomProducts(10);
+  const trendingNow = getRandomProducts(10);
+  const userNewItems = getRandomProducts(10);
+  const weLove = getRandomProducts(10);
+
   return (
     <main className="min-h-screen bg-white max-w-full overflow-x-clip">
       <Header />
@@ -20,14 +29,14 @@ export default function Home() {
         <HeroBanner />
         <PromoSlider />
         <CategorySection />
-        <BestsellersSection />
-        <RecentlyViewed />
-        <TopDeals />
-        <TrendingNow />
+        <BestsellersSection products={bestsellers} />
+        <RecentlyViewed products={recentlyViewed} />
+        <TopDeals products={topDeals} />
+        <TrendingNow products={trendingNow} />
         <GiftsSelection />
-        <UserNewItems />
+        <UserNewItems products={userNewItems} />
         <JournalSection />
-        <WeLoveSection />
+        <WeLoveSection products={weLove} />
       </div>
       <Footer />
     </main>

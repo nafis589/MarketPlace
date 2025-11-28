@@ -1,12 +1,13 @@
 'use client';
 
 import React from 'react';
-import HomeProductSection from '../ui/HomeProductSection';
-import { getRandomProducts } from '@/app/utils/productMapper';
+import HomeProductSection, { Product } from '../ui/HomeProductSection';
 
-const UserNewItems = () => {
-    const products = getRandomProducts(10);
+interface UserNewItemsProps {
+    products: Product[];
+}
 
+const UserNewItems = ({ products }: UserNewItemsProps) => {
     return (
         <HomeProductSection
             title="Vos nouveautés"

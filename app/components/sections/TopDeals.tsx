@@ -1,12 +1,13 @@
 'use client';
 
 import React from 'react';
-import HomeProductSection from '../ui/HomeProductSection';
-import { getRandomProducts } from '@/app/utils/productMapper';
+import HomeProductSection, { Product } from '../ui/HomeProductSection';
 
-const TopDeals = () => {
-    const products = getRandomProducts(10);
+interface TopDealsProps {
+    products: Product[];
+}
 
+const TopDeals = ({ products }: TopDealsProps) => {
     return (
         <HomeProductSection
             title="Offres Exceptionnelles"
