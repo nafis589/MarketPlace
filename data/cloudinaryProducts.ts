@@ -10,11 +10,11 @@ export const cloudinaryProducts = [
   },
   {
     "id": "08a8c1b4827ecf8629fabe52f3b47e0f",
-    "title": "Homme",
+    "title": "Pantalon homme",
     "gender": "homme",
     "category": "vetements",
     "type": "pantalons",
-    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764147730/WhatsApp_Image_2025-11-22_%C3%A0_16.27.11_8bd8ffa6_rropgj.jpg",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764150241/WhatsApp_Image_2025-11-22_%C3%A0_16.41.27_00f58002_z4ytjx.jpg",
     "folder": "homme/vetements/pantalons"
   },
   {
@@ -1771,5 +1771,869 @@ export const cloudinaryProducts = [
     "type": null,
     "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764147559/WhatsApp_Image_2025-08-21_%C3%A0_17.29.27_c820b6c3_qzqub2.jpg",
     "folder": "homme"
+  },
+  {
+    "id": "133f78fe067de24f29ce96fa5e1c5c9b",
+    "title": "Veste homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "vestes",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764323549/IMG-20251126-WA0083_smtf3m.jpg",
+    "folder": "homme/vetements/vestes"
+  },
+  {
+    "id": "b5eab41e5a8b408c894582b475da2152",
+    "title": "Chemise homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "chemises",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764323393/WhatsApp_Image_2025-11-26_%C3%A0_14.25.22_a3d02507_naeyds.jpg",
+    "folder": "homme/vetements/chemises"
+  },
+  {
+    "id": "6a07e3e15b41318b323a111ba8765e8f",
+    "title": "Chemise homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "chemises",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764323392/IMG-20251126-WA0073_sihsqf.jpg",
+    "folder": "homme/vetements/chemises"
+  },
+  {
+    "id": "8ebeaee4600756decd22eed8e8653e7d",
+    "title": "Chemise homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "chemises",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764323392/IMG-20251126-WA0068_vb3kj7.jpg",
+    "folder": "homme/vetements/chemises"
+  },
+  {
+    "id": "05f9b8f8a05809f28557a7e753831d2c",
+    "title": "Mailles pull homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "mailles-pulls",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764323254/WhatsApp_Image_2025-11-26_%C3%A0_14.25.08_e0327d29_qhpx3d.jpg",
+    "folder": "homme/vetements/mailles-pulls"
+  },
+  {
+    "id": "b1b8df004c005df26f19aa38f9e4335e",
+    "title": "Mailles pull homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "mailles-pulls",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764323252/WhatsApp_Image_2025-11-26_%C3%A0_10.53.28_01c40663_ngbaod.jpg",
+    "folder": "homme/vetements/mailles-pulls"
+  },
+  {
+    "id": "74f6807555325413391072e42286d96f",
+    "title": "Mailles pull homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "mailles-pulls",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764323250/WhatsApp_Image_2025-11-26_%C3%A0_10.53.18_b25114cc_jibpgx.jpg",
+    "folder": "homme/vetements/mailles-pulls"
+  },
+  {
+    "id": "73a39797e56b0d31da09aa6360012fdf",
+    "title": "Mailles pull homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "mailles-pulls",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764323250/WhatsApp_Image_2025-11-26_%C3%A0_10.53.13_82d8562a_bxb7mt.jpg",
+    "folder": "homme/vetements/mailles-pulls"
+  },
+  {
+    "id": "6bd7591bd2299191ff1322034697f585",
+    "title": "Mailles pull homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "mailles-pulls",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764323250/WhatsApp_Image_2025-11-26_%C3%A0_10.53.10_e7d0930d_wskbvu.jpg",
+    "folder": "homme/vetements/mailles-pulls"
+  },
+  {
+    "id": "0e495d1eb79c50ef7f17520346f17011",
+    "title": "Mailles pull homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "mailles-pulls",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764323249/WhatsApp_Image_2025-11-22_%C3%A0_16.26.48_43bc62d8_lpw2mr.jpg",
+    "folder": "homme/vetements/mailles-pulls"
+  },
+  {
+    "id": "32223f6228f1af015742618d2ad2e782",
+    "title": "Mailles pull homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "mailles-pulls",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764323249/WhatsApp_Image_2025-11-25_%C3%A0_14.22.17_711bb737_sxfiv1.jpg",
+    "folder": "homme/vetements/mailles-pulls"
+  },
+  {
+    "id": "ae07952014047ec9d2c7783bb9703b1b",
+    "title": "Mailles pull homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "mailles-pulls",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764323249/WhatsApp_Image_2025-11-22_%C3%A0_15.59.48_1c760b6f_-_Copie_2_sqq6ku.jpg",
+    "folder": "homme/vetements/mailles-pulls"
+  },
+  {
+    "id": "0c56e2837d51225767da3a34d08e803f",
+    "title": "Mailles pull homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "mailles-pulls",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764323249/WhatsApp_Image_2025-11-26_%C3%A0_10.52.25_21024553_tuo3be.jpg",
+    "folder": "homme/vetements/mailles-pulls"
+  },
+  {
+    "id": "d469d5ea39585d4e8c2525a48b62a3b4",
+    "title": "Mailles pull homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "mailles-pulls",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764323249/WhatsApp_Image_2025-11-25_%C3%A0_14.22.33_0d0f2e6a_oyldy3.jpg",
+    "folder": "homme/vetements/mailles-pulls"
+  },
+  {
+    "id": "cf25d864052747f0606102550255807e",
+    "title": "Mailles pull homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "mailles-pulls",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764323249/WhatsApp_Image_2025-11-25_%C3%A0_14.22.45_ff7d1dd7_iw41sd.jpg",
+    "folder": "homme/vetements/mailles-pulls"
+  },
+  {
+    "id": "b0275ed1d507ec1b9d61c23ba16411cf",
+    "title": "Mailles pull homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "mailles-pulls",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764323248/IMG-20251126-WA0087_m6buuo.jpg",
+    "folder": "homme/vetements/mailles-pulls"
+  },
+  {
+    "id": "0df2f60661f109877724a44129cbd349",
+    "title": "Mailles pull homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "mailles-pulls",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764323247/IMG-20251126-WA0094_hb0irz.jpg",
+    "folder": "homme/vetements/mailles-pulls"
+  },
+  {
+    "id": "0f72140b7a753e5fe69440eb58e62a96",
+    "title": "Mailles pull homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "mailles-pulls",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764323247/IMG-20251126-WA0102_yzw6is.jpg",
+    "folder": "homme/vetements/mailles-pulls"
+  },
+  {
+    "id": "0fe94d080a9ec7518d3585f47cd53664",
+    "title": "Mailles pull homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "mailles-pulls",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764323247/IMG-20251126-WA0082_fyhcmg.jpg",
+    "folder": "homme/vetements/mailles-pulls"
+  },
+  {
+    "id": "636fd13b5ee1ddc46c9cb491ee712e03",
+    "title": "Mailles pull homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "mailles-pulls",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764323247/IMG-20251126-WA0078_czzvuy.jpg",
+    "folder": "homme/vetements/mailles-pulls"
+  },
+  {
+    "id": "27affa21f984ca32fbf187c5ede3bb82",
+    "title": "Pantalon homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "pantalons",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764235402/WhatsApp_Image_2025-11-26_%C3%A0_19.59.14_f9f6e512_ttzzyp.jpg",
+    "folder": "homme/vetements/pantalons"
+  },
+  {
+    "id": "062a51775c5bb29fc9081736cc793cde",
+    "title": "Pantalon homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "pantalons",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764235400/WhatsApp_Image_2025-11-26_%C3%A0_19.59.13_cfeff316_enokru.jpg",
+    "folder": "homme/vetements/pantalons"
+  },
+  {
+    "id": "f17c8b9b37433d9451518cfa0cba60f3",
+    "title": "Pantalon homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "pantalons",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764235399/WhatsApp_Image_2025-11-26_%C3%A0_19.59.09_36b709da_dyd23v.jpg",
+    "folder": "homme/vetements/pantalons"
+  },
+  {
+    "id": "7768fbbbefcfd4b78157b1551043d74c",
+    "title": "Pantalon homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "pantalons",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764235397/WhatsApp_Image_2025-11-26_%C3%A0_19.59.07_2705b0d2_ixk1gd.jpg",
+    "folder": "homme/vetements/pantalons"
+  },
+  {
+    "id": "5a7b065a3019b7b39cc5ac3dd7fad306",
+    "title": "Pantalon homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "pantalons",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764235396/WhatsApp_Image_2025-11-26_%C3%A0_14.25.20_8b7dacfa_ossa39.jpg",
+    "folder": "homme/vetements/pantalons"
+  },
+  {
+    "id": "d52a1d00e26d5fb07125f6721b329051",
+    "title": "Pantalon homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "pantalons",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764235393/WhatsApp_Image_2025-11-26_%C3%A0_14.24.27_04e8ead2_zn5zpn.jpg",
+    "folder": "homme/vetements/pantalons"
+  },
+  {
+    "id": "cbfd8dfb3ba69365371592957c877815",
+    "title": "Pantalon homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "pantalons",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764235392/IMG-20251126-WA0113_z1fsl2.jpg",
+    "folder": "homme/vetements/pantalons"
+  },
+  {
+    "id": "4f336b9d0129491542fd42bc716b6850",
+    "title": "Pantalon homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "pantalons",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764235390/IMG-20251126-WA0112_jluf7g.jpg",
+    "folder": "homme/vetements/pantalons"
+  },
+  {
+    "id": "923017cf86c44802d41967556a28f21a",
+    "title": "Pantalon homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "pantalons",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764235389/IMG-20251126-WA0089_ia7jsj.jpg",
+    "folder": "homme/vetements/pantalons"
+  },
+  {
+    "id": "cc7a956063ba84fd689cb7c8fe05d96e",
+    "title": "Pantalon homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "pantalons",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764235388/IMG-20251126-WA0088_bhbcsd.jpg",
+    "folder": "homme/vetements/pantalons"
+  },
+  {
+    "id": "47c1a1f06c20c66f0b31be09ce120e66",
+    "title": "T shirt homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "t-shirts",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764235270/IMG-20251126-WA0122_st4ppg.jpg",
+    "folder": "homme/vetements/t-shirts"
+  },
+  {
+    "id": "3c0fe8b84ac3804952b05a287a115048",
+    "title": "T shirt homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "t-shirts",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764235269/IMG-20251126-WA0121_lkcfa3.jpg",
+    "folder": "homme/vetements/t-shirts"
+  },
+  {
+    "id": "9eb0fbb9d69e2d4e010872ac83f23ead",
+    "title": "T shirt homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "t-shirts",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764235267/IMG-20251126-WA0120_cczuug.jpg",
+    "folder": "homme/vetements/t-shirts"
+  },
+  {
+    "id": "14c62b33a6edbbc5ee82b765058fc185",
+    "title": "T shirt homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "t-shirts",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764235267/IMG-20251126-WA0119_tornpp.jpg",
+    "folder": "homme/vetements/t-shirts"
+  },
+  {
+    "id": "adc165c5fe4269979bcdfbedd134e81d",
+    "title": "T shirt homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "t-shirts",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764235265/IMG-20251126-WA0118_apdzia.jpg",
+    "folder": "homme/vetements/t-shirts"
+  },
+  {
+    "id": "8c0c08a0e5483eccb324eedeaaa63544",
+    "title": "T shirt homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "t-shirts",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764235263/IMG-20251126-WA0117_berrrd.jpg",
+    "folder": "homme/vetements/t-shirts"
+  },
+  {
+    "id": "e4286369d1e9893eed72fef4d6921a4a",
+    "title": "T shirt homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "t-shirts",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764235262/IMG-20251126-WA0116_vbvjdp.jpg",
+    "folder": "homme/vetements/t-shirts"
+  },
+  {
+    "id": "053e23bbd210d3edd8de016a78a57409",
+    "title": "T shirt homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "t-shirts",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764235261/IMG-20251126-WA0115_jvltr6.jpg",
+    "folder": "homme/vetements/t-shirts"
+  },
+  {
+    "id": "927cc725e342dc0d06824e8db8aed91a",
+    "title": "T shirt homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "t-shirts",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764235201/IMG-20251126-WA0098_hg5xar.jpg",
+    "folder": "homme/vetements/t-shirts"
+  },
+  {
+    "id": "ceab1a3641fa69cbc58cd81fa2a95987",
+    "title": "T shirt homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "t-shirts",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764235200/IMG-20251126-WA0096_wyzyfc.jpg",
+    "folder": "homme/vetements/t-shirts"
+  },
+  {
+    "id": "1ecb93fbd482cbd1f053be25697b2053",
+    "title": "T shirt homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "t-shirts",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764235200/IMG-20251126-WA0097_b6ob7v.jpg",
+    "folder": "homme/vetements/t-shirts"
+  },
+  {
+    "id": "055316e867794ed202e2665abd06f535",
+    "title": "T shirt homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "t-shirts",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764235199/IMG-20251126-WA0095_sspxer.jpg",
+    "folder": "homme/vetements/t-shirts"
+  },
+  {
+    "id": "c71c2bdabfb2c86902a76cf5203ba6ac",
+    "title": "T shirt homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "t-shirts",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764235195/IMG-20251126-WA0092_i7vutk.jpg",
+    "folder": "homme/vetements/t-shirts"
+  },
+  {
+    "id": "1e73b0ee1b3886edb4f8efceacd3dba3",
+    "title": "T shirt homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "t-shirts",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764235194/IMG-20251126-WA0072_kf3frm.jpg",
+    "folder": "homme/vetements/t-shirts"
+  },
+  {
+    "id": "adc6dc611dfe9e86202990bc1083643c",
+    "title": "T shirt homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "t-shirts",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764235194/IMG-20251126-WA0091_vx8eye.jpg",
+    "folder": "homme/vetements/t-shirts"
+  },
+  {
+    "id": "4735b3f5b57c6e44c62e8d551feb8db4",
+    "title": "T shirt homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "t-shirts",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764235194/IMG-20251126-WA0090_uxofj8.jpg",
+    "folder": "homme/vetements/t-shirts"
+  },
+  {
+    "id": "8add9025ad074a7fc7595da6b05ea242",
+    "title": "T shirt homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "t-shirts",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764235194/IMG-20251126-WA0085_tseewh.jpg",
+    "folder": "homme/vetements/t-shirts"
+  },
+  {
+    "id": "43d2dee9dd402e7c3c65edca27cf0f68",
+    "title": "T shirt homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "t-shirts",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764235086/IMG-20251126-WA0033_k81ybm.jpg",
+    "folder": "homme/vetements/t-shirts"
+  },
+  {
+    "id": "b88c664ddf5561a2d1ad2fa6ccbd261d",
+    "title": "T shirt homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "t-shirts",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764235085/IMG-20251126-WA0028_sghqav.jpg",
+    "folder": "homme/vetements/t-shirts"
+  },
+  {
+    "id": "2d9005ed206ffe6b587c5c56ca59ee05",
+    "title": "T shirt homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "t-shirts",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764235085/IMG-20251126-WA0029_ej1dmn.jpg",
+    "folder": "homme/vetements/t-shirts"
+  },
+  {
+    "id": "01bf1495effbd39f34d092c786d1c917",
+    "title": "T shirt homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "t-shirts",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764235085/IMG-20251126-WA0031_jkmckl.jpg",
+    "folder": "homme/vetements/t-shirts"
+  },
+  {
+    "id": "f1a98e2cf752512990b850e88cdee4b1",
+    "title": "T shirt homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "t-shirts",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764235085/IMG-20251126-WA0032_ytw90l.jpg",
+    "folder": "homme/vetements/t-shirts"
+  },
+  {
+    "id": "1ca616ce4caa08e3aa02b2a2d278ea9a",
+    "title": "T shirt homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "t-shirts",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764235085/IMG-20251126-WA0030_b0puy7.jpg",
+    "folder": "homme/vetements/t-shirts"
+  },
+  {
+    "id": "391bc3c13b4f47b8b2886860785f3f2e",
+    "title": "Pantalon homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "pantalons",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764196602/WhatsApp_Image_2025-11-26_%C3%A0_14.25.20_8b7dacfa_fvvxtj.jpg",
+    "folder": "homme/vetements/pantalons"
+  },
+  {
+    "id": "afb77013ecf8259afb5de8623e8b6194",
+    "title": "Pantalon homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "pantalons",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764196600/WhatsApp_Image_2025-11-26_%C3%A0_19.59.14_f9f6e512_ce8efi.jpg",
+    "folder": "homme/vetements/pantalons"
+  },
+  {
+    "id": "2780fc89dfad2d897fc68fe7a4b3de30",
+    "title": "Pantalon homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "pantalons",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764196599/WhatsApp_Image_2025-11-26_%C3%A0_14.24.25_ac567ea8_eeovrp.jpg",
+    "folder": "homme/vetements/pantalons"
+  },
+  {
+    "id": "4b068f6e2c7d9eb49da994176a2ad2f8",
+    "title": "Pantalon homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "pantalons",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764196598/WhatsApp_Image_2025-11-26_%C3%A0_19.59.13_cfeff316_hcj4ny.jpg",
+    "folder": "homme/vetements/pantalons"
+  },
+  {
+    "id": "418701869738942424c81c3926e8ce18",
+    "title": "Pantalon homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "pantalons",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764196597/WhatsApp_Image_2025-11-26_%C3%A0_19.59.07_2705b0d2_s3vwqw.jpg",
+    "folder": "homme/vetements/pantalons"
+  },
+  {
+    "id": "9e2817dcd90e56cb6ce402a7b36ac29f",
+    "title": "Pantalon homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "pantalons",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764196596/WhatsApp_Image_2025-11-26_%C3%A0_14.24.23_915bf111_rsj9wl.jpg",
+    "folder": "homme/vetements/pantalons"
+  },
+  {
+    "id": "2a6a3ed7b3394dee023f8fc2718ad9cb",
+    "title": "Pantalon homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "pantalons",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764196596/WhatsApp_Image_2025-11-26_%C3%A0_19.59.09_36b709da_dmuhdw.jpg",
+    "folder": "homme/vetements/pantalons"
+  },
+  {
+    "id": "3d598af7384b2b36f4876adae2e150e2",
+    "title": "Pantalon homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "pantalons",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764196595/WhatsApp_Image_2025-11-26_%C3%A0_14.24.27_04e8ead2_obv5l2.jpg",
+    "folder": "homme/vetements/pantalons"
+  },
+  {
+    "id": "1725de04842ba25e72a7179b9ba0301b",
+    "title": "Jean homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "jeans",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764325320/WhatsApp_Image_2025-11-27_%C3%A0_15.16.04_9c411f8a_fuxicr.jpg",
+    "folder": "homme/vetements/jeans"
+  },
+  {
+    "id": "dc3a7dc4db57a97dca304a6583f647d1",
+    "title": "Jean homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "jeans",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764325319/WhatsApp_Image_2025-11-27_%C3%A0_15.15.48_6c79fb17_u8fd0r.jpg",
+    "folder": "homme/vetements/jeans"
+  },
+  {
+    "id": "d4718dc3b966a5cfd0c682790b425d5a",
+    "title": "Jean homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "jeans",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764325316/IMG-20251127-WA0030_efxj3y.jpg",
+    "folder": "homme/vetements/jeans"
+  },
+  {
+    "id": "5ccafa6f7f0d4006c2537e2b444ded57",
+    "title": "Jean homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "jeans",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764325314/IMG-20251127-WA0029_ec9ztc.jpg",
+    "folder": "homme/vetements/jeans"
+  },
+  {
+    "id": "107dea4d99b8023e93a8c010e3c9fe69",
+    "title": "Jean homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "jeans",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764325312/IMG-20251127-WA0028_ityvfk.jpg",
+    "folder": "homme/vetements/jeans"
+  },
+  {
+    "id": "1a53985552da5b3a8aef4f550afa3934",
+    "title": "Jean homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "jeans",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764325309/IMG-20251127-WA0025_bfofct.jpg",
+    "folder": "homme/vetements/jeans"
+  },
+  {
+    "id": "9176db965f4a83636959712a8dc604b3",
+    "title": "Jean homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "jeans",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764325310/IMG-20251127-WA0027_pd6tio.jpg",
+    "folder": "homme/vetements/jeans"
+  },
+  {
+    "id": "ded6a64c8516317b74a65ae01a06d2bd",
+    "title": "Jean homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "jeans",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764325309/IMG-20251127-WA0026_wmiyhq.jpg",
+    "folder": "homme/vetements/jeans"
+  },
+  {
+    "id": "9e0fe99bd2d6dc6ecf5a23c604159331",
+    "title": "Jean homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "jeans",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764325305/IMG-20251127-WA0024_sfhto4.jpg",
+    "folder": "homme/vetements/jeans"
+  },
+  {
+    "id": "e32ed8c7d8be636c5bc21c464445795e",
+    "title": "Jean homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "jeans",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764325304/IMG-20251127-WA0023_dnny7a.jpg",
+    "folder": "homme/vetements/jeans"
+  },
+  {
+    "id": "6ca0a55ae9d44eca791b7b8066b7fd2f",
+    "title": "Jean homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "jeans",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764325301/IMG-20251127-WA0020_x0ck0n.jpg",
+    "folder": "homme/vetements/jeans"
+  },
+  {
+    "id": "566e935e053acc9d89edc381e5230681",
+    "title": "Jean homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "jeans",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764325300/IMG-20251127-WA0019_qnrwg4.jpg",
+    "folder": "homme/vetements/jeans"
+  },
+  {
+    "id": "743b8c92e0e401dedaa9688bfff41a40",
+    "title": "Jean homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "jeans",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764325298/IMG-20251127-WA0018_ynl8gn.jpg",
+    "folder": "homme/vetements/jeans"
+  },
+  {
+    "id": "9ae64928747e0bc2754d68331cd1f1fa",
+    "title": "Jean homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "jeans",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764325297/IMG-20251127-WA0017_e8ibka.jpg",
+    "folder": "homme/vetements/jeans"
+  },
+  {
+    "id": "bf5d0ad902cf2443a4e5a389fe30c0e4",
+    "title": "Jean homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "jeans",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764325295/IMG-20251127-WA0016_emrsdm.jpg",
+    "folder": "homme/vetements/jeans"
+  },
+  {
+    "id": "7263bb4cf693f82feca2960a52cb3277",
+    "title": "Jean homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "jeans",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764325294/IMG-20251127-WA0015_nwggwg.jpg",
+    "folder": "homme/vetements/jeans"
+  },
+  {
+    "id": "8e77b2978dcbb1f6677705bb7bfcfd9c",
+    "title": "Jean homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "jeans",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764325292/IMG-20251127-WA0014_djws4g.jpg",
+    "folder": "homme/vetements/jeans"
+  },
+  {
+    "id": "7a6cb71a7006e1cb0861fc5b0e3e8491",
+    "title": "Jean homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "jeans",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764325291/IMG-20251127-WA0013_mz41af.jpg",
+    "folder": "homme/vetements/jeans"
+  },
+  {
+    "id": "b9f49f7d082e6924bd9bfb725885ee28",
+    "title": "Jean homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "jeans",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764325290/IMG-20251127-WA0012_tlxufv.jpg",
+    "folder": "homme/vetements/jeans"
+  },
+  {
+    "id": "570ec925913156e5eb1e58ce33a6b703",
+    "title": "Jean homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "jeans",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764325288/IMG-20251127-WA0011_osdpk1.jpg",
+    "folder": "homme/vetements/jeans"
+  },
+  {
+    "id": "23cf13445bda15bcbf48ffab568bc24a",
+    "title": "Jean homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "jeans",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764325284/IMG-20251127-WA0007_iaffn3.jpg",
+    "folder": "homme/vetements/jeans"
+  },
+  {
+    "id": "2779f093efdde26051fa189529099446",
+    "title": "Jean homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "jeans",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764325284/IMG-20251127-WA0008_hlcd2l.jpg",
+    "folder": "homme/vetements/jeans"
+  },
+  {
+    "id": "8c9222861ed64aaee23b1667a8501c54",
+    "title": "Jean homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "jeans",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764325283/IMG-20251127-WA0006_gqvamo.jpg",
+    "folder": "homme/vetements/jeans"
+  },
+  {
+    "id": "b38e3748000d88dbf1508b5fcac29579",
+    "title": "Jean homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "jeans",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764325283/IMG-20251127-WA0005_hzpxxe.jpg",
+    "folder": "homme/vetements/jeans"
+  },
+  {
+    "id": "0fe656bf28adcfe85cf872698d858827",
+    "title": "Short homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "shorts",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764325636/IMG-20251126-WA0114_ptstlw.jpg",
+    "folder": "homme/vetements/shorts"
+  },
+  {
+    "id": "a98533d936ce8697694a2ac6229ff5f0",
+    "title": "Short homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "shorts",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764325542/WhatsApp_Image_2025-11-27_%C3%A0_15.17.22_f0b7431d_fuhir9.jpg",
+    "folder": "homme/vetements/shorts"
+  },
+  {
+    "id": "a3fb5790cd6d269941b76e74de7a9997",
+    "title": "Short homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "shorts",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764325540/WhatsApp_Image_2025-11-27_%C3%A0_15.15.56_4b7339b9_uphpcs.jpg",
+    "folder": "homme/vetements/shorts"
+  },
+  {
+    "id": "2566e3a90e75e5b0c1f2f610ff3a494d",
+    "title": "Short homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "shorts",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764325539/IMG-20251127-WA0040_utwnjj.jpg",
+    "folder": "homme/vetements/shorts"
+  },
+  {
+    "id": "b04a132708d1ce2cb13b1215b386820a",
+    "title": "Short homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "shorts",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764325537/IMG-20251127-WA0039_winjh8.jpg",
+    "folder": "homme/vetements/shorts"
+  },
+  {
+    "id": "d09b0ec12c371be9ee4abd1a8dec0099",
+    "title": "Short homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "shorts",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764325535/IMG-20251127-WA0038_fiav6a.jpg",
+    "folder": "homme/vetements/shorts"
+  },
+  {
+    "id": "c6f65df0ed3f78a9c45fbf2f3188110a",
+    "title": "Short homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "shorts",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764325534/IMG-20251127-WA0037_pgvq57.jpg",
+    "folder": "homme/vetements/shorts"
+  },
+  {
+    "id": "9528ac9ca3916f2decc7370ff455dba0",
+    "title": "Short homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "shorts",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764325533/IMG-20251127-WA0036_wtl2rk.jpg",
+    "folder": "homme/vetements/shorts"
+  },
+  {
+    "id": "37d06c349e98e3ade22324eb30eb59d2",
+    "title": "Short homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "shorts",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764325531/IMG-20251127-WA0035_dqkj4v.jpg",
+    "folder": "homme/vetements/shorts"
+  },
+  {
+    "id": "c96b4193bb96ce68e988f13bc65c6346",
+    "title": "Short homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "shorts",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764325531/IMG-20251127-WA0010_iszjtw.jpg",
+    "folder": "homme/vetements/shorts"
+  },
+  {
+    "id": "7160fb80b40ec34dbbd631210a60e550",
+    "title": "Short homme",
+    "gender": "homme",
+    "category": "vetements",
+    "type": "shorts",
+    "image": "https://res.cloudinary.com/dlxwncnrf/image/upload/v1764325529/IMG-20251127-WA0009_y9hkrz.jpg",
+    "folder": "homme/vetements/shorts"
   }
 ];
