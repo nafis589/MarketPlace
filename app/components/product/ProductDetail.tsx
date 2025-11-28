@@ -92,42 +92,75 @@ export default function ProductDetail({ product }: ProductDetailProps) {
             <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-8 pb-20">
 
                 {/* Left Column: Image Gallery */}
-                <div className="lg:col-span-7 flex gap-4">
+                <div className="lg:col-span-7">
 
-                    {/* Thumbnails Sidebar */}
-                    <div className="flex flex-col items-center gap-2 w-20 shrink-0">
-                        <button className="p-1 hover:bg-gray-100 rounded">
-                            <ChevronUp />
-                        </button>
-                        {thumbnails.map((src, idx) => (
-                            <div
-                                key={idx}
-                                className={`w-16 h-16 border cursor-pointer overflow-hidden transition-all ${selectedImage === src ? 'border-black ring-1 ring-black' : 'border-gray-200 hover:border-gray-400'}`}
-                                onClick={() => setSelectedImage(src)}
-                            >
-                                <img src={src} alt={`Thumbnail ${idx}`} className="w-full h-full object-cover" />
+                    {/* Desktop View */}
+                    <div className="hidden lg:flex gap-4">
+                        {/* Thumbnails Sidebar */}
+                        <div className="flex flex-col items-center gap-2 w-20 shrink-0">
+                            <button className="p-1 hover:bg-gray-100 rounded">
+                                <ChevronUp />
+                            </button>
+                            {thumbnails.map((src, idx) => (
+                                <div
+                                    key={idx}
+                                    className={`w-16 h-16 border cursor-pointer overflow-hidden transition-all ${selectedImage === src ? 'border-black ring-1 ring-black' : 'border-gray-200 hover:border-gray-400'}`}
+                                    onClick={() => setSelectedImage(src)}
+                                >
+                                    <img src={src} alt={`Thumbnail ${idx}`} className="w-full h-full object-cover" />
+                                </div>
+                            ))}
+                            <button className="p-1 hover:bg-gray-100 rounded">
+                                <ChevronDown />
+                            </button>
+                        </div>
+
+                        {/* Main Image Area */}
+                        <div className="flex-1 relative bg-gray-50 flex items-center justify-center min-h-[500px]">
+                            {/* Like Counter */}
+                            <div className="absolute top-0 right-0 p-4 flex items-center gap-1 z-10">
+                                <span className="text-sm">1</span>
+                                <button className="hover:text-red-500">
+                                    <HeartIcon />
+                                </button>
                             </div>
-                        ))}
-                        <button className="p-1 hover:bg-gray-100 rounded">
-                            <ChevronDown />
-                        </button>
+
+                            <img
+                                src={selectedImage}
+                                alt={product.title}
+                                className="max-h-[600px] object-contain mix-blend-multiply transition-opacity duration-300"
+                            />
+                        </div>
                     </div>
 
-                    {/* Main Image Area */}
-                    <div className="flex-1 relative bg-gray-50 flex items-center justify-center min-h-[500px]">
-                        {/* Like Counter Positioned Top Right of image area */}
-                        <div className="absolute top-0 right-0 p-4 flex items-center gap-1 z-10">
-                            <span className="text-sm">1</span>
-                            <button className="hover:text-red-500">
+                    {/* Mobile View - Horizontal Scroll Carousel */}
+                    <div className="lg:hidden relative">
+                        {/* Like Counter Overlay */}
+                        <div className="absolute top-4 right-4 z-10 flex items-center gap-1 bg-white/80 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm">
+                            <span className="text-xs font-medium">1</span>
+                            <button className="text-gray-900 hover:text-red-500">
                                 <HeartIcon />
                             </button>
                         </div>
 
-                        <img
-                            src={selectedImage}
-                            alt={product.title}
-                            className="max-h-[600px] object-contain mix-blend-multiply transition-opacity duration-300"
-                        />
+                        <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide bg-gray-50 aspect-[3/4]">
+                            {thumbnails.map((src, idx) => (
+                                <div key={idx} className="snap-center shrink-0 w-full h-full flex items-center justify-center relative p-4">
+                                    <img
+                                        src={src}
+                                        alt={`${product.title} - view ${idx + 1}`}
+                                        className="max-h-full max-w-full object-contain mix-blend-multiply"
+                                    />
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Scroll Indicator (Optional visual cue) */}
+                        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 pointer-events-none">
+                            {thumbnails.map((_, idx) => (
+                                <div key={idx} className="w-1.5 h-1.5 rounded-full bg-gray-300/80" />
+                            ))}
+                        </div>
                     </div>
                 </div>
 
