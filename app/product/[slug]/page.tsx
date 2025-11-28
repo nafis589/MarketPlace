@@ -4,7 +4,6 @@ import React, { use } from 'react';
 import Header from '@/app/components/sections/Header';
 import Footer from '@/app/components/sections/Footer';
 import ProductDetail from '@/app/components/product/ProductDetail';
-import FilterBar from '@/app/components/ui/FilterBar';
 import { cloudinaryProducts } from '@/data/cloudinaryProducts';
 import { notFound } from 'next/navigation';
 
@@ -46,11 +45,6 @@ export default function ProductPage({ params }: PageProps) {
         <main className="min-h-screen bg-white font-sans">
             <Header />
             <div className="pt-[100px] md:pt-[120px]">
-                <div className="max-w-[1600px] mx-auto px-6 py-6">
-                    {/* "Le Filtrage" - Filter Bar as requested */}
-                    <FilterBar />
-                </div>
-
                 <ProductDetail product={product} />
             </div>
             <Footer />
