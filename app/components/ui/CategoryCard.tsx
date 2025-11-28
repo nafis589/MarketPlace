@@ -15,7 +15,7 @@ interface CategoryCardProps {
 
 const CategoryCard: React.FC<CategoryCardProps> = ({ category }) => {
     return (
-        <Link href={`/categories/${category.slug}`} className="group block relative cursor-pointer">
+        <Link href={`/categories/${category.slug}`} className="group block cursor-pointer">
             <div className="relative aspect-[4/5] w-full overflow-hidden bg-gray-100">
                 <Image
                     src={category.image}
@@ -25,10 +25,12 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ category }) => {
                     sizes="(max-width: 768px) 50vw, 20vw"
                 />
                 <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors duration-300" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                    <h3 className="text-white text-2xl font-serif font-medium tracking-wide drop-shadow-md">{category.name}</h3>
-                </div>
             </div>
+
+            {/* Nom en dessous */}
+            <h3 className="mt-3 text-center text-lg font-serif font-medium">
+                {category.name}
+            </h3>
         </Link>
     );
 };

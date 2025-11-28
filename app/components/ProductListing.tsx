@@ -150,7 +150,7 @@ export default function ProductListing({
         : []); // Default to empty if no products passed and no filter, to show EmptyState for unhandled pages
 
     return (
-        <div className="min-h-screen bg-white font-sans">
+        <div className="min-h-screen bg-white font-sans pt-[100px] md:pt-[120px]">
             <div className="max-w-[1600px] mx-auto px-6 py-8">
 
                 {/* Breadcrumbs (Optional) */}

@@ -2,13 +2,15 @@
 
 import React from 'react';
 import HomeProductSection from '../ui/HomeProductSection';
-import { bestSellersProducts } from '@/app/data/homeSectionsData';
+import { getRandomProducts } from '@/app/utils/productMapper';
 
 export default function BestsellersSection() {
+    const products = getRandomProducts(10);
+
     return (
         <HomeProductSection
             title="Nos best-sellers"
-            products={bestSellersProducts}
+            products={products}
         />
     );
 }

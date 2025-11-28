@@ -2,13 +2,15 @@
 
 import React from 'react';
 import HomeProductSection from '../ui/HomeProductSection';
-import { homeProducts } from '@/app/data/homeSectionsData';
+import { getRandomProducts } from '@/app/utils/productMapper';
 
 export default function RecentlyViewed() {
+    const products = getRandomProducts(10);
+
     return (
         <HomeProductSection
             title="Récemment consultés"
-            products={homeProducts}
+            products={products}
         />
     );
 }

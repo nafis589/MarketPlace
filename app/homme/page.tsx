@@ -17,7 +17,7 @@ export default function HommePage() {
     return (
         <main className="min-h-screen bg-white font-sans">
             <Header />
-            <div className="pt-[72px] md:pt-[88px]">
+            <div className="pt-[100px] md:pt-[120px]">
                 <div className="max-w-[1600px] mx-auto px-6 py-8">
 
                     <CategoryHeader

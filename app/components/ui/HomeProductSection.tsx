@@ -1,13 +1,13 @@
 'use client';
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { ChevronRight, Heart, Leaf } from 'lucide-react';
 
 // --- Types ---
 export type BadgeType = 'BLACK_FRIDAY' | 'WE_LOVE' | null;
 
 export interface Product {
-    id: number;
+    id: number | string;
     brand: string;
     name: string;
     size: string;
@@ -46,6 +46,14 @@ interface HomeProductSectionProps {
 
 // --- Composant Principal ---
 export default function HomeProductSection({ title, products }: HomeProductSectionProps) {
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+    const scrollRight = () => {
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollBy({ left: 300, behavior: 'smooth' });
+        }
+    };
+
     return (
         <div className="bg-gray-50 py-10 px-6 font-sans">
 
@@ -55,12 +63,16 @@ export default function HomeProductSection({ title, products }: HomeProductSecti
             </h2>
 
             {/* Conteneur Carousel (Relatif pour positionner la flèche) */}
-            <div className="relative max-w-[1600px] mx-auto">
+            <div className="relative max-w-[1600px] mx-auto group/section">
 
-                {/* Grille de produits */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 bg-white border border-gray-200 divide-y sm:divide-y-0 sm:divide-x divide-gray-200">
+                {/* Grille de produits (Scrollable) */}
+                <div
+                    ref={scrollContainerRef}
+                    className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide bg-white border border-gray-200 divide-x divide-gray-200"
+                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                >
                     {products.map((product) => (
-                        <div key={product.id} className="group relative p-4 flex flex-col hover:bg-gray-50 transition-colors cursor-pointer min-h-[420px]">
+                        <div key={product.id} className="snap-start shrink-0 w-[280px] sm:w-[300px] group relative p-4 flex flex-col hover:bg-gray-50 transition-colors cursor-pointer min-h-[420px]">
 
                             {/* Image Container */}
                             <div className="relative aspect-[3/3.5] mb-3 w-full flex items-center justify-center overflow-hidden">
@@ -129,8 +141,8 @@ export default function HomeProductSection({ title, products }: HomeProductSecti
                 </div>
 
                 {/* Bouton "Suivant" (Flèche) */}
-                {/* Positionné à droite, centré verticalement, débordant légèrement */}
                 <button
+                    onClick={scrollRight}
                     className="absolute -right-5 top-1/2 -translate-y-1/2 z-10 bg-white border border-black w-10 h-10 flex items-center justify-center hover:bg-gray-100 transition-colors shadow-sm hidden lg:flex"
                     aria-label="Voir plus"
                 >
