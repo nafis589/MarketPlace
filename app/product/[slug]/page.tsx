@@ -1,89 +1,58 @@
-import { notFound } from 'next/navigation';
-import { Metadata } from 'next';
+'use client';
+
+import React, { use } from 'react';
 import Header from '@/app/components/sections/Header';
 import Footer from '@/app/components/sections/Footer';
-import ProductDetailComponent from '@/app/components/product/ProductDetailComponent';
-import RelatedProducts from '@/app/components/product/RelatedProducts';
-import { getProductBySlug, getRelatedProducts, getAllProductSlugs } from '@/app/lib/products';
+import ProductDetail from '@/app/components/product/ProductDetail';
+import FilterBar from '@/app/components/ui/FilterBar';
+import { cloudinaryProducts } from '@/data/cloudinaryProducts';
+import { notFound } from 'next/navigation';
 
-// Generate static params for all product slugs
-export async function generateStaticParams() {
-    const slugs = getAllProductSlugs();
-
-    return slugs.map((slug) => ({
-        slug: slug,
-    }));
+interface PageProps {
+    params: Promise<{
+        slug: string;
+    }>;
 }
 
-// Generate dynamic metadata for SEO
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-    const { slug } = await params;
-    const product = getProductBySlug(slug);
+export default function ProductPage({ params }: PageProps) {
+    const { slug } = use(params);
 
-    if (!product) {
-        return {
-            title: 'Produit non trouvé',
-            description: 'Le produit que vous recherchez n\'existe pas.',
-        };
-    }
+    // Parse slug to find product
+    // Slug format from ProductListing: product-{id}
+    // Or just check if slug contains the ID
+    const productId = slug.replace('product-', '');
+    const productData = cloudinaryProducts.find(p => p.id === productId);
 
-    // Get first 160 characters of description for meta description
-    const metaDescription = product.description.length > 160
-        ? product.description.substring(0, 157) + '...'
-        : product.description;
-
-    return {
-        title: `${product.brand} - ${product.title} | FriperieLuxe`,
-        description: metaDescription,
-        openGraph: {
-            title: `${product.brand} - ${product.title}`,
-            description: metaDescription,
-            images: [
-                {
-                    url: product.images[0],
-                    width: 1200,
-                    height: 630,
-                    alt: `${product.brand} ${product.title}`,
-                },
-            ],
-            type: 'website',
-        },
-        twitter: {
-            card: 'summary_large_image',
-            title: `${product.brand} - ${product.title}`,
-            description: metaDescription,
-            images: [product.images[0]],
-        },
-    };
-}
-
-// Main Page Component
-export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
-    const { slug } = await params;
-    const product = getProductBySlug(slug);
-
-    // If product not found, show 404
-    if (!product) {
+    if (!productData) {
         notFound();
     }
 
-    // Get related products based on category
-    const relatedProducts = getRelatedProducts(product.category, product.id, 4);
+    // Map to ProductDetail props
+    // We generate some random data for fields missing in Cloudinary
+    const product = {
+        id: productData.id,
+        title: productData.title,
+        brand: "Friperie Luxe", // Default brand
+        name: productData.title,
+        price: 69, // Default or random price
+        currency: "€",
+        image: productData.image,
+        category: productData.category || 'vetements',
+        type: productData.type || 'general',
+        gender: productData.gender || 'homme'
+    };
 
     return (
-        <main className="min-h-screen bg-white">
+        <main className="min-h-screen bg-white font-sans">
             <Header />
+            <div className="pt-[100px] md:pt-[120px]">
+                <div className="max-w-[1600px] mx-auto px-6 py-6">
+                    {/* "Le Filtrage" - Filter Bar as requested */}
+                    <FilterBar />
+                </div>
 
-            {/* Offset for fixed header */}
-            <div className="pt-[72px] md:pt-[88px]">
-                <ProductDetailComponent product={product} />
-
-                {/* Related Products Section */}
-                {relatedProducts.length > 0 && (
-                    <RelatedProducts products={relatedProducts} title="Produits similaires" />
-                )}
+                <ProductDetail product={product} />
             </div>
-
             <Footer />
         </main>
     );
