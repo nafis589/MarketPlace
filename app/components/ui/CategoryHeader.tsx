@@ -74,7 +74,7 @@ export default function CategoryHeader({ title, count, breadcrumbs }: CategoryHe
             </div>
 
             {/* Barre de Filtres */}
-            <div className="flex flex-wrap gap-3 items-center">
+            <div className="flex overflow-x-auto gap-3 items-center pb-2 scrollbar-hide">
                 {/* Trier Par */}
                 <FilterButton label="Trier Par" hasChevron={true} />
 

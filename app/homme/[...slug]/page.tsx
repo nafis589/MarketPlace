@@ -66,12 +66,12 @@ export default function HommeCategoryPage({ params }: PageProps) {
 
                     {/* Sub-categories Navigation (only on Category page) */}
                     {!type && subCategories.length > 0 && (
-                        <div className="flex flex-wrap gap-3 mb-8">
+                        <div className="flex overflow-x-auto gap-3 mb-8 pb-2 scrollbar-hide">
                             {subCategories.map((sub) => (
                                 <Link
                                     key={sub}
                                     href={`/homme/${category}/${sub}`}
-                                    className="px-4 py-2 bg-gray-100 rounded-full text-sm font-medium text-gray-700 hover:bg-black hover:text-white transition-colors capitalize"
+                                    className="px-4 py-2 bg-gray-100 rounded-full text-sm font-medium text-gray-700 hover:bg-black hover:text-white transition-colors capitalize whitespace-nowrap flex-shrink-0"
                                 >
                                     {sub}
                                 </Link>
