@@ -5,7 +5,10 @@ import Link from 'next/link';
 import Image from 'next/image';
 import EmptyState from '@/app/components/EmptyState';
 
-// --- Types ---
+import Header from '@/app/components/sections/Header';
+import Footer from '@/app/components/sections/Footer';
+
+// ... Types ...
 export interface Product {
     id: number;
     brand: string;
@@ -83,7 +86,7 @@ const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
                         src={productImage}
                         alt={product.brand}
                         fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="object-cover group-hover:scale-110 transition-transform duration-500"
                         sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
                     />
                     {/* Heart Icon - positioned top right */}
@@ -147,61 +150,65 @@ export default function ProductListing({
 
 
     return (
-        <div className="min-h-screen bg-white font-sans pt-[100px] md:pt-[120px]">
-            <div className="max-w-[1600px] mx-auto px-6 py-8">
+        <div className="min-h-screen bg-white font-sans">
+            <Header />
+            <div className="pt-[100px] md:pt-[120px]">
+                <div className="max-w-[1600px] mx-auto px-6 py-8">
 
-                {/* Breadcrumbs (Optional) */}
-                {breadcrumbs && (
-                    <nav className="flex text-sm text-gray-500 mb-4 capitalize">
-                        {breadcrumbs.map((crumb, index) => (
-                            <span key={crumb.href} className="flex items-center">
-                                {index > 0 && <span className="mx-2">/</span>}
-                                <Link href={crumb.href} className="hover:text-black transition-colors">
-                                    {crumb.label}
-                                </Link>
-                            </span>
-                        ))}
-                    </nav>
-                )}
+                    {/* Breadcrumbs (Optional) */}
+                    {breadcrumbs && (
+                        <nav className="flex text-sm text-gray-500 mb-4 capitalize">
+                            {breadcrumbs.map((crumb, index) => (
+                                <span key={crumb.href} className="flex items-center">
+                                    {index > 0 && <span className="mx-2">/</span>}
+                                    <Link href={crumb.href} className="hover:text-black transition-colors">
+                                        {crumb.label}
+                                    </Link>
+                                </span>
+                            ))}
+                        </nav>
+                    )}
 
-                {/* Header Title */}
-                <h1 className="text-4xl font-serif mb-6 text-gray-900 capitalize">{title}</h1>
+                    {/* Header Title */}
+                    <h1 className="text-4xl font-serif mb-6 text-gray-900 capitalize">{title}</h1>
 
-                {/* Filters Section */}
-                <div className="flex flex-wrap items-center gap-3 mb-4">
-                    {FILTERS.map((filter, index) => (
-                        <FilterChip
-                            key={index}
-                            label={filter.label}
-                            hasDropdown={filter.hasDropdown}
-                            isActive={filter.isActive}
-                        />
-                    ))}
-                </div>
-
-                {/* Sub-Filters Actions */}
-                <div className="flex flex-col gap-4 mb-8">
-                    <button className="text-sm font-medium text-black underline underline-offset-4 hover:text-gray-700 w-fit">
-                        Tous les filtres +
-                    </button>
-
-                    <button className="flex items-center text-sm text-gray-500 hover:text-black transition-colors w-fit">
-                        <BookmarkIcon />
-                        <span className="underline decoration-gray-400 underline-offset-2">Enregistrer</span>
-                    </button>
-                </div>
-
-                {/* Product Grid - With uniform sizing and borders */}
-                {products.length > 0 ? (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
-                        {products.map((product) => (
-                            <ProductCard key={product.id} product={product} />
+                    {/* Filters Section */}
+                    <div className="flex flex-wrap items-center gap-3 mb-4">
+                        {FILTERS.map((filter, index) => (
+                            <FilterChip
+                                key={index}
+                                label={filter.label}
+                                hasDropdown={filter.hasDropdown}
+                                isActive={filter.isActive}
+                            />
                         ))}
                     </div>
-                ) : (
-                    <EmptyState message={`Aucun produit trouvé pour ${title}.`} />
-                )}
+
+                    {/* Sub-Filters Actions */}
+                    <div className="flex flex-col gap-4 mb-8">
+                        <button className="text-sm font-medium text-black underline underline-offset-4 hover:text-gray-700 w-fit">
+                            Tous les filtres +
+                        </button>
+
+                        <button className="flex items-center text-sm text-gray-500 hover:text-black transition-colors w-fit">
+                            <BookmarkIcon />
+                            <span className="underline decoration-gray-400 underline-offset-2">Enregistrer</span>
+                        </button>
+                    </div>
+
+                    {/* Product Grid - With uniform sizing and borders */}
+                    {products.length > 0 ? (
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
+                            {products.map((product) => (
+                                <ProductCard key={product.id} product={product} />
+                            ))}
+                        </div>
+                    ) : (
+                        <EmptyState message={`Aucun produit trouvé pour ${title}.`} />
+                    )}
+                </div>
             </div>
+            <Footer />
         </div>
     );
 }
