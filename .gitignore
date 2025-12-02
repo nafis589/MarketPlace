@@ -46,3 +46,6 @@ prompt_result.txt
 
 #json files
 asset_folder.json
+
+#backend
+/backend-image-cleaner
