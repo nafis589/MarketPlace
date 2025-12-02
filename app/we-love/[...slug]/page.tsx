@@ -1,6 +1,5 @@
 import React from 'react';
-import Header from '@/app/components/sections/Header';
-import Footer from '@/app/components/sections/Footer';
+
 import ProductListing from '@/app/components/ProductListing';
 import { getPageMetadata } from '@/app/lib/routing-utils';
 
@@ -16,15 +15,9 @@ export default async function WeLoveCategoryPage({ params }: PageProps) {
     const metadata = getPageMetadata(path);
 
     return (
-        <main className="min-h-screen bg-white">
-            <Header />
-            <div className="pt-[72px] md:pt-[88px]">
-                <ProductListing
-                    title={metadata.title}
-                    breadcrumbs={metadata.breadcrumbs}
-                />
-            </div>
-            <Footer />
-        </main>
+        <ProductListing
+            title={metadata.title}
+            breadcrumbs={metadata.breadcrumbs}
+        />
     );
 }

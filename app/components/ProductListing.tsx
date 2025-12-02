@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import EmptyState from '@/app/components/EmptyState';
+import CategoryHeader from '@/app/components/ui/CategoryHeader';
 
 import Header from '@/app/components/sections/Header';
 import Footer from '@/app/components/sections/Footer';
@@ -23,25 +24,6 @@ export interface Product {
     name?: string;
 }
 
-const FILTERS = [
-    { label: 'Trier Par', hasDropdown: true },
-    { label: 'Black Friday', hasDropdown: false },
-    { label: 'Hors Douanes', hasDropdown: false },
-    { label: 'Catégorie (1)', hasDropdown: true, isActive: true },
-    { label: 'Designers', hasDropdown: true },
-    { label: 'Etat', hasDropdown: true },
-    { label: 'Tailles', hasDropdown: true },
-    { label: 'Couleurs', hasDropdown: true },
-    { label: 'Matières', hasDropdown: true },
-];
-
-// --- Icons Components (Simple SVG) ---
-const ChevronDown = () => (
-    <svg className="w-3 h-3 ml-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-    </svg>
-);
-
 const BookmarkIcon = () => (
     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
@@ -49,28 +31,6 @@ const BookmarkIcon = () => (
 );
 
 // --- UI Components ---
-
-// 1. Bouton de filtre réutilisable
-interface FilterChipProps {
-    label: string;
-    hasDropdown?: boolean;
-    isActive?: boolean;
-}
-
-const FilterChip: React.FC<FilterChipProps> = ({ label, hasDropdown, isActive }) => {
-    return (
-        <button
-            className={`
-        flex items-center px-4 py-2.5 text-sm whitespace-nowrap transition-all
-        bg-white border 
-        ${isActive ? 'border-2 border-black font-medium' : 'border-gray-300 hover:border-gray-400 text-gray-700'}
-      `}
-        >
-            {label}
-            {hasDropdown && <ChevronDown />}
-        </button>
-    );
-};
 
 // 2. Carte Produit réutilisable
 const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
@@ -150,39 +110,16 @@ export default function ProductListing({
 
 
     return (
-        <div className="min-h-screen bg-white font-sans">
+        <main className="min-h-screen bg-white font-sans">
             <Header />
             <div className="pt-[100px] md:pt-[120px]">
                 <div className="max-w-[1600px] mx-auto px-6 py-8">
 
-                    {/* Breadcrumbs (Optional) */}
-                    {breadcrumbs && (
-                        <nav className="flex text-sm text-gray-500 mb-4 capitalize">
-                            {breadcrumbs.map((crumb, index) => (
-                                <span key={crumb.href} className="flex items-center">
-                                    {index > 0 && <span className="mx-2">/</span>}
-                                    <Link href={crumb.href} className="hover:text-black transition-colors">
-                                        {crumb.label}
-                                    </Link>
-                                </span>
-                            ))}
-                        </nav>
-                    )}
-
-                    {/* Header Title */}
-                    <h1 className="text-4xl font-serif mb-6 text-gray-900 capitalize">{title}</h1>
-
-                    {/* Filters Section */}
-                    <div className="flex flex-wrap items-center gap-3 mb-4">
-                        {FILTERS.map((filter, index) => (
-                            <FilterChip
-                                key={index}
-                                label={filter.label}
-                                hasDropdown={filter.hasDropdown}
-                                isActive={filter.isActive}
-                            />
-                        ))}
-                    </div>
+                    <CategoryHeader
+                        title={title}
+                        count={products.length}
+                        breadcrumbs={breadcrumbs || []}
+                    />
 
                     {/* Sub-Filters Actions */}
                     <div className="flex flex-col gap-4 mb-8">
@@ -209,6 +146,6 @@ export default function ProductListing({
                 </div>
             </div>
             <Footer />
-        </div>
+        </main>
     );
 }
