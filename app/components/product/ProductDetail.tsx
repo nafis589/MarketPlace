@@ -202,12 +202,6 @@ export default function ProductDetail({ product }: ProductDetailProps) {
                         </div>
                     </div>
 
-                    {/* Affirm Text */}
-                    <div className="flex flex-wrap items-center gap-1 text-sm text-gray-400 mb-6">
-                        <span>Payez avec Affirm pour les commandes de plus de 50 $.</span>
-                        <span className="font-bold text-black">affirm</span>
-                        <InfoIcon />
-                    </div>
 
                     {/* Action Buttons */}
                     <div className="space-y-3 mb-8">
@@ -217,22 +211,6 @@ export default function ProductDetail({ product }: ProductDetailProps) {
                         <button className="w-full bg-white text-black border border-black py-3 font-medium hover:bg-gray-50 transition-colors uppercase text-sm tracking-wide">
                             Faire une offre
                         </button>
-                    </div>
-
-                    {/* Additional Info */}
-                    <div className="space-y-3 text-sm text-gray-600">
-                        <div className="flex items-start gap-3">
-                            <div className="mt-0.5"><LocationIcon /></div>
-                            <div>
-                                Etats-Unis chez le vendeur InfiniteDrip <span className="underline cursor-pointer">Voir plus</span>
-                            </div>
-                        </div>
-                        <div className="flex items-start gap-3">
-                            <div className="mt-0.5"><CheckIcon /></div>
-                            <div>
-                                Contrôle Qualité et Authentification optionel <span className="underline cursor-pointer">Voir plus</span>
-                            </div>
-                        </div>
                     </div>
 
                 </div>

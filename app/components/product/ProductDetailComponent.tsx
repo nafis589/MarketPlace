@@ -149,7 +149,7 @@ export default function ProductDetailComponent({ product }: ProductDetailProps) 
                                         className="w-12 h-12 rounded-full object-cover border border-gray-200"
                                     />
                                 </div>
-                                <p className="text-xs text-gray-500 mt-1">Mis en vente par {p.seller.name}</p>
+                                <p className="text-xs text-gray-500 mt-1">Mis en par {p.seller.name}</p>
                             </div>
                         )}
 
