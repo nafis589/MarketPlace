@@ -46,3 +46,14 @@ img, video, iframe {
   max-width: 100%;
   height: auto;
 }
+
+/* Hide scrollbar for horizontally scrollable elements */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+

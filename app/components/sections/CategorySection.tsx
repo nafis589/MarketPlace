@@ -14,9 +14,11 @@ const CategorySection = () => {
                 <Link href="/nouveautes" className="text-sm font-bold uppercase tracking-widest border-b border-black pb-1 hover:text-gray-600 hover:border-gray-600 transition-colors">Voir tout</Link>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div className="flex overflow-x-auto gap-4 pb-4 scrollbar-hide md:grid md:grid-cols-3 lg:grid-cols-5">
                 {categories.map((category) => (
-                    <CategoryCard key={category.id} category={category} />
+                    <div key={category.id} className="flex-shrink-0 w-40 md:w-auto">
+                        <CategoryCard category={category} />
+                    </div>
                 ))}
             </div>
         </section>

@@ -9,9 +9,11 @@ const GiftsSelection = () => {
                 <h2 className="text-3xl md:text-4xl font-serif font-medium mb-4">Le Guide Cadeaux</h2>
                 <p className="text-gray-600">Trouvez le cadeau parfait pour vos proches.</p>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div className="flex overflow-x-auto gap-4 pb-4 scrollbar-hide md:grid md:grid-cols-3 lg:grid-cols-5">
                 {gifts.map((gift) => (
-                    <GiftCard key={gift.id} gift={gift} />
+                    <div key={gift.id} className="flex-shrink-0 w-40 md:w-auto">
+                        <GiftCard gift={gift} />
+                    </div>
                 ))}
             </div>
         </section>

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import MenuLink from './MenuLink';
 import MegaMenu from './MegaMenu';
-import Button from './Button';
+
 import MobileMenu from './MobileMenu';
 import { navItems } from '@/app/lib/navigation';
 import { megaMenuData } from '@/app/lib/megamenu-data';
@@ -102,7 +102,7 @@ const Navbar = () => {
 
                         {/* Right: Actions */}
                         <div className="flex items-center justify-end flex-1 gap-6">
-                            <Button variant="primary" size="sm" className="hidden lg:flex font-bold px-6">Vendre un article</Button>
+                            <button className="hidden lg:inline-flex items-center justify-center px-6 py-2 text-sm font-bold bg-black text-white hover:bg-gray-800 border border-black transition-all duration-300">Vendre un article</button>
 
                             <div className="hidden lg:flex items-center gap-4 text-sm font-medium text-gray-700">
                                 <Link href="/login" className="hover:text-black transition-colors">Se connecter</Link>
