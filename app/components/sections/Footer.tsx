@@ -39,7 +39,7 @@ const Footer = () => {
                                 <span className="text-white font-medium">Nous rendre visite</span>
                             </div>
                             <a
-                                href="https://maps.app.goo.gl/YeWCBccsL9zec8iw7"
+                                href="https://maps.app.goo.gl/VGMPthWRML9izCct7"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="block pl-8 leading-relaxed hover:text-white transition-colors cursor-pointer"
