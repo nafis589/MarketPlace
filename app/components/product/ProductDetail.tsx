@@ -59,7 +59,13 @@ interface ProductDetailProps {
     };
 }
 
+import { useAuth } from '@/app/context/AuthContext';
+import { useCart } from '@/app/context/CartContext';
+
 export default function ProductDetail({ product }: ProductDetailProps) {
+    const { isLoggedIn } = useAuth();
+    const { addToCart } = useCart();
+
     // Use product data or fallbacks
     const [selectedImage, setSelectedImage] = useState(product.image);
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -68,8 +74,11 @@ export default function ProductDetail({ product }: ProductDetailProps) {
     const thumbnails = [product.image, product.image, product.image, product.image];
 
     const handleAddToCart = () => {
-        // Here we simulate the auth check. In a real app, we would check if the user is authenticated.
-        setIsAuthModalOpen(true);
+        if (!isLoggedIn) {
+            setIsAuthModalOpen(true);
+        } else {
+            addToCart(product);
+        }
     };
 
     return (

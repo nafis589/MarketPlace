@@ -93,6 +93,8 @@ const ImageGallery = ({ images }: { images: string[] }) => {
 };
 
 import AuthModal from '@/app/components/auth/AuthModal';
+import { useAuth } from '@/app/context/AuthContext';
+import { useCart } from '@/app/context/CartContext';
 
 // --- Main Component ---
 
@@ -101,11 +103,17 @@ interface ProductDetailProps {
 }
 
 export default function ProductDetailComponent({ product }: ProductDetailProps) {
+    const { isLoggedIn } = useAuth();
+    const { addToCart } = useCart();
     const p = product;
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
     const handleAddToCart = () => {
-        setIsAuthModalOpen(true);
+        if (!isLoggedIn) {
+            setIsAuthModalOpen(true);
+        } else {
+            addToCart(p);
+        }
     };
 
     return (

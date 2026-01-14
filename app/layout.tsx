@@ -19,6 +19,9 @@ export const metadata: Metadata = {
   description: "Achetez et vendez des articles de luxe de seconde main authentifiés.",
 };
 
+import { AuthProvider } from "./context/AuthContext";
+import { CartProvider } from "./context/CartContext";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -27,7 +30,11 @@ export default function RootLayout({
   return (
     <html lang="fr" className={`${inter.variable} ${playfair.variable}`}>
       <body className="font-sans antialiased bg-white text-black overflow-x-clip max-w-full">
-        {children}
+        <AuthProvider>
+          <CartProvider>
+            {children}
+          </CartProvider>
+        </AuthProvider>
       </body>
     </html>
   );

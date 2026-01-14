@@ -9,8 +9,22 @@ import MegaMenu from './MegaMenu';
 import MobileMenu from './MobileMenu';
 import { navItems } from '@/app/lib/navigation';
 import { megaMenuData } from '@/app/lib/megamenu-data';
+import { useCart } from '@/app/context/CartContext';
+import { useAuth } from '@/app/context/AuthContext';
+import CartPopover from '@/app/components/cart/CartPopover';
+import EmptyCartPopover from '@/app/components/cart/EmptyCartPopover';
+import AddToCartModal from '@/app/components/cart/AddToCartModal';
 
 const Navbar = () => {
+    const { isLoggedIn, login, logout } = useAuth();
+    const {
+        isCartOpen,
+        setIsCartOpen,
+        cartItems,
+        isAddModalOpen,
+        setIsAddModalOpen
+    } = useCart();
+
     const [activeMenu, setActiveMenu] = useState<string | null>(null);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
@@ -30,6 +44,7 @@ const Navbar = () => {
     useEffect(() => {
         setActiveMenu(null);
         setIsMobileMenuOpen(false);
+        setIsCartOpen(false);
     }, [pathname]);
 
     // Handle Hover with Delay to prevent flickering
@@ -56,8 +71,16 @@ const Navbar = () => {
         ...activeData.categories
     ] : [];
 
+    const handleCartClick = () => {
+        setIsCartOpen(!isCartOpen);
+    };
+
     return (
         <>
+            <AddToCartModal
+                isOpen={isAddModalOpen}
+                onClose={() => setIsAddModalOpen(false)}
+            />
             <nav
                 className={`fixed top-0 left-0 right-0 z-50 bg-white transition-all duration-300 border-b border-gray-100 max-w-full overflow-x-clip ${isScrolled ? 'shadow-sm' : ''
                     }`}
@@ -105,17 +128,45 @@ const Navbar = () => {
                             <button className="hidden lg:inline-flex items-center justify-center px-6 py-2 text-sm font-bold bg-black text-white hover:bg-gray-800 border border-black transition-all duration-300">Vendre un article</button>
 
                             <div className="hidden lg:flex items-center gap-4 text-sm font-medium text-gray-700">
-                                <Link href="/login" className="hover:text-black transition-colors">Se connecter</Link>
-                                <Link href="/register" className="hover:text-black transition-colors">S'inscrire</Link>
+                                {isLoggedIn ? (
+                                    <>
+                                        <button className="hover:text-black transition-colors">Mon Compte</button>
+                                        <button
+                                            className="hover:text-black transition-colors text-red-500"
+                                            onClick={() => logout()}
+                                        >Déconnexion</button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <button
+                                            onClick={() => login()}
+                                            className="hover:text-black transition-colors"
+                                        >Se connecter</button>
+                                        <Link href="/register" className="hover:text-black transition-colors">S'inscrire</Link>
+                                    </>
+                                )}
                             </div>
 
-                            <button className="p-2 hover:bg-gray-100 rounded-full transition-colors relative">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 5c.07.286-.06.586-.343.648a.75.75 0 01-.343 0l-1.263-5a.75.75 0 01.343-.648zM3.75 21h16.5M4.5 3h15M9 3v2.25M15 3v2.25" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6a3 3 0 00-3-3h-3a3 3 0 00-3 3v4.5m13.5 0h-15v9a2.25 2.25 0 002.25 2.25h10.5A2.25 2.25 0 0019.5 19.5v-9z" />
-                                </svg>
-                                <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">2</span>
-                            </button>
+                            <div className="relative">
+                                <button
+                                    onClick={handleCartClick}
+                                    className="p-2 hover:bg-gray-100 rounded-full transition-colors relative"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 5c.07.286-.06.586-.343.648a.75.75 0 01-.343 0l-1.263-5a.75.75 0 01.343-.648zM3.75 21h16.5M4.5 3h15M9 3v2.25M15 3v2.25" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6a3 3 0 00-3-3h-3a3 3 0 00-3 3v4.5m13.5 0h-15v9a2.25 2.25 0 002.25 2.25h10.5A2.25 2.25 0 0019.5 19.5v-9z" />
+                                    </svg>
+                                    <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
+                                        {cartItems.length}
+                                    </span>
+                                </button>
+
+                                {isLoggedIn ? (
+                                    <CartPopover isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+                                ) : (
+                                    <EmptyCartPopover isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+                                )}
+                            </div>
                         </div>
                     </div>
 
