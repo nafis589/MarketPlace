@@ -50,3 +50,53 @@ export const getCategoryImages = () => {
 export const getProductsByCategory = (category: string) => {
     return cloudinaryProducts.filter(p => p.category === category);
 };
+
+// --- FEMME ---
+export const getFemmeProducts = () => {
+    return cloudinaryProducts.filter(p => p.gender === 'femme');
+};
+
+export const getFemmeProductsByCategory = (category: string) => {
+    return cloudinaryProducts.filter(p => p.gender === 'femme' && p.category === category);
+};
+
+export const getFemmeProductsByType = (category: string, type: string) => {
+    return cloudinaryProducts.filter(p => p.gender === 'femme' && p.category === category && p.type === type);
+};
+
+export const getUniqueFemmeTypesByCategory = (category: string) => {
+    const products = getFemmeProductsByCategory(category);
+    const types = new Set(products.map(p => p.type).filter(Boolean));
+    return Array.from(types) as string[];
+};
+
+// --- ENFANT ---
+export const getEnfantProducts = () => {
+    return cloudinaryProducts.filter(p => p.gender === 'enfant');
+};
+
+export const getEnfantProductsByCategory = (category: string) => {
+    return cloudinaryProducts.filter(p => p.gender === 'enfant' && p.category === category);
+};
+
+export const getEnfantProductsByType = (category: string, type: string) => {
+    return cloudinaryProducts.filter(p => p.gender === 'enfant' && p.category === category && p.type === type);
+};
+
+export const getRecentProducts = (count: number = 100) => {
+    // For now just taking the last ones since we don't have dates
+    return [...cloudinaryProducts].slice(-count);
+};
+
+export const getProductsByFilter = (filters: {
+    gender?: string,
+    category?: string,
+    type?: string
+}) => {
+    return cloudinaryProducts.filter(p => {
+        if (filters.gender && p.gender !== filters.gender) return false;
+        if (filters.category && p.category !== filters.category) return false;
+        if (filters.type && p.type !== filters.type) return false;
+        return true;
+    });
+};

@@ -9,15 +9,31 @@ interface PageProps {
     }>;
 }
 
+import { getProductsByFilter } from '@/app/lib/cloudinaryHelper';
+
 export default async function SacsCategoryPage({ params }: PageProps) {
     const resolvedParams = await params;
-    const path = `/sacs/${resolvedParams.slug.join('/')}`;
+    const { slug } = resolvedParams;
+    const path = `/sacs/${slug.join('/')}`;
     const metadata = getPageMetadata(path);
+
+    const products = getProductsByFilter({ category: 'sacs', type: slug[0] }).map(p => ({
+        id: p.id,
+        brand: "Friperie Luxe",
+        category: p.category || "Sacs",
+        price: Math.floor(Math.random() * 450) + 50,
+        image: p.image,
+        name: p.title,
+        size: "M",
+        currency: "€",
+        type: p.type || ""
+    }));
 
     return (
         <ProductListing
             title={metadata.title}
             breadcrumbs={metadata.breadcrumbs}
+            products={products as any}
         />
     );
 }

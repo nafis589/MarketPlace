@@ -99,6 +99,9 @@ interface ProductListingProps {
     categoryFilter?: string;
 }
 
+import Pagination from '@/app/components/ui/Pagination';
+import { useState, useMemo } from 'react';
+
 // --- Main Layout ---
 export default function ProductListing({
     title = "Tous les produits",
@@ -106,8 +109,20 @@ export default function ProductListing({
     categoryFilter,
     products = []
 }: ProductListingProps & { products?: Product[] }) {
-    // Use passed products
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 60;
 
+    const totalPages = Math.ceil(products.length / itemsPerPage);
+
+    const currentProducts = useMemo(() => {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        return products.slice(startIndex, startIndex + itemsPerPage);
+    }, [products, currentPage, itemsPerPage]);
+
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
     return (
         <main className="min-h-screen bg-white font-sans">
@@ -134,12 +149,20 @@ export default function ProductListing({
                     </div>
 
                     {/* Product Grid - With uniform sizing and borders */}
-                    {products.length > 0 ? (
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
-                            {products.map((product) => (
-                                <ProductCard key={product.id} product={product} />
-                            ))}
-                        </div>
+                    {currentProducts.length > 0 ? (
+                        <>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
+                                {currentProducts.map((product) => (
+                                    <ProductCard key={product.id} product={product} />
+                                ))}
+                            </div>
+
+                            <Pagination
+                                currentPage={currentPage}
+                                totalPages={totalPages}
+                                onPageChange={handlePageChange}
+                            />
+                        </>
                     ) : (
                         <EmptyState message={`Aucun produit trouvé pour ${title}.`} />
                     )}
