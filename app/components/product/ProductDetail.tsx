@@ -42,6 +42,8 @@ const CheckIcon = () => (
     </svg>
 );
 
+import AuthModal from '@/app/components/auth/AuthModal';
+
 interface ProductDetailProps {
     product: {
         id: string;
@@ -60,12 +62,23 @@ interface ProductDetailProps {
 export default function ProductDetail({ product }: ProductDetailProps) {
     // Use product data or fallbacks
     const [selectedImage, setSelectedImage] = useState(product.image);
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
     // Create thumbnails from the same image for demo purposes since we only have one
     const thumbnails = [product.image, product.image, product.image, product.image];
 
+    const handleAddToCart = () => {
+        // Here we simulate the auth check. In a real app, we would check if the user is authenticated.
+        setIsAuthModalOpen(true);
+    };
+
     return (
         <div className="bg-white font-sans text-gray-900">
+            {/* Auth Modal */}
+            <AuthModal
+                isOpen={isAuthModalOpen}
+                onClose={() => setIsAuthModalOpen(false)}
+            />
 
             {/* Breadcrumbs */}
             <div className="max-w-7xl mx-auto px-4 py-4">
@@ -205,7 +218,10 @@ export default function ProductDetail({ product }: ProductDetailProps) {
 
                     {/* Action Buttons */}
                     <div className="space-y-3 mb-8">
-                        <button className="w-full bg-black text-white py-3 font-medium hover:bg-gray-800 transition-colors uppercase text-sm tracking-wide">
+                        <button
+                            onClick={handleAddToCart}
+                            className="w-full bg-black text-white py-3 font-medium hover:bg-gray-800 transition-colors uppercase text-sm tracking-wide"
+                        >
                             Ajouter au panier
                         </button>
                         <button className="w-full bg-white text-black border border-black py-3 font-medium hover:bg-gray-50 transition-colors uppercase text-sm tracking-wide">

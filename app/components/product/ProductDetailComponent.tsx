@@ -92,6 +92,8 @@ const ImageGallery = ({ images }: { images: string[] }) => {
     );
 };
 
+import AuthModal from '@/app/components/auth/AuthModal';
+
 // --- Main Component ---
 
 interface ProductDetailProps {
@@ -100,9 +102,19 @@ interface ProductDetailProps {
 
 export default function ProductDetailComponent({ product }: ProductDetailProps) {
     const p = product;
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+    const handleAddToCart = () => {
+        setIsAuthModalOpen(true);
+    };
 
     return (
         <div className="min-h-screen bg-white font-sans text-gray-800">
+            {/* Auth Modal */}
+            <AuthModal
+                isOpen={isAuthModalOpen}
+                onClose={() => setIsAuthModalOpen(false)}
+            />
             <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
 
                 <Breadcrumb categories={[...p.categories, p.title]} />
@@ -202,7 +214,10 @@ export default function ProductDetailComponent({ product }: ProductDetailProps) 
 
                         {/* Action Buttons */}
                         <div className="space-y-3 mb-8">
-                            <button className="w-full bg-black text-white py-3 font-medium hover:bg-gray-800 transition-colors uppercase text-sm tracking-wide">
+                            <button
+                                onClick={handleAddToCart}
+                                className="w-full bg-black text-white py-3 font-medium hover:bg-gray-800 transition-colors uppercase text-sm tracking-wide"
+                            >
                                 Ajouter au panier
                             </button>
                             <button className="w-full bg-white text-black border border-black py-3 font-medium hover:bg-gray-50 transition-colors uppercase text-sm tracking-wide">
