@@ -2,9 +2,10 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { Heart, Leaf } from 'lucide-react';
 import EmptyState from '@/app/components/EmptyState';
 import CategoryHeader from '@/app/components/ui/CategoryHeader';
+import { getProductDetails } from '@/app/utils/productUtils';
 
 import Header from '@/app/components/sections/Header';
 import Footer from '@/app/components/sections/Footer';
@@ -36,57 +37,55 @@ const BookmarkIcon = () => (
 const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
     const productSlug = product.slug || `product-${product.id}`;
     const productImage = product.imageUrl || product.image || 'https://images.unsplash.com/photo-1591561954557-26941169b49e?q=80&w=800&auto=format&fit=crop';
+    const { location } = getProductDetails(String(product.id));
 
     return (
-        <Link href={`/product/${productSlug}`} className="group block h-full">
-            <div className="relative bg-white border border-gray-200 hover:shadow-lg transition-shadow duration-300 h-full flex flex-col">
-                {/* Zone Image - Fixed aspect ratio */}
-                <div className="relative w-full aspect-[3/4] bg-gray-50 overflow-hidden">
-                    <Image
-                        src={productImage}
-                        alt={product.brand}
-                        fill
-                        className="object-cover group-hover:scale-110 transition-transform duration-500"
-                        sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
-                    />
-                    {/* Heart Icon - positioned top right */}
-                    <div className="absolute top-3 right-3 z-10">
-                        <button
-                            onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                            }}
-                            className="p-2 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-colors shadow-sm"
-                            aria-label="Ajouter aux favoris"
-                        >
-                            <svg className="w-4 h-4 text-gray-800 hover:text-red-600 hover:fill-current transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                            </svg>
-                        </button>
-                    </div>
-                </div>
+        <Link href={`/product/${productSlug}`} className="group flex flex-col p-4 relative bg-white border border-gray-200 hover:bg-gray-50 transition-colors h-full">
+            {/* Image */}
+            <div className="relative aspect-[3/3.5] mb-3 w-full flex items-center justify-center overflow-hidden bg-gray-50">
+                <img
+                    src={productImage}
+                    alt={product.brand}
+                    className="object-contain w-full h-full mix-blend-multiply group-hover:scale-105 transition-transform duration-500"
+                />
+            </div>
 
-                {/* Infos Produit */}
-                <div className="p-4 flex flex-col gap-1.5 flex-grow bg-white">
-                    <h3 className="font-bold text-sm text-black uppercase tracking-wide line-clamp-1">
+            {/* Info */}
+            <div className="flex flex-col gap-1 mt-1 flex-grow">
+                {/* Brand + Heart */}
+                <div className="flex justify-between items-start">
+                    <h3 className="font-bold text-sm uppercase text-gray-900 tracking-wide truncate pr-2">
                         {product.brand}
                     </h3>
+                    <button
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }}
+                        className="shrink-0"
+                        aria-label="Ajouter aux favoris"
+                    >
+                        <Heart className="w-5 h-5 text-gray-900 hover:text-red-500 transition-colors cursor-pointer" strokeWidth={1} />
+                    </button>
+                </div>
 
-                    <p className="text-sm text-gray-600 line-clamp-2">{product.name || product.category}</p>
+                {/* Name */}
+                <p className="text-gray-600 text-sm truncate">{product.name || product.category}</p>
 
-                    {product.condition && (
-                        <p className="text-xs text-gray-500">{product.condition}</p>
-                    )}
+                {/* Size */}
+                {product.size && (
+                    <p className="text-gray-500 text-sm mb-1">{product.size}</p>
+                )}
 
-                    {product.size && (
-                        <p className="text-sm text-gray-500">{product.size}</p>
-                    )}
+                {/* Price */}
+                <div className="mt-auto">
+                    <span className="text-gray-900 font-bold text-base">{product.price} {product.currency || '€'}</span>
+                </div>
 
-                    <div className="mt-auto pt-2 border-t border-gray-100">
-                        <span className="font-bold text-base text-gray-900">
-                            {product.price} {product.currency || '€'}
-                        </span>
-                    </div>
+                {/* Location */}
+                <div className="flex items-center gap-1 mt-3 text-xs text-gray-500">
+                    <Leaf size={12} strokeWidth={2} className="rotate-45" />
+                    <span>{location}</span>
                 </div>
             </div>
         </Link>
@@ -151,7 +150,7 @@ export default function ProductListing({
                     {/* Product Grid - With uniform sizing and borders */}
                     {currentProducts.length > 0 ? (
                         <>
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mb-12">
                                 {currentProducts.map((product) => (
                                     <ProductCard key={product.id} product={product} />
                                 ))}

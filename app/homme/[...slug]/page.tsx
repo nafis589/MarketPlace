@@ -1,14 +1,12 @@
 'use client';
 
 import React, { use } from 'react';
-import Link from 'next/link';
 import ProductGrid from '@/app/components/ProductGrid';
 import EmptyState from '@/app/components/EmptyState';
 import CategoryHeader from '@/app/components/ui/CategoryHeader';
 import {
     getHommeProductsByCategory,
-    getHommeProductsByType,
-    getUniqueTypesByCategory
+    getHommeProductsByType
 } from '@/app/lib/cloudinaryHelper';
 
 interface PageProps {
@@ -30,7 +28,6 @@ export default function HommeCategoryPage({ params }: PageProps) {
 
     let products = [];
     let title = "";
-    let subCategories: string[] = [];
 
     if (type) {
         // Level 2: Category + Type (e.g. /homme/vetements/pantalons)
@@ -40,7 +37,6 @@ export default function HommeCategoryPage({ params }: PageProps) {
         // Level 1: Category only (e.g. /homme/vetements)
         products = getHommeProductsByCategory(category);
         title = `${category} Homme`;
-        subCategories = getUniqueTypesByCategory(category);
     }
 
     return (
@@ -63,21 +59,6 @@ export default function HommeCategoryPage({ params }: PageProps) {
                             ])
                         ]}
                     />
-
-                    {/* Sub-categories Navigation (only on Category page) */}
-                    {!type && subCategories.length > 0 && (
-                        <div className="flex overflow-x-auto gap-3 mb-8 pb-2 scrollbar-hide">
-                            {subCategories.map((sub) => (
-                                <Link
-                                    key={sub}
-                                    href={`/homme/${category}/${sub}`}
-                                    className="px-4 py-2 bg-gray-100 rounded-full text-sm font-medium text-gray-700 hover:bg-black hover:text-white transition-colors capitalize whitespace-nowrap flex-shrink-0"
-                                >
-                                    {sub}
-                                </Link>
-                            ))}
-                        </div>
-                    )}
 
                     {/* Products Grid */}
                     {products.length > 0 ? (

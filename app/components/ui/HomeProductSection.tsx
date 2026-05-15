@@ -76,7 +76,7 @@ export default function HomeProductSection({ title, products }: HomeProductSecti
                         <Link
                             key={product.id}
                             href={`/product/product-${product.id}`}
-                            className="snap-start shrink-0 w-1/2 sm:w-[280px] md:w-[300px] group relative p-4 flex flex-col hover:bg-gray-50 transition-colors cursor-pointer min-h-[420px]"
+                            className="snap-start shrink-0 w-1/2 sm:w-[280px] md:w-[300px] xl:w-1/5 group relative p-4 flex flex-col hover:bg-gray-50 transition-colors cursor-pointer"
                         >
                             {/* Image Container */}
                             <div className="relative aspect-[3/3.5] mb-3 w-full flex items-center justify-center overflow-hidden">
@@ -95,7 +95,7 @@ export default function HomeProductSection({ title, products }: HomeProductSecti
                             </div>
 
                             {/* Infos Produit */}
-                            <div className="flex flex-col gap-1 mt-2">
+                            <div className="flex flex-col gap-1 mt-1">
 
                                 {/* Marque + Coeur */}
                                 <div className="flex justify-between items-start">

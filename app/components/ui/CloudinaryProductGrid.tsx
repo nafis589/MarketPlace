@@ -22,7 +22,7 @@ const CloudinaryProductGrid: React.FC<CloudinaryProductGridProps> = ({
     }
 
     return (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mb-12">
             {products.map((product) => (
                 <CloudinaryProductCard key={product.id} product={product} />
             ))}
