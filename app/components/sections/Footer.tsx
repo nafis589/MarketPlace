@@ -1,11 +1,11 @@
 import React from 'react';
 import Link from 'next/link';
-import { MapPin, Phone } from 'lucide-react';
+
 
 const Footer = () => {
     return (
         <footer className="bg-black text-white pt-20 pb-10 px-4 md:px-8">
-            <div className="max-w-[1600px] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+            <div className="max-w-[1600px] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-16">
                 {/* Column 1: À propos */}
                 <div>
                     <h3 className="text-lg font-serif font-medium mb-6">À propos</h3>
@@ -18,7 +18,7 @@ const Footer = () => {
                     </ul>
                 </div>
 
-                {/* Column 2: Légal (Moved from pos 3) */}
+                {/* Column 2: Légal */}
                 <div>
                     <h3 className="text-lg font-serif font-medium mb-6">Légal</h3>
                     <ul className="flex flex-col gap-3 text-sm text-gray-400">
@@ -29,40 +29,7 @@ const Footer = () => {
                     </ul>
                 </div>
 
-                {/* Column 3: Adresse (Replaces Aide & Support) */}
-                <div>
-                    <h3 className="text-lg font-serif font-medium mb-6">Adresse</h3>
-                    <div className="flex flex-col gap-6 text-sm text-gray-400">
-                        <div className="group">
-                            <div className="flex items-start gap-3 mb-2">
-                                <MapPin className="w-5 h-5 text-white mt-0.5" />
-                                <span className="text-white font-medium">Nous rendre visite</span>
-                            </div>
-                            <a
-                                href="https://maps.app.goo.gl/VGMPthWRML9izCct7"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="block pl-8 leading-relaxed hover:text-white transition-colors cursor-pointer"
-                            >
-                                Friperie de Luxe Paris<br />
-                                Lomé-Togo
-
-                            </a>
-                        </div>
-
-                        <div className="group">
-                            <div className="flex items-center gap-3 mb-2">
-                                <Phone className="w-5 h-5 text-white" />
-                                <span className="text-white font-medium">Nous contacter</span>
-                            </div>
-                            <p className="pl-8 hover:text-white transition-colors cursor-pointer">
-                                +228 70 74 90 16
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Column 4: Newsletter */}
+                {/* Column 3: Newsletter */}
                 <div>
                     <h3 className="text-lg font-serif font-medium mb-6">Newsletter</h3>
                     <p className="text-sm text-gray-400 mb-4">Inscrivez-vous pour recevoir nos dernières offres et actualités.</p>

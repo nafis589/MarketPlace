@@ -11,12 +11,6 @@ const HeartIcon = () => (
     </svg>
 );
 
-const InfoIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 text-gray-400">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
-    </svg>
-);
-
 const ChevronUp = () => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
         <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
@@ -90,8 +84,8 @@ export default function ProductDetail({ product }: ProductDetailProps) {
             />
 
             {/* Breadcrumbs */}
-            <div className="max-w-7xl mx-auto px-4 py-4">
-                <nav className="text-xs text-gray-500 flex items-center gap-2 flex-wrap">
+            <div className="max-w-7xl mx-auto px-4 pt-8 pb-4 hidden md:block">
+                <nav className="text-xs text-gray-500 flex items-center justify-center gap-2 flex-wrap">
                     <Link href="/" className="hover:text-black">Accueil</Link>
                     <span>›</span>
                     <Link href={`/${product.gender}`} className="hover:text-black capitalize">{product.gender}</Link>
@@ -105,7 +99,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
             </div>
 
             {/* Main Header */}
-            <div className="text-center py-6 mb-4">
+            <div className="text-center py-4 mb-4">
                 <h1 className="font-serif text-5xl mb-2 text-gray-900 capitalize">{product.brand || "Friperie Luxe"}</h1>
                 <p className="text-lg text-gray-600 capitalize">{product.title}</p>
             </div>
@@ -193,7 +187,6 @@ export default function ProductDetail({ product }: ProductDetailProps) {
                     <div className="flex justify-between items-start mb-6">
                         <div className="flex items-center gap-2">
                             <span className="text-2xl font-medium">{product.price} {product.currency}</span>
-                            <InfoIcon />
                         </div>
 
                         <div className="flex flex-col items-end">
@@ -211,12 +204,10 @@ export default function ProductDetail({ product }: ProductDetailProps) {
                     <div className="space-y-4 mb-8 text-sm text-gray-800">
                         <div className="flex items-center gap-2">
                             <span className="font-medium text-base">L International</span>
-                            <span className="text-gray-500 underline decoration-gray-400 underline-offset-2 cursor-pointer">Guide des tailles</span>
                         </div>
 
                         <div className="flex items-center gap-2">
                             <span className="font-medium text-base">Jamais porté</span>
-                            <span className="text-gray-500 underline decoration-gray-400 underline-offset-2 cursor-pointer">Voir plus</span>
                         </div>
 
                         <div className="font-medium text-base">

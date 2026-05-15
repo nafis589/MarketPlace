@@ -40,7 +40,7 @@ const ArrowDownIcon = () => (
 // --- Sub-Components ---
 
 const Breadcrumb = ({ categories }: { categories: string[] }) => (
-    <nav className="text-[10px] sm:text-xs text-gray-400 mb-6 flex flex-wrap gap-1 items-center" aria-label="Breadcrumb">
+    <nav className="text-[10px] sm:text-xs text-gray-400 mb-6 flex flex-wrap gap-1 items-center justify-center" aria-label="Breadcrumb">
         <span>Accueil</span> <span>{'>'}</span>
         {categories.map((cat, index) => (
             <React.Fragment key={index}>
@@ -123,7 +123,7 @@ export default function ProductDetailComponent({ product }: ProductDetailProps) 
                 isOpen={isAuthModalOpen}
                 onClose={() => setIsAuthModalOpen(false)}
             />
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-8 pb-4">
 
                 <Breadcrumb categories={[...p.categories, p.title]} />
 

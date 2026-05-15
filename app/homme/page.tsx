@@ -30,7 +30,6 @@ export default function HommePage() {
 
                     {/* All Products Grid */}
                     <div className="mb-8">
-                        <h2 className="text-xl font-bold mb-6">Tous les produits ({products.length})</h2>
                         {products.length > 0 ? (
                             <ProductGrid products={products} />
                         ) : (

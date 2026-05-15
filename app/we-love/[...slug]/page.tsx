@@ -1,7 +1,12 @@
-import React from 'react';
+'use client';
 
-import ProductListing from '@/app/components/ProductListing';
-import { getPageMetadata } from '@/app/lib/routing-utils';
+import React, { use } from 'react';
+import ProductGrid from '@/app/components/ProductGrid';
+import EmptyState from '@/app/components/EmptyState';
+import CategoryHeader from '@/app/components/ui/CategoryHeader';
+import Header from '@/app/components/sections/Header';
+import Footer from '@/app/components/sections/Footer';
+import { unslugify } from '@/app/lib/routing-utils';
 
 interface PageProps {
     params: Promise<{
@@ -9,15 +14,28 @@ interface PageProps {
     }>;
 }
 
-export default async function WeLoveCategoryPage({ params }: PageProps) {
-    const resolvedParams = await params;
-    const path = `/we-love/${resolvedParams.slug.join('/')}`;
-    const metadata = getPageMetadata(path);
+export default function WeLoveCategoryPage({ params }: PageProps) {
+    const { slug } = use(params);
+    const title = unslugify(slug[slug.length - 1]);
 
     return (
-        <ProductListing
-            title={metadata.title}
-            breadcrumbs={metadata.breadcrumbs}
-        />
+        <main className="min-h-screen bg-white font-sans">
+            <Header />
+            <div className="pt-[100px] md:pt-[120px]">
+                <div className="max-w-[1600px] mx-auto px-6 py-8">
+                    <CategoryHeader
+                        title={title}
+                        count={0}
+                        breadcrumbs={[
+                            { label: 'Accueil', href: '/' },
+                            { label: 'We Love', href: '/we-love' },
+                            { label: title, href: `/we-love/${slug.join('/')}` }
+                        ]}
+                    />
+                    <EmptyState message={`Aucun produit trouvé pour ${title}.`} />
+                </div>
+            </div>
+            <Footer />
+        </main>
     );
 }

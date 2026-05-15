@@ -1,28 +1,37 @@
+'use client';
+
 import React from 'react';
-import ProductListing from '@/app/components/ProductListing';
-import { cloudinaryProducts } from '@/data/cloudinaryProducts';
+import ProductGrid from '@/app/components/ProductGrid';
+import EmptyState from '@/app/components/EmptyState';
+import CategoryHeader from '@/app/components/ui/CategoryHeader';
+import { getFemmeProducts } from '@/app/lib/cloudinaryHelper';
+import Header from '@/app/components/sections/Header';
+import Footer from '@/app/components/sections/Footer';
 
 export default function FemmePage() {
-    // Simuler le mapping vers le type Product attendu par ProductListing
-    const products = cloudinaryProducts
-        .filter(p => p.gender === 'femme')
-        .map(p => ({
-            id: Number(p.id.slice(0, 8)), // Simulation ID numérique
-            brand: "Friperie Luxe",
-            category: p.category || "Vêtements",
-            price: Math.floor(Math.random() * 450) + 50,
-            image: p.image,
-            name: p.title,
-            size: "M",
-            currency: "€",
-            type: p.type || ""
-        }));
+    const products = getFemmeProducts();
 
     return (
-        <ProductListing
-            title="Femme"
-            products={products as any}
-            breadcrumbs={[{ label: 'Accueil', href: '/' }, { label: 'Femme', href: '/femme' }]}
-        />
+        <main className="min-h-screen bg-white font-sans">
+            <Header />
+            <div className="pt-[100px] md:pt-[120px]">
+                <div className="max-w-[1600px] mx-auto px-6 py-8">
+                    <CategoryHeader
+                        title="Femme"
+                        count={products.length}
+                        breadcrumbs={[
+                            { label: 'Accueil', href: '/' },
+                            { label: 'Femme', href: '/femme' }
+                        ]}
+                    />
+                    {products.length > 0 ? (
+                        <ProductGrid products={products} />
+                    ) : (
+                        <EmptyState message="Aucun produit trouvé." />
+                    )}
+                </div>
+            </div>
+            <Footer />
+        </main>
     );
 }

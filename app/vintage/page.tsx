@@ -1,29 +1,37 @@
+'use client';
+
 import React from 'react';
-import ProductListing from '@/app/components/ProductListing';
+import ProductGrid from '@/app/components/ProductGrid';
+import EmptyState from '@/app/components/EmptyState';
+import CategoryHeader from '@/app/components/ui/CategoryHeader';
 import { cloudinaryProducts } from '@/data/cloudinaryProducts';
+import Header from '@/app/components/sections/Header';
+import Footer from '@/app/components/sections/Footer';
 
 export default function VintagePage() {
-    // Simuler une sélection vintage
-    const products = cloudinaryProducts
-        .slice(200, 350)
-        .map(p => ({
-            id: p.id,
-            brand: "Vintage Collection",
-            category: p.category || "Vintage",
-            price: Math.floor(Math.random() * 300) + 80,
-            image: p.image,
-            name: p.title,
-            size: "M",
-            currency: "€",
-            type: p.type || "",
-            condition: "Très bon état vintage"
-        }));
+    const products = cloudinaryProducts.slice(200, 350);
 
     return (
-        <ProductListing
-            title="Vintage & Pre-owned"
-            products={products as any}
-            breadcrumbs={[{ label: 'Accueil', href: '/' }, { label: 'Vintage', href: '/vintage' }]}
-        />
+        <main className="min-h-screen bg-white font-sans">
+            <Header />
+            <div className="pt-[100px] md:pt-[120px]">
+                <div className="max-w-[1600px] mx-auto px-6 py-8">
+                    <CategoryHeader
+                        title="Vintage & Pre-owned"
+                        count={products.length}
+                        breadcrumbs={[
+                            { label: 'Accueil', href: '/' },
+                            { label: 'Vintage', href: '/vintage' }
+                        ]}
+                    />
+                    {products.length > 0 ? (
+                        <ProductGrid products={products} />
+                    ) : (
+                        <EmptyState message="Aucun produit trouvé." />
+                    )}
+                </div>
+            </div>
+            <Footer />
+        </main>
     );
 }

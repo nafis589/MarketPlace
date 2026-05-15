@@ -31,7 +31,7 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPage
             <button
                 onClick={() => onPageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className={`flex items-center gap-1.5 px-3 py-2 transition-colors ${currentPage === 1 ? 'text-[#C5C5C5] cursor-not-allowed' : 'text-[#0057B7] hover:text-[#003D7A]'
+                className={`flex items-center gap-1.5 px-3 py-2 transition-colors ${currentPage === 1 ? 'text-[#C5C5C5] cursor-not-allowed' : 'text-black'
                     }`}
             >
                 <div className="w-2 h-2 border-l border-t border-current rotate-[-45deg] mr-1" />
@@ -48,8 +48,8 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPage
                             <button
                                 onClick={() => onPageChange(page as number)}
                                 className={`min-w-[40px] h-10 flex items-center justify-center transition-colors text-[17px] ${currentPage === page
-                                        ? 'text-[#0057B7] border-b-2 border-[#0057B7]'
-                                        : 'text-black hover:text-[#0057B7]'
+                                        ? 'text-black border-b-2'
+                                        : 'text-black'
                                     }`}
                             >
                                 {page}
@@ -63,7 +63,7 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPage
             <button
                 onClick={() => onPageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className={`flex items-center gap-1.5 px-3 py-2 transition-colors ${currentPage === totalPages ? 'text-[#C5C5C5] cursor-not-allowed' : 'text-[#0057B7] hover:text-[#003D7A]'
+                className={`flex items-center gap-1.5 px-3 py-2 transition-colors ${currentPage === totalPages ? 'text-[#C5C5C5] cursor-not-allowed' : 'text-black'
                     }`}
             >
                 <span className="text-[17px]">Suivant</span>
