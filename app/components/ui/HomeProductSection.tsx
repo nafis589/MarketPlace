@@ -69,7 +69,7 @@ export default function HomeProductSection({ title, products }: HomeProductSecti
                 {/* Grille de produits (Scrollable) */}
                 <div
                     ref={scrollContainerRef}
-                    className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide bg-white border border-gray-200 divide-x divide-gray-200"
+                    className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide bg-white border border-gray-200 divide-x divide-gray-200 -mr-6 md:mr-0"
                     style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                 >
                     {products.map((product) => (

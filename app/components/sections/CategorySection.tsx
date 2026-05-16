@@ -14,7 +14,7 @@ const CategorySection = () => {
                 <Link href="/nouveautes" className="text-sm font-bold uppercase tracking-widest border-b border-black pb-1 hover:text-gray-600 hover:border-gray-600 transition-colors">Voir tout</Link>
             </div>
 
-            <div className="flex overflow-x-auto gap-4 pb-4 scrollbar-hide md:grid md:grid-cols-3 lg:grid-cols-5">
+            <div            className="flex overflow-x-auto gap-4 pb-4 scrollbar-hide -mr-4 md:mr-0 md:grid md:grid-cols-3 lg:grid-cols-5">
                 {categories.map((category) => (
                     <div key={category.id} className="flex-shrink-0 w-40 md:w-auto">
                         <CategoryCard category={category} />
