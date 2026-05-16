@@ -50,7 +50,7 @@ interface CategoryHeaderProps {
 
 export default function CategoryHeader({ title, count, breadcrumbs }: CategoryHeaderProps) {
     return (
-        <div className="w-full font-sans bg-white mb-8">
+        <div className="w-full font-sans bg-white mb-8 -mt-2 md:mt-0">
             {/* Fil d'ariane (Breadcrumbs) */}
             <nav className="text-sm text-gray-500 mb-6 flex items-center capitalize">
                 {breadcrumbs.map((crumb, index) => (
