@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 
 // --- Icons Components (SVG) ---
@@ -37,6 +37,11 @@ const CheckIcon = () => (
 );
 
 import AuthModal from '@/app/components/auth/AuthModal';
+import ProductDescription from './ProductDescription';
+import RecentlyViewed from '@/app/components/sections/RecentlyViewed';
+import HomeProductSection from '@/app/components/ui/HomeProductSection';
+import { cloudinaryProducts } from '@/data/cloudinaryProducts';
+import { getRandomProducts, mapCloudinaryToProduct } from '@/app/utils/productMapper';
 
 interface ProductDetailProps {
     product: {
@@ -75,6 +80,17 @@ export default function ProductDetail({ product }: ProductDetailProps) {
         }
     };
 
+    // Produits de la même catégorie pour la section "À découvrir"
+    const relatedProducts = useMemo(() => {
+        const sameCategory = cloudinaryProducts.filter(p => p.category === product.category && p.id !== product.id);
+        // Mélanger et prendre 10 produits max
+        const shuffled = [...sameCategory].sort(() => 0.5 - Math.random());
+        return shuffled.slice(0, 10).map(mapCloudinaryToProduct);
+    }, [product.category, product.id]);
+
+    // Produits aléatoires pour "Récemment consultés"
+    const recentlyViewedProducts = useMemo(() => getRandomProducts(10), []);
+
     return (
         <div className="bg-white font-sans text-gray-900">
             {/* Auth Modal */}
@@ -99,13 +115,13 @@ export default function ProductDetail({ product }: ProductDetailProps) {
             </div>
 
             {/* Main Header */}
-            <div className="text-center py-4 mb-4">
+            <div className="text-center py-2 mb-2 md:py-4 md:mb-4">
                 <h1 className="font-serif text-5xl mb-2 text-gray-900 capitalize">{product.brand || "Friperie Luxe"}</h1>
                 <p className="text-lg text-gray-600 capitalize">{product.title}</p>
             </div>
 
             {/* Content Grid */}
-            <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-8 pb-20">
+            <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-8 pb-10 lg:pb-20">
 
                 {/* Left Column: Image Gallery */}
                 <div className="lg:col-span-7">
@@ -231,6 +247,20 @@ export default function ProductDetail({ product }: ProductDetailProps) {
 
                 </div>
             </div>
+
+            {/* Product Description Section */}
+            <ProductDescription product={product} />
+
+            {/* À découvrir - Produits de la même catégorie */}
+            {relatedProducts.length > 0 && (
+                <HomeProductSection
+                    title="À découvrir"
+                    products={relatedProducts}
+                />
+            )}
+
+            {/* Récemment consultés */}
+            <RecentlyViewed products={recentlyViewedProducts} />
         </div>
     );
 }
