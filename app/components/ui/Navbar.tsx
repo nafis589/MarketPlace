@@ -11,12 +11,13 @@ import { navItems } from '@/app/lib/navigation';
 import { megaMenuData } from '@/app/lib/megamenu-data';
 import { useCart } from '@/app/context/CartContext';
 import { useAuth } from '@/app/context/AuthContext';
+import AuthModal from '@/app/components/auth/AuthModal';
 import CartPopover from '@/app/components/cart/CartPopover';
 import EmptyCartPopover from '@/app/components/cart/EmptyCartPopover';
 import AddToCartModal from '@/app/components/cart/AddToCartModal';
 
 const Navbar = () => {
-    const { isLoggedIn, login, logout } = useAuth();
+    const { isLoggedIn, logout, openAuthModal, isAuthModalOpen, closeAuthModal } = useAuth();
     const {
         isCartOpen,
         setIsCartOpen,
@@ -77,6 +78,10 @@ const Navbar = () => {
 
     return (
         <>
+            <AuthModal
+                isOpen={isAuthModalOpen}
+                onClose={closeAuthModal}
+            />
             <AddToCartModal
                 isOpen={isAddModalOpen}
                 onClose={() => setIsAddModalOpen(false)}
@@ -139,10 +144,13 @@ const Navbar = () => {
                                 ) : (
                                     <>
                                         <button
-                                            onClick={() => login()}
+                                            onClick={() => openAuthModal('login')}
                                             className="hover:text-black transition-colors"
                                         >Se connecter</button>
-                                        <Link href="/register" className="hover:text-black transition-colors">S'inscrire</Link>
+                                        <button
+                                            onClick={() => openAuthModal('signup')}
+                                            className="hover:text-black transition-colors"
+                                        >S'inscrire</button>
                                     </>
                                 )}
                             </div>
@@ -234,12 +242,15 @@ const Navbar = () => {
                         <span className="text-[10px] font-medium">Notifications</span>
                     </Link>
 
-                    <Link href="/login" className="flex flex-col items-center justify-center w-full h-full text-gray-500 hover:text-gray-900">
+                    <button
+                        onClick={() => openAuthModal('login')}
+                        className="flex flex-col items-center justify-center w-full h-full text-gray-500 hover:text-gray-900"
+                    >
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 mb-1">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                         </svg>
                         <span className="text-[10px] font-medium">Moi</span>
-                    </Link>
+                    </button>
                 </div>
             </div>
         </>
