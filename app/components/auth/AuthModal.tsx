@@ -14,7 +14,7 @@ interface AuthModalProps {
 }
 
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen: isOpenProp, onClose: onCloseProp, defaultMode = 'login' }) => {
-    const { isAuthModalOpen, authModalMode, closeAuthModal, login } = useAuth();
+    const { isAuthModalOpen, authModalMode, closeAuthModal, login, openUserMenu } = useAuth();
     const [mode, setMode] = useState<AuthMode>(defaultMode);
     const [showPassword, setShowPassword] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
@@ -73,6 +73,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen: isOpenProp, onClose: onCl
         if (!isLoginValid) return;
         login();
         handleClose();
+        if (isMobile) openUserMenu();
     };
 
     const handleSignupSubmit = (e: React.FormEvent) => {
@@ -80,6 +81,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen: isOpenProp, onClose: onCl
         if (!isSignupValid) return;
         login();
         handleClose();
+        if (isMobile) openUserMenu();
     };
 
     // ─────────────────────────────────────────────────────

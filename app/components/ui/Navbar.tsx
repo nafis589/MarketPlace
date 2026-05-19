@@ -12,12 +12,13 @@ import { megaMenuData } from '@/app/lib/megamenu-data';
 import { useCart } from '@/app/context/CartContext';
 import { useAuth } from '@/app/context/AuthContext';
 import AuthModal from '@/app/components/auth/AuthModal';
+import UserMenu from '@/app/components/auth/UserMenu';
 import CartPopover from '@/app/components/cart/CartPopover';
 import EmptyCartPopover from '@/app/components/cart/EmptyCartPopover';
 import AddToCartModal from '@/app/components/cart/AddToCartModal';
 
 const Navbar = () => {
-    const { isLoggedIn, logout, openAuthModal, isAuthModalOpen, closeAuthModal } = useAuth();
+    const { isLoggedIn, user, logout, openAuthModal, isAuthModalOpen, closeAuthModal, isUserMenuOpen, openUserMenu, closeUserMenu } = useAuth();
     const {
         isCartOpen,
         setIsCartOpen,
@@ -87,7 +88,7 @@ const Navbar = () => {
                 onClose={() => setIsAddModalOpen(false)}
             />
             <nav
-                className={`fixed top-0 left-0 right-0 z-50 bg-white transition-all duration-300 border-b border-gray-100 max-w-full overflow-x-clip ${isScrolled ? 'shadow-sm' : ''
+                className={`fixed top-0 left-0 right-0 z-50 bg-white transition-all duration-300 border-b border-gray-100 max-w-full ${isScrolled ? 'shadow-sm' : ''
                     }`}
                 onMouseLeave={handleMouseLeave}
             >
@@ -134,13 +135,19 @@ const Navbar = () => {
 
                             <div className="hidden lg:flex items-center gap-4 text-sm font-medium text-gray-700">
                                 {isLoggedIn ? (
-                                    <>
-                                        <button className="hover:text-black transition-colors">Mon Compte</button>
+                                    <div className="relative">
                                         <button
-                                            className="hover:text-black transition-colors text-red-500"
-                                            onClick={() => logout()}
-                                        >Déconnexion</button>
-                                    </>
+                                            onClick={() => isUserMenuOpen ? closeUserMenu() : openUserMenu()}
+                                            className="flex items-center hover:opacity-80 transition-opacity"
+                                        >
+                                            <div className="w-9 h-9 rounded-full bg-gray-200 text-gray-700 flex items-center justify-center hover:bg-gray-300 transition-colors">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                                                </svg>
+                                            </div>
+                                        </button>
+                                        <UserMenu />
+                                    </div>
                                 ) : (
                                     <>
                                         <button
@@ -179,7 +186,7 @@ const Navbar = () => {
                     </div>
 
                     {/* Bottom Row: Navigation Links */}
-                    <div className="hidden lg:flex items-center justify-center gap-1 pb-0">
+                    <div className="hidden lg:flex items-center justify-center gap-1 pb-0 overflow-x-auto scrollbar-hide flex-nowrap">
                         {navItems.map((item) => (
                             <MenuLink
                                 key={item.key}
@@ -242,15 +249,18 @@ const Navbar = () => {
                         <span className="text-[10px] font-medium">Notifications</span>
                     </Link>
 
-                    <button
-                        onClick={() => openAuthModal('login')}
-                        className="flex flex-col items-center justify-center w-full h-full text-gray-500 hover:text-gray-900"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 mb-1">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                        </svg>
-                        <span className="text-[10px] font-medium">Moi</span>
-                    </button>
+                    <div className="relative w-full h-full">
+                        <button
+                            onClick={() => isLoggedIn ? openUserMenu() : openAuthModal('login')}
+                            className="flex flex-col items-center justify-center w-full h-full text-gray-500 hover:text-gray-900"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 mb-1">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                            </svg>
+                            <span className="text-[10px] font-medium">Moi</span>
+                        </button>
+                        <UserMenu />
+                    </div>
                 </div>
             </div>
         </>

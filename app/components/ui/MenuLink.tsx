@@ -36,7 +36,7 @@ const MenuLink: React.FC<MenuLinkProps> = ({
                 href={href}
                 onClick={onClick}
                 className={`
-          relative px-3 py-4 text-sm font-medium transition-colors duration-200
+          relative px-3 py-4 text-sm font-medium transition-colors duration-200 whitespace-nowrap
           ${isSale ? 'text-red-600 hover:text-red-700' : 'text-gray-800 hover:text-black'}
           ${isActive || isCurrent ? 'text-black' : ''}
         `}

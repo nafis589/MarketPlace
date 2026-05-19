@@ -25,16 +25,16 @@ interface MegaMenuImagesProps {
 const MegaMenuImages: React.FC<MegaMenuImagesProps> = ({ sections, isVisible, onMouseEnter, onMouseLeave }) => {
     return (
         <div
-            className={`absolute left-0 right-0 w-full max-w-full bg-white border-t border-gray-100 shadow-lg transition-all duration-300 ease-in-out z-50 ${isVisible ? 'opacity-100 translate-y-0 visible' : 'opacity-0 -translate-y-2 invisible'
+            className={`absolute left-0 right-0 w-full bg-white border-t border-gray-100 shadow-lg transition-all duration-300 ease-in-out z-50 scrollbar-hide overflow-x-auto ${isVisible ? 'opacity-100 translate-y-0 visible' : 'opacity-0 -translate-y-2 invisible pointer-events-none'
                 }`}
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}
         >
-            <div className="container mx-auto px-4 md:px-8 py-8 max-w-full">
-                <div className="flex gap-8">
+            <div className="px-4 md:px-8 py-8" style={{ width: "max-content", minWidth: "100%" }}>
+                <div className="flex gap-8 flex-nowrap">
                     {sections.map((section, index) => (
-                        <div key={index} className="flex-1">
-                            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 border-b pb-2">
+                        <div key={index} className="w-72 flex-shrink-0">
+                            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 border-b pb-2 whitespace-nowrap">
                                 {section.title}
                             </h3>
                             <div className="grid grid-cols-2 gap-4">
@@ -55,7 +55,7 @@ const MegaMenuImages: React.FC<MegaMenuImagesProps> = ({ sections, isVisible, on
                                                 />
                                             </div>
                                         )}
-                                        <span className="text-sm font-medium text-gray-900 group-hover:underline decoration-1 underline-offset-4 capitalize">
+                                        <span className="text-sm font-medium text-gray-900 group-hover:underline decoration-1 underline-offset-4 capitalize truncate block w-full">
                                             {item.label}
                                         </span>
                                     </Link>
