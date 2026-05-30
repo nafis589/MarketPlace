@@ -2,8 +2,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import Link from 'next/link';
 import { X, XCircle } from 'lucide-react';
 import { useCart } from '@/app/context/CartContext';
+import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
 
 interface CartPopoverProps {
     isOpen: boolean;
@@ -22,6 +24,9 @@ const CartPopover: React.FC<CartPopoverProps> = ({ isOpen, onClose }) => {
         window.addEventListener('resize', check);
         return () => window.removeEventListener('resize', check);
     }, []);
+
+    // Lock body scroll on mobile full-screen
+    useLockBodyScroll(isOpen && isMobile);
 
     if (!isOpen) return null;
 
@@ -73,12 +78,22 @@ const CartPopover: React.FC<CartPopoverProps> = ({ isOpen, onClose }) => {
                     <span className="font-bold text-gray-900">Sous-total</span>
                     <span className="font-bold text-gray-900">${subtotal}</span>
                 </div>
-                <button className="mb-3 w-full bg-black py-3.5 text-sm font-bold text-white hover:opacity-90">
-                    Procéder au paiement
-                </button>
-                <button className="w-full text-center text-sm font-medium text-gray-900 hover:underline">
-                    Voir mon panier
-                </button>
+                {cartItems.length > 0 && (
+                    <>
+                        <Link
+                            href="/checkout"
+                            className="mb-3 w-full bg-black py-3.5 text-sm font-bold text-white hover:opacity-90 flex items-center justify-center"
+                        >
+                            Procéder au paiement
+                        </Link>
+                        <Link
+                            href="/checkout"
+                            className="w-full block text-center text-sm font-medium text-gray-900 hover:underline"
+                        >
+                            Voir mon panier
+                        </Link>
+                    </>
+                )}
             </div>
         </div>
     );

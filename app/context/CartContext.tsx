@@ -2,6 +2,14 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
+export interface CartSeller {
+    username: string;
+    badge: string;
+    location: string;
+    itemsCount: number;
+    salesCount: number;
+}
+
 export interface CartItem {
     id: number;
     brand: string;
@@ -9,6 +17,10 @@ export interface CartItem {
     size: string;
     price: number;
     image: string;
+    originalPrice?: number;
+    shippingFee?: number;
+    seller?: CartSeller;
+    title?: string;
 }
 
 interface CartContextType {

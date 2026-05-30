@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/app/context/AuthContext';
 import Link from 'next/link';
+import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
 
 const menuItems = [
     { label: 'Mon profil', href: '/profil' },
@@ -43,6 +44,9 @@ const UserMenu = () => {
         document.addEventListener('keydown', handleEsc);
         return () => document.removeEventListener('keydown', handleEsc);
     }, [isUserMenuOpen, closeUserMenu]);
+
+    // Lock body scroll on mobile full-screen (must be before early return)
+    useLockBodyScroll(isUserMenuOpen && isMobile);
 
     if (!isUserMenuOpen) return null;
 

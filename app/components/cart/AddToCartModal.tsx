@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { X } from 'lucide-react';
 import { useCart } from '@/app/context/CartContext';
 
@@ -73,9 +74,12 @@ const AddToCartModal: React.FC<AddToCartModalProps> = ({ isOpen, onClose }) => {
                         >
                             Continuer mes achats
                         </button>
-                        <button className="w-full border border-black bg-black py-3 text-sm font-medium text-white transition-opacity hover:opacity-90">
+                        <Link
+                            href="/checkout"
+                            className="w-full border border-black bg-black py-3 text-sm font-medium text-white transition-opacity hover:opacity-90 flex items-center justify-center"
+                        >
                             Finaliser la commande
-                        </button>
+                        </Link>
                     </div>
 
                 </div>

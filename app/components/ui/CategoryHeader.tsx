@@ -65,7 +65,7 @@ export default function CategoryHeader({ title, count, breadcrumbs }: CategoryHe
 
             {/* Titre et Compteur */}
             <div className="flex items-baseline mb-8">
-                <h1 className="font-serif text-5xl text-gray-900 tracking-tight capitalize">
+                <h1 className="font-serif text-2xl md:text-3xl lg:text-5xl text-gray-900 tracking-tight capitalize">
                     {title}
                 </h1>
                 <span className="ml-4 text-gray-500 text-lg">

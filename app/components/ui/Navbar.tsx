@@ -47,6 +47,7 @@ const Navbar = () => {
         setActiveMenu(null);
         setIsMobileMenuOpen(false);
         setIsCartOpen(false);
+        setIsAddModalOpen(false);
     }, [pathname]);
 
     // Handle Hover with Delay to prevent flickering

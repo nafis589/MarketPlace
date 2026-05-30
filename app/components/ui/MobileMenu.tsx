@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
 import MobileMenuSection from './MobileMenuSection';
 import { navItems } from '@/app/lib/navigation';
 import { megaMenuData } from '@/app/lib/megamenu-data';
@@ -10,6 +11,9 @@ interface MobileMenuProps {
 }
 
 const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
+    // Lock body scroll when mobile menu is open
+    useLockBodyScroll(isOpen);
+
     const [activeMainItem, setActiveMainItem] = useState<string | null>(null);
 
     const toggleMainItem = (key: string) => {

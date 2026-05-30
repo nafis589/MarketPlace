@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ShoppingBag } from 'lucide-react';
+import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
 
 interface EmptyCartPopoverProps {
     isOpen: boolean;
@@ -20,6 +21,9 @@ const EmptyCartPopover: React.FC<EmptyCartPopoverProps> = ({ isOpen, onClose }) 
         window.addEventListener('resize', check);
         return () => window.removeEventListener('resize', check);
     }, []);
+
+    // Lock body scroll on mobile full-screen
+    useLockBodyScroll(isOpen && isMobile);
 
     if (!isOpen) return null;
 

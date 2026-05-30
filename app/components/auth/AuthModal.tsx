@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { X, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/app/context/AuthContext';
+import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
 
 // --- Types ---
 type AuthMode = 'login' | 'signup';
@@ -62,6 +63,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen: isOpenProp, onClose: onCl
             setFirstName('');
         }
     }, []);
+
+    // Lock body scroll when full-screen overlay is open (must be before early return)
+    useLockBodyScroll(isActuallyOpen && isMobile);
 
     if (!isActuallyOpen) return null;
 
