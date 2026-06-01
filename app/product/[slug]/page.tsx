@@ -31,7 +31,7 @@ export default function ProductPage({ params }: PageProps) {
     const product = {
         id: productData.id,
         title: productData.title,
-        brand: "Friperie Luxe", // Default brand
+        brand: "Marketplace", // Default brand
         name: productData.title,
         price: 69, // Default or random price
         currency: "€",

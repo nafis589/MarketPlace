@@ -45,7 +45,7 @@ const Footer = () => {
             </div>
 
             <div className="max-w-[1600px] mx-auto pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4">
-                <p className="text-sm text-gray-500">© 2025 FriperieLuxe. Tous droits réservés.</p>
+                <p className="text-sm text-gray-500">© 2026 Marketplace. Tous droits réservés.</p>
                 <div className="flex gap-4">
                     {/* Social Icons Placeholders */}
                     <div className="w-6 h-6 bg-gray-800 rounded-full hover:bg-white transition-colors cursor-pointer"></div>

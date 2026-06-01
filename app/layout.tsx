@@ -15,8 +15,8 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "FriperieLuxe - Mode Seconde Main Authentifiée",
-  description: "Achetez et vendez des articles de luxe de seconde main authentifiés.",
+  title: "Marketplace",
+  description: "Marketplace",
 };
 
 import { AuthProvider } from "./context/AuthContext";

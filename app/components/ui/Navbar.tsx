@@ -126,7 +126,7 @@ const Navbar = () => {
                         {/* Center: Logo */}
                         <div className="flex-shrink-0 flex-1 lg:flex-none text-center lg:text-left">
                             <Link href="/" className="text-2xl md:text-3xl font-serif font-bold tracking-tighter">
-                                FRIPERIE<span className="font-light italic">LUXE</span>
+                                Marketplace
                             </Link>
                         </div>
 

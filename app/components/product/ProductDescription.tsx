@@ -137,7 +137,7 @@ export default function ProductDescription({ product }: ProductDescriptionProps)
                     {/* Trust Message */}
                     <p className="text-xs text-gray-400 mt-4 flex items-center gap-1.5">
                         <CheckIcon className="w-3.5 h-3.5 text-gray-400" />
-                        Achetez en toute confiance sur Friperie Luxe
+                        Achetez en toute confiance sur Marketplace
                     </p>
                 </div>
 

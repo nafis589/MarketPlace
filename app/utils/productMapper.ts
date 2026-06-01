@@ -12,7 +12,7 @@ export const mapCloudinaryToProduct = (item: any): Product => {
 
     return {
         id: item.id,
-        brand: "Friperie Luxe", // Default brand as it's not in the data
+        brand: "Marketplace", // Default brand as it's not in the data
         name: item.title,
         size: ["XS", "S", "M", "L", "XL"][Math.floor(Math.random() * 5)], // Random size
         price: price,

@@ -38,7 +38,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
                 <div className="p-4 flex justify-between items-center border-b border-gray-100 flex-shrink-0">
                     <div className="flex-1 text-center">
                         <span className="text-xl font-serif font-bold">
-                            FRIPERIE<span className="font-light italic">LUXE</span>
+                            Marketplace
                         </span>
                     </div>
                     <button onClick={onClose} className="p-2">

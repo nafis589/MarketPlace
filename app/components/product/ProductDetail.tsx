@@ -116,7 +116,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
 
             {/* Main Header */}
             <div className="text-center py-2 mb-2 md:py-4 md:mb-4">
-                <h1 className="font-serif text-5xl mb-2 text-gray-900 capitalize">{product.brand || "Friperie Luxe"}</h1>
+                <h1 className="font-serif text-5xl mb-2 text-gray-900 capitalize">{product.brand || "Marketplace"}</h1>
                 <p className="text-lg text-gray-600 capitalize">{product.title}</p>
             </div>
 

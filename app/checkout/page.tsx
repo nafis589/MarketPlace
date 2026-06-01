@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import {
     Navigation,
@@ -54,6 +54,33 @@ export default function CheckoutPage() {
 
     // Step 2 mobile: show right-side form panel as overlay
     const [showMobileForm, setShowMobileForm] = useState(false);
+
+    // Sticky sidebar (étape 1) : collé en haut si le contenu tient dans l'écran ;
+    // sinon on scrolle jusqu'au bas du bloc (bouton + padding) puis ça se fige.
+    const HEADER_H = 62;
+    const stickyBoxRef = useRef<HTMLDivElement>(null);
+    const [stickyTop, setStickyTop] = useState(HEADER_H);
+
+    useEffect(() => {
+        if (step !== 1) return;
+        const el = stickyBoxRef.current;
+        if (!el) return;
+
+        const recompute = () => {
+            const boxH = el.offsetHeight;
+            const available = window.innerHeight - HEADER_H;
+            setStickyTop(boxH <= available ? HEADER_H : window.innerHeight - boxH);
+        };
+
+        recompute();
+        const ro = new ResizeObserver(recompute);
+        ro.observe(el);
+        window.addEventListener('resize', recompute);
+        return () => {
+            ro.disconnect();
+            window.removeEventListener('resize', recompute);
+        };
+    }, [step, showPriceDetails, cartItems.length]);
 
     const handleGetLocation = () => {
         setIsLocating(true);
@@ -123,7 +150,7 @@ export default function CheckoutPage() {
                         href="/"
                         className="font-serif text-[22px] md:text-[26px] font-black tracking-tight text-black select-none"
                     >
-                        Friperie Luxe
+                        Marketplace
                     </Link>
                 </div>
                 <div className="ml-auto" />
@@ -324,7 +351,11 @@ export default function CheckoutPage() {
 
                     {/* ── STEP 1 right ── */}
                     {step === 1 && (
-                        <div className="lg:sticky lg:top-[62px] px-4 sm:px-6 md:px-9 lg:px-11 py-6 md:py-10 space-y-0">
+                        <div
+                            ref={stickyBoxRef}
+                            style={{ top: stickyTop }}
+                            className="lg:sticky px-4 sm:px-6 md:px-9 lg:px-11 py-6 md:py-10 space-y-0"
+                        >
 
                             <h2 className="text-[18px] font-bold text-[#1A1A1A] mb-8">
                                 Détails de la commande
@@ -400,7 +431,7 @@ export default function CheckoutPage() {
                     {/* ── STEP 2 right : Infos perso + commande ── */}
                     {step === 2 && (
                         <div className={cx(
-                            'lg:sticky lg:top-[62px] lg:overflow-y-auto lg:max-h-[calc(100vh-62px)]',
+                            'lg:sticky lg:top-[62px]',
                             // Mobile : caché par défaut, overlay plein écran quand ouvert
                             !showMobileForm
                                 ? 'hidden lg:block'
@@ -601,7 +632,7 @@ export default function CheckoutPage() {
 
                     {/* ── STEP 3 right : infos de confirmation + récap ── */}
                     {step === 3 && (
-                        <div className="lg:sticky lg:top-[62px] lg:overflow-y-auto lg:max-h-[calc(100vh-62px)]">
+                        <div className="lg:sticky lg:top-[62px]">
                             <div className="px-4 sm:px-6 md:px-9 lg:px-11 py-6 md:py-10 space-y-7">
 
                                 {/* Personal info confirmation */}
