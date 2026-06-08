@@ -3,12 +3,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import MenuLink from './MenuLink';
-import MegaMenu from './MegaMenu';
+import MenuLink from '../ui/MenuLink';
+import MegaMenu, { CategoryWithChildren } from './MegaMenu';
 
-import MobileMenu from './MobileMenu';
-import { navItems } from '@/app/lib/navigation';
-import { megaMenuData } from '@/app/lib/megamenu-data';
+import MobileMenu from '../ui/MobileMenu';
 import { useCart } from '@/app/context/CartContext';
 import { useAuth } from '@/app/context/AuthContext';
 import AuthModal from '@/app/components/auth/AuthModal';
@@ -17,7 +15,11 @@ import CartPopover from '@/app/components/cart/CartPopover';
 import EmptyCartPopover from '@/app/components/cart/EmptyCartPopover';
 import AddToCartModal from '@/app/components/cart/AddToCartModal';
 
-const Navbar = () => {
+interface NavbarProps {
+    categories: CategoryWithChildren[];
+}
+
+const Navbar: React.FC<NavbarProps> = ({ categories = [] }) => {
     const { isLoggedIn, user, logout, openAuthModal, isAuthModalOpen, closeAuthModal, isUserMenuOpen, openUserMenu, closeUserMenu } = useAuth();
     const {
         isCartOpen,
@@ -27,7 +29,7 @@ const Navbar = () => {
         setIsAddModalOpen
     } = useCart();
 
-    const [activeMenu, setActiveMenu] = useState<string | null>(null);
+    const [hoveredSlug, setHoveredSlug] = useState<string | null>(null);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -44,35 +46,23 @@ const Navbar = () => {
 
     // Close menu on route change
     useEffect(() => {
-        setActiveMenu(null);
+        setHoveredSlug(null);
         setIsMobileMenuOpen(false);
         setIsCartOpen(false);
         setIsAddModalOpen(false);
     }, [pathname]);
 
     // Handle Hover with Delay to prevent flickering
-    const handleMouseEnter = (key: string) => {
+    const handleMouseEnter = (slug: string) => {
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
-        setActiveMenu(key);
+        setHoveredSlug(slug);
     };
 
     const handleMouseLeave = () => {
         timeoutRef.current = setTimeout(() => {
-            setActiveMenu(null);
+            setHoveredSlug(null);
         }, 150); // Small delay for better UX
     };
-
-    // Get MegaMenu columns based on active key (Desktop)
-    const activeData = activeMenu ? (megaMenuData[activeMenu] || megaMenuData['default']) : null;
-
-    // Transform new data structure to old column structure for Desktop MegaMenu
-    const activeColumns = activeData ? [
-        ...(activeData.discover ? [{
-            title: "DÉCOUVRIR",
-            items: activeData.discover
-        }] : []),
-        ...activeData.categories
-    ] : [];
 
     const handleCartClick = () => {
         setIsCartOpen(!isCartOpen);
@@ -188,14 +178,13 @@ const Navbar = () => {
 
                     {/* Bottom Row: Navigation Links */}
                     <div className="hidden lg:flex items-center justify-center gap-1 pb-0 overflow-x-auto scrollbar-hide flex-nowrap">
-                        {navItems.map((item) => (
+                        {categories.map((category) => (
                             <MenuLink
-                                key={item.key}
-                                label={item.label}
-                                href={item.href}
-                                isActive={activeMenu === item.key}
-                                isSale={item.isSale}
-                                onMouseEnter={() => handleMouseEnter(item.key)}
+                                key={category.id}
+                                label={category.name}
+                                href={`/categories/${category.slug}`}
+                                isActive={hoveredSlug === category.slug}
+                                onMouseEnter={() => handleMouseEnter(category.slug)}
                                 onMouseLeave={() => { }} // Handled by parent nav
                             />
                         ))}
@@ -204,16 +193,21 @@ const Navbar = () => {
 
                 {/* Mega Menu Container (Desktop) */}
                 <div className="relative">
-                    <MegaMenu
-                        columns={activeColumns}
-                        isVisible={!!activeMenu && activeColumns.length > 0}
-                        onMouseEnter={() => handleMouseEnter(activeMenu!)}
-                        onMouseLeave={handleMouseLeave}
-                    />
+                    {hoveredSlug && (() => {
+                        const activeCategory = categories.find(c => c.slug === hoveredSlug);
+                        if (!activeCategory || !activeCategory.children || activeCategory.children.length === 0) return null;
+                        return (
+                            <MegaMenu
+                                category={activeCategory}
+                                onMouseEnter={() => handleMouseEnter(hoveredSlug)}
+                                onMouseLeave={handleMouseLeave}
+                            />
+                        );
+                    })()}
                 </div>
 
                 {/* Mobile Menu Component */}
-                <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
+                <MobileMenu categories={categories} isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
 
             </nav>
 

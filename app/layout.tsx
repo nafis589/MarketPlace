@@ -21,17 +21,40 @@ export const metadata: Metadata = {
 
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
+import Navbar from "./components/layout/Navbar";
 
-export default function RootLayout({
+const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || "http://localhost:5000";
+
+async function getCategories() {
+  try {
+    const res = await fetch(`${API_URL}/api/store/categories`, {
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      console.error(`Failed to fetch categories: ${res.status}`);
+      return [];
+    }
+    const json = await res.json();
+    return json.data || [];
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+    return [];
+  }
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const categories = await getCategories();
+
   return (
     <html lang="fr" className={`${inter.variable} ${playfair.variable}`}>
       <body className="font-sans antialiased bg-white text-black overflow-x-clip max-w-full">
         <AuthProvider>
           <CartProvider>
+            <Navbar categories={categories} />
             {children}
           </CartProvider>
         </AuthProvider>

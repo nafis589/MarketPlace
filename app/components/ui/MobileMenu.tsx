@@ -1,16 +1,93 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
-import MobileMenuSection from './MobileMenuSection';
-import { navItems } from '@/app/lib/navigation';
-import { megaMenuData } from '@/app/lib/megamenu-data';
+import MobileAccordion from './MobileAccordion';
+import { CategoryWithChildren } from '../layout/MegaMenu';
+
+const formatGroupTitle = (title: string) => {
+    if (!title) return '';
+    return title
+        .split(' ')
+        .map(word => {
+            if (!word) return '';
+            return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        })
+        .join(' ');
+};
 
 interface MobileMenuProps {
+    categories: CategoryWithChildren[];
     isOpen: boolean;
     onClose: () => void;
 }
 
-const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
+interface DynamicMobileMenuSectionProps {
+    category: CategoryWithChildren;
+    onClose: () => void;
+}
+
+const DynamicMobileMenuSection: React.FC<DynamicMobileMenuSectionProps> = ({ category, onClose }) => {
+    const [activeGroup, setActiveGroup] = useState<string | null>(null);
+
+    const toggleGroup = (title: string) => {
+        setActiveGroup(activeGroup === title ? null : title);
+    };
+
+    // Group subcategories by column_group
+    const groupedChildren = (category.children || []).reduce<Record<string, CategoryWithChildren[]>>((acc, child) => {
+        const group = child.column_group || 'AUTRES';
+        if (!acc[group]) {
+            acc[group] = [];
+        }
+        acc[group].push(child);
+        return acc;
+    }, {});
+
+    const groups = Object.keys(groupedChildren);
+
+    return (
+        <div className="flex flex-col bg-white">
+            {/* First element: Page d'accueil */}
+            <div className="py-3 pl-8 pr-4 border-b border-gray-100 hover:bg-gray-50">
+                <Link
+                    href={`/categories/${category.slug}`}
+                    className="block text-base font-normal text-gray-900 hover:text-black"
+                    onClick={onClose}
+                >
+                    Page d'accueil {category.name.toLowerCase()}
+                </Link>
+            </div>
+
+            {/* Subcategory Groups */}
+            {groups.map((groupTitle) => (
+                <MobileAccordion
+                    key={groupTitle}
+                    isOpen={activeGroup === groupTitle}
+                    onToggle={() => toggleGroup(groupTitle)}
+                    title={<span className="text-base font-medium text-gray-900">{formatGroupTitle(groupTitle)}</span>}
+                    headerClassName="py-3 pl-8 pr-4 border-b border-gray-100 hover:bg-gray-50"
+                    contentClassName="bg-white"
+                >
+                    <ul className="flex flex-col py-2">
+                        {groupedChildren[groupTitle].map((subcat) => (
+                            <li key={subcat.id}>
+                                <Link
+                                    href={`/categories/${category.slug}/${subcat.slug}`}
+                                    className="block pl-12 pr-4 py-2 text-base text-gray-600 hover:text-black"
+                                    onClick={onClose}
+                                >
+                                    {subcat.name}
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
+                </MobileAccordion>
+            ))}
+        </div>
+    );
+};
+
+const MobileMenu: React.FC<MobileMenuProps> = ({ categories = [], isOpen, onClose }) => {
     // Lock body scroll when mobile menu is open
     useLockBodyScroll(isOpen);
 
@@ -82,30 +159,30 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
 
                 {/* Navigation Content */}
                 <div className="flex-1 overflow-y-auto pb-24">
-                    {navItems.map((item) => {
-                        const hasSubMenu = megaMenuData[item.key] || megaMenuData['default'];
-                        const isActive = activeMainItem === item.key;
+                    {categories.map((category) => {
+                        const hasSubMenu = category.children && category.children.length > 0;
+                        const isActive = activeMainItem === category.slug;
 
                         return (
-                            <div key={item.key} className="border-b border-gray-100">
+                            <div key={category.id} className="border-b border-gray-100">
                                 {/* Level 1 Item */}
                                 <div
                                     className={`flex justify-between items-center px-4 py-4 cursor-pointer transition-colors ${isActive ? 'bg-gray-50' : 'hover:bg-gray-50'}`}
-                                    onClick={() => hasSubMenu ? toggleMainItem(item.key) : onClose()}
+                                    onClick={() => hasSubMenu ? toggleMainItem(category.slug) : onClose()}
                                 >
                                     <Link
-                                        href={item.href}
-                                        className={`text-base font-medium flex-1 ${item.isSale ? 'text-red-600' : 'text-gray-900'}`}
+                                        href={`/categories/${category.slug}`}
+                                        className={`text-base font-medium flex-1 text-gray-900 ${isActive ? 'underline underline-offset-4' : ''}`}
                                         onClick={(e) => {
                                             if (hasSubMenu) {
                                                 e.preventDefault();
-                                                toggleMainItem(item.key);
+                                                toggleMainItem(category.slug);
                                             } else {
                                                 onClose();
                                             }
                                         }}
                                     >
-                                        {item.label}
+                                        {category.name}
                                     </Link>
                                     {hasSubMenu && (
                                         <svg
@@ -121,13 +198,13 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
                                     )}
                                 </div>
 
-                                {/* Level 2 Content (Discover + Categories) */}
+                                {/* Level 2 Content */}
                                 <div
                                     className={`overflow-hidden transition-all duration-300 ease-in-out ${isActive ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
                                         }`}
                                 >
                                     {isActive && hasSubMenu && (
-                                        <MobileMenuSection data={hasSubMenu} onClose={onClose} />
+                                        <DynamicMobileMenuSection category={category} onClose={onClose} />
                                     )}
                                 </div>
                             </div>
