@@ -29,3 +29,31 @@ export interface AuthResponse {
 export interface ProfileResponse {
   data: User;
 }
+
+export type ShippingMethod = 'PER_KM' | 'FIXED';
+
+export interface ShippingFeeError {
+  code: 'LOCATION_OUTSIDE_TOGO' | 'REGION_NOT_COVERED' | 'VENDOR_SHIPPING_NOT_SET' | 'SHIPPING_CONFIG_INVALID';
+  message: string;
+  region?: string;
+  coveredRegions?: string[];
+}
+
+export interface ShippingFeeResult {
+  fee: number;
+  method: ShippingMethod | null;
+  regionId?: string;
+  distanceKm?: number;
+  detail?: string;
+  error?: ShippingFeeError;
+}
+
+export interface ShippingCalculateResponse {
+  data: ShippingFeeResult;
+}
+
+export interface LocationSelectResult {
+  lat: number;
+  lng: number;
+  shippingResult: ShippingFeeResult;
+}

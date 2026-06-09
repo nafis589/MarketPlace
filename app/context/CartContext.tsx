@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { DEMO_VENDOR_ID } from '@/lib/demo-vendor';
 
 export interface CartSeller {
     username: string;
@@ -21,6 +22,7 @@ export interface CartItem {
     shippingFee?: number;
     seller?: CartSeller;
     title?: string;
+    vendorId?: string;
 }
 
 interface CartContextType {
@@ -52,7 +54,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
             type: product.category || product.type || 'Article',
             size: product.size || 'Taille unique',
             price: product.price || 0,
-            image: image
+            image: image,
+            vendorId: product.vendorId ?? product.seller?.id ?? DEMO_VENDOR_ID,
         };
 
         setCartItems(prev => [...prev, newItem]);

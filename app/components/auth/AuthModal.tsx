@@ -34,6 +34,29 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen: isOpenProp, onClose: onCl
   const [confirmPassword, setConfirmPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [submitAttempted, setSubmitAttempted] = useState(false);
+  const [touched, setTouched] = useState({
+    firstName: false,
+    lastName: false,
+    email: false,
+    password: false,
+    confirmPassword: false,
+  });
+
+  const touch = (field: keyof typeof touched) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+  };
+
+  const resetRegisterValidation = () => {
+    setSubmitAttempted(false);
+    setTouched({
+      firstName: false,
+      lastName: false,
+      email: false,
+      password: false,
+      confirmPassword: false,
+    });
+  };
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 1024);
@@ -61,6 +84,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen: isOpenProp, onClose: onCl
       setShowPassword(false);
       setError(null);
       setIsSubmitting(false);
+      resetRegisterValidation();
     }
   }, [isActuallyOpen, registerOpen, isControlled, defaultMode]);
 
@@ -74,6 +98,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen: isOpenProp, onClose: onCl
     setPassword('');
     setConfirmPassword('');
     setError(null);
+    resetRegisterValidation();
     if (!isControlled) {
       if (newMode === 'login') switchToLogin();
       else switchToRegister();
@@ -85,13 +110,63 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen: isOpenProp, onClose: onCl
   if (!isActuallyOpen) return null;
 
   const isLoginValid = email.trim() !== '' && password.trim() !== '';
+
+  const hasDigits = (value: string) => /\d/.test(value);
+  const isValidName = (value: string) => value.trim() !== '' && !hasDigits(value.trim());
+  const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+  const isValidPassword = (value: string) => value.length >= 8;
   const passwordsMatch = password === confirmPassword;
+
+  const shouldShowFieldError = (field: keyof typeof touched) =>
+    touched[field] || submitAttempted;
+
+  const getFirstNameError = (): string | null => {
+    if (!shouldShowFieldError('firstName')) return null;
+    if (firstName.trim() === '') return 'Le prénom est requis.';
+    if (hasDigits(firstName)) return 'Le prénom ne peut pas contenir de chiffres.';
+    return null;
+  };
+
+  const getLastNameError = (): string | null => {
+    if (!shouldShowFieldError('lastName')) return null;
+    if (lastName.trim() === '') return 'Le nom est requis.';
+    if (hasDigits(lastName)) return 'Le nom ne peut pas contenir de chiffres.';
+    return null;
+  };
+
+  const getEmailError = (): string | null => {
+    if (!shouldShowFieldError('email')) return null;
+    if (email.trim() === '') return "L'adresse e-mail est requise.";
+    if (!isValidEmail(email)) return 'Adresse e-mail invalide.';
+    return null;
+  };
+
+  const getPasswordError = (): string | null => {
+    if (!shouldShowFieldError('password')) return null;
+    if (password === '') return 'Le mot de passe est requis.';
+    if (!isValidPassword(password)) return 'Le mot de passe doit contenir au moins 8 caractères.';
+    return null;
+  };
+
+  const getConfirmPasswordError = (): string | null => {
+    if (!shouldShowFieldError('confirmPassword')) return null;
+    if (confirmPassword === '') return 'Veuillez confirmer votre mot de passe.';
+    if (!passwordsMatch) return 'Les mots de passe ne correspondent pas.';
+    return null;
+  };
+
   const isRegisterValid =
-    firstName.trim() !== '' &&
-    lastName.trim() !== '' &&
-    email.trim() !== '' &&
-    password.length >= 8 &&
-    passwordsMatch;
+    isValidName(firstName) &&
+    isValidName(lastName) &&
+    isValidEmail(email) &&
+    isValidPassword(password) &&
+    passwordsMatch &&
+    confirmPassword !== '';
+
+  const fieldErrorClass = 'text-xs text-red-500 mt-1';
+
+  const FieldError = ({ message }: { message: string | null }) =>
+    message ? <p className={fieldErrorClass}>{message}</p> : null;
 
   const handleAuthSuccess = (first_name: string) => {
     handleClose();
@@ -124,11 +199,15 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen: isOpenProp, onClose: onCl
 
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitAttempted(true);
+    setTouched({
+      firstName: true,
+      lastName: true,
+      email: true,
+      password: true,
+      confirmPassword: true,
+    });
     if (!isRegisterValid || isSubmitting) return;
-    if (!passwordsMatch) {
-      setError('Les mots de passe ne correspondent pas.');
-      return;
-    }
     setIsSubmitting(true);
     setError(null);
     try {
@@ -246,9 +325,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen: isOpenProp, onClose: onCl
               type="text"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
+              onBlur={() => touch('firstName')}
               className={inputClass}
               autoComplete="given-name"
             />
+            <FieldError message={getFirstNameError()} />
           </div>
           <div>
             <label className={labelClass}>Nom</label>
@@ -256,9 +337,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen: isOpenProp, onClose: onCl
               type="text"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
+              onBlur={() => touch('lastName')}
               className={inputClass}
               autoComplete="family-name"
             />
+            <FieldError message={getLastNameError()} />
           </div>
         </div>
 
@@ -268,9 +351,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen: isOpenProp, onClose: onCl
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            onBlur={() => touch('email')}
             className={inputClass}
             autoComplete="email"
           />
+          <FieldError message={getEmailError()} />
         </div>
 
         <div className="relative">
@@ -279,6 +364,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen: isOpenProp, onClose: onCl
             type={showPassword ? 'text' : 'password'}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            onBlur={() => touch('password')}
             className={`${inputClass} pr-10`}
             autoComplete="new-password"
           />
@@ -289,7 +375,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen: isOpenProp, onClose: onCl
           >
             {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
-          <p className="text-xs text-gray-400 mt-1">Minimum 8 caractères</p>
+          <FieldError message={getPasswordError()} />
         </div>
 
         <div className="relative">
@@ -298,12 +384,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen: isOpenProp, onClose: onCl
             type={showPassword ? 'text' : 'password'}
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
+            onBlur={() => touch('confirmPassword')}
             className={`${inputClass} pr-10`}
             autoComplete="new-password"
           />
-          {confirmPassword.length > 0 && !passwordsMatch && (
-            <p className="text-xs text-red-500 mt-1">Les mots de passe ne correspondent pas.</p>
-          )}
+          <FieldError message={getConfirmPasswordError()} />
         </div>
 
         <button

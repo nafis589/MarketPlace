@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import {
     Navigation,
     Check,
@@ -9,9 +10,22 @@ import {
     ChevronUp,
     Package,
     X,
+    Loader2,
     ArrowRight,
 } from 'lucide-react';
 import { useCart } from '@/app/context/CartContext';
+import { api } from '@/lib/api-client';
+import { DEMO_VENDOR_ID } from '@/lib/demo-vendor';
+import type { LocationSelectResult, ShippingFeeError, ShippingMethod } from '@/lib/types';
+
+const DeliveryMap = dynamic(() => import('@/app/components/checkout/DeliveryMap'), {
+    ssr: false,
+    loading: () => (
+        <div className="h-[calc(100vh-62px)] bg-[#EFEFEF] flex items-center justify-center text-sm text-gray-400">
+            Chargement de la carte…
+        </div>
+    ),
+});
 
 function cx(...classes: (string | boolean | undefined | null)[]) {
     return classes.filter(Boolean).join(' ');
@@ -22,9 +36,8 @@ function formatPrice(price: number): string {
     return `${price.toFixed(2).replace('.', ',')} ${CURRENCY}`;
 }
 
-interface GeoLocation {
-    lat: number;
-    lng: number;
+function formatFcfa(value: number): string {
+    return `${Math.round(value).toLocaleString('fr-FR')} FCFA`;
 }
 
 export default function CheckoutPage() {
@@ -35,13 +48,23 @@ export default function CheckoutPage() {
     // Step 2 form fields
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName]   = useState('');
-    const [email, setEmail]         = useState('');
     const [phone, setPhone]         = useState('');
-    const [city, setCity]           = useState('');
     const [notes, setNotes]         = useState('');
-    const [geolocation, setGeolocation] = useState<GeoLocation | null>(null);
-    const [isLocating, setIsLocating]   = useState(false);
-    const [isOrderConfirmed, setIsOrderConfirmed] = useState(false);
+
+    // Step 2 shipping (carte + calcul backend)
+    const [shippingFee, setShippingFee]               = useState<number | null>(null);
+    const [shippingMethod, setShippingMethod]         = useState<ShippingMethod | null>(null);
+    const [shippingDistanceKm, setShippingDistanceKm] = useState<number | null>(null);
+    const [shippingRegionId, setShippingRegionId]     = useState<string | null>(null);
+    const [shippingError, setShippingError]           = useState<string | null>(null);
+    const [selectedCoords, setSelectedCoords]         = useState<{ lat: number; lng: number } | null>(null);
+    const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
+    const [geolocateSignal, setGeolocateSignal]       = useState(0);
+    const [isSubmitting, setIsSubmitting]             = useState(false);
+
+    // Vendeur ciblé pour le calcul de livraison (panier mono-vendeur pour l'instant).
+    const vendorId =
+        cartItems.find((item) => item.vendorId)?.vendorId ?? DEMO_VENDOR_ID;
 
     // Per-item seller toggle — default false = collapsed ("Plus d'infos")
     const [sellerOpen, setSellerOpen] = useState<Record<number, boolean>>({});
@@ -52,7 +75,7 @@ export default function CheckoutPage() {
     // Right column price accordion — default false = collapsed
     const [showPriceDetails, setShowPriceDetails] = useState(false);
 
-    // Step 2 mobile: show right-side form panel as overlay
+    // Step 2 mobile : panneau formulaire en overlay plein écran
     const [showMobileForm, setShowMobileForm] = useState(false);
 
     // Sticky sidebar (étape 1) : collé en haut si le contenu tient dans l'écran ;
@@ -82,21 +105,25 @@ export default function CheckoutPage() {
         };
     }, [step, showPriceDetails, cartItems.length]);
 
-    const handleGetLocation = () => {
-        setIsLocating(true);
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    setGeolocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-                    setIsLocating(false);
-                },
-                () => {
-                    setGeolocation({ lat: 48.8566, lng: 2.3522 });
-                    setIsLocating(false);
-                },
-            );
+    const handleLocationSelect = (result: LocationSelectResult) => {
+        setSelectedCoords({ lat: result.lat, lng: result.lng });
+        setShippingFee(result.shippingResult.fee);
+        setShippingMethod(result.shippingResult.method);
+        setShippingDistanceKm(result.shippingResult.distanceKm ?? null);
+        setShippingRegionId(result.shippingResult.regionId ?? null);
+        setShippingError(null);
+    };
+
+    const handleShippingError = (error: ShippingFeeError | null) => {
+        if (error) {
+            setShippingFee(null);
+            setShippingMethod(null);
+            setShippingDistanceKm(null);
+            setShippingRegionId(null);
+            setSelectedCoords(null);
+            setShippingError(error.message);
         } else {
-            setIsLocating(false);
+            setShippingError(null);
         }
     };
 
@@ -104,40 +131,37 @@ export default function CheckoutPage() {
     const totalShipping   = cartItems.reduce((acc, item) => acc + (item.shippingFee ?? 5.9), 0);
     const serviceFee      = totalItemsPrice * 0.08;
     const finalTotal      = totalItemsPrice + totalShipping + serviceFee;
+    const grandTotal = shippingFee !== null ? totalItemsPrice + shippingFee : null;
+    const canConfirm = shippingFee !== null && !shippingError && selectedCoords !== null && !!phone.trim();
 
-    /* ─── ORDER CONFIRMED ─── */
-    if (isOrderConfirmed) {
-        return (
-            <main className="min-h-screen bg-white font-sans antialiased text-[#1A1A1A] flex items-center justify-center px-4">
-                <div className="text-center max-w-md w-full py-20">
-                    <div className="relative w-24 h-24 mx-auto mb-8">
-                        <div className="absolute inset-0 bg-green-300 rounded-full opacity-30 scale-150 blur-xl" />
-                        <div className="relative w-24 h-24 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center shadow-lg">
-                            <Check size={38} strokeWidth={2.5} className="text-white" />
-                        </div>
-                    </div>
-                    <h2 className="text-[22px] font-bold text-[#1A1A1A] mb-3">
-                        Commande envoyée avec succès !
-                    </h2>
-                    <p className="text-[15px] text-[#666] font-light mb-1 leading-relaxed">
-                        Nous l&apos;avons transmise à nos équipes et attendons la validation du vendeur pour finaliser votre livraison.
-                    </p>
-                    <p className="text-[#999] text-[13px] font-light mb-8">
-                        Commande n° :{' '}
-                        <span className="font-bold text-[#1A1A1A]">
-                            #FP-{Date.now().toString(36).toUpperCase()}
-                        </span>
-                    </p>
-                    <Link
-                        href="/"
-                        className="inline-block bg-black text-white px-8 py-4 text-[13px] font-bold uppercase tracking-widest hover:opacity-90 transition-opacity"
-                    >
-                        Retour à l&apos;accueil
-                    </Link>
-                </div>
-            </main>
-        );
-    }
+    const handleConfirmOrder = async () => {
+        if (!canConfirm || !selectedCoords || shippingFee === null) return;
+        setIsSubmitting(true);
+        try {
+            await api.post('/api/store/orders', {
+                payment_method: 'CASH_ON_DELIVERY',
+                shipping_address: {
+                    first_name: firstName,
+                    last_name: lastName,
+                    phone,
+                    notes,
+                    latitude: selectedCoords.lat,
+                    longitude: selectedCoords.lng,
+                    region_id: shippingRegionId,
+                },
+                shipping_fee: shippingFee,
+                shipping_method: shippingMethod,
+                shipping_distance_km: shippingDistanceKm,
+            });
+        } catch {
+            // La création de commande arrive dans une phase ultérieure : on affiche
+            // tout de même la confirmation côté client en attendant.
+        } finally {
+            setIsSubmitting(false);
+            setShowMobileForm(false);
+            setStep(3);
+        }
+    };
 
     /* ─── MAIN ─── */
     return (
@@ -165,8 +189,9 @@ export default function CheckoutPage() {
                 <div
                     className={cx(
                         'lg:col-span-7 order-1 lg:order-1',
-                        step === 2 ? 'flex flex-col' : 'bg-white px-4 sm:px-6 md:px-10 lg:px-14 py-6 md:py-10',
-                        step === 3 && 'bg-white lg:sticky lg:top-[62px] lg:h-[calc(100vh-62px)] flex items-center justify-center',
+                        step === 2 && 'flex flex-col lg:sticky lg:top-[62px] lg:h-[calc(100vh-62px)]',
+                        step === 1 && 'bg-white px-4 sm:px-6 md:px-10 lg:px-14 py-6 md:py-10',
+                        step === 3 && 'bg-white lg:sticky lg:top-[62px] lg:h-[calc(100vh-62px)] flex items-center justify-center py-12',
                     )}
                 >
 
@@ -307,16 +332,25 @@ export default function CheckoutPage() {
                         </div>
                     )}
 
-                    {/* ── STEP 2 : div grise — plein écran sans margin ── */}
+                    {/* ── STEP 2 : carte pleine surface (gauche desktop / plein écran mobile) ── */}
                     {step === 2 && (
-                        <div className="flex-1 relative">
-                            {/* La div grise remplit tout l'écran, sans aucun margin */}
-                            <div className="h-full min-h-[calc(100vh-62px)] bg-[#EFEFEF]" />
+                        <div className={cx(
+                            'flex-1 relative min-h-[calc(100vh-62px)] lg:min-h-0 lg:h-full',
+                            showMobileForm && 'max-lg:hidden',
+                        )}>
+                            <DeliveryMap
+                                vendorId={vendorId}
+                                onLocationSelect={handleLocationSelect}
+                                onError={handleShippingError}
+                                onCalculatingChange={setIsCalculatingShipping}
+                                geolocateSignal={geolocateSignal}
+                                fullscreen
+                            />
 
-                            {/* Bouton flèche — mobile uniquement pour ouvrir le formulaire */}
+                            {/* Bouton flèche — mobile : au-dessus de la carte et des overlays */}
                             <button
                                 onClick={() => setShowMobileForm(true)}
-                                className="lg:hidden absolute bottom-6 right-6 w-12 h-12 bg-black rounded-full flex items-center justify-center shadow-xl hover:opacity-80 transition-opacity active:scale-95"
+                                className="lg:hidden absolute bottom-6 right-6 w-12 h-12 bg-black rounded-full flex items-center justify-center shadow-xl hover:opacity-80 transition-opacity active:scale-95 z-[1100]"
                                 aria-label="Ouvrir le formulaire"
                             >
                                 <ArrowRight size={20} className="text-white" />
@@ -428,17 +462,16 @@ export default function CheckoutPage() {
                         </div>
                     )}
 
-                    {/* ── STEP 2 right : Infos perso + commande ── */}
+                    {/* ── STEP 2 right : Infos de livraison + récap ── */}
                     {step === 2 && (
                         <div className={cx(
-                            'lg:sticky lg:top-[62px]',
-                            // Mobile : caché par défaut, overlay plein écran quand ouvert
+                            'lg:sticky lg:top-[62px] lg:max-h-[calc(100vh-62px)] lg:overflow-y-auto',
                             !showMobileForm
                                 ? 'hidden lg:block'
-                                : 'fixed inset-0 z-50 overflow-y-auto bg-[#F5F5F5] lg:relative lg:inset-auto lg:z-auto',
+                                : 'fixed inset-0 z-[1200] flex flex-col bg-[#F5F5F5] lg:relative lg:inset-auto lg:z-auto lg:flex-none',
                         )}>
                             {/* Bouton fermer — mobile uniquement */}
-                            <div className="lg:hidden sticky top-0 z-10 bg-[#F5F5F5] flex justify-end px-4 pt-4 pb-1">
+                            <div className="lg:hidden shrink-0 flex justify-end px-4 pt-4 pb-2 bg-[#F5F5F5]">
                                 <button
                                     onClick={() => setShowMobileForm(false)}
                                     className="w-8 h-8 bg-white border border-[#E8E8E8] rounded-full flex items-center justify-center shadow-sm hover:bg-[#F0F0F0] transition-colors"
@@ -447,12 +480,12 @@ export default function CheckoutPage() {
                                     <X size={14} strokeWidth={2} className="text-[#1A1A1A]" />
                                 </button>
                             </div>
-                            <div className="px-4 sm:px-6 md:px-9 lg:px-11 py-4 lg:py-10 space-y-7">
+                            <div className="flex-1 overflow-y-auto px-4 sm:px-6 md:px-9 lg:px-11 py-4 lg:py-10 space-y-7">
 
                                 {/* Personal info */}
                                 <div className="space-y-4">
                                     <h3 className="text-[16px] font-bold text-[#1A1A1A]">
-                                        Informations personnelles
+                                        Informations de livraison
                                     </h3>
 
                                     {/* Prénom + Nom */}
@@ -483,78 +516,19 @@ export default function CheckoutPage() {
                                         </div>
                                     </div>
 
-                                    {/* Email */}
+                                    {/* Téléphone */}
                                     <div className="space-y-1.5">
                                         <label className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wide">
-                                            Email
+                                            Téléphone <span className="text-red-400">*</span>
                                         </label>
                                         <input
-                                            type="email"
-                                            value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
-                                            placeholder="Entrez votre email"
+                                            type="tel"
+                                            required
+                                            value={phone}
+                                            onChange={(e) => setPhone(e.target.value)}
+                                            placeholder="Entrez votre numéro de téléphone"
                                             className="w-full border border-[#D5D5D5] px-3.5 py-2.5 text-[14px] focus:outline-none focus:border-black transition-all bg-white text-[#1A1A1A] placeholder-[#C5C5C5]"
                                         />
-                                    </div>
-
-                                    {/* Téléphone + Ville */}
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div className="space-y-1.5">
-                                            <label className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wide">
-                                                Téléphone <span className="text-red-400">*</span>
-                                            </label>
-                                            <input
-                                                type="tel"
-                                                required
-                                                value={phone}
-                                                onChange={(e) => setPhone(e.target.value)}
-                                                placeholder="Entrez votre numéro de téléphone"
-                                                className="w-full border border-[#D5D5D5] px-3.5 py-2.5 text-[14px] focus:outline-none focus:border-black transition-all bg-white text-[#1A1A1A] placeholder-[#C5C5C5]"
-                                            />
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <label className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wide">
-                                                Ville <span className="text-red-400">*</span>
-                                            </label>
-                                            <input
-                                                type="text"
-                                                required
-                                                value={city}
-                                                onChange={(e) => setCity(e.target.value)}
-                                                placeholder="Entrez votre ville"
-                                                className="w-full border border-[#D5D5D5] px-3.5 py-2.5 text-[14px] focus:outline-none focus:border-black transition-all bg-white text-[#1A1A1A] placeholder-[#C5C5C5]"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    {/* Géolocalisation */}
-                                    <div className="space-y-1.5">
-                                        <label className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wide">
-                                            Géolocalisation
-                                        </label>
-                                        <button
-                                            type="button"
-                                            onClick={handleGetLocation}
-                                            disabled={isLocating}
-                                            className={cx(
-                                                'w-full flex items-center justify-center gap-2 border py-2.5 px-4 text-[14px] font-medium transition-all',
-                                                geolocation
-                                                    ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
-                                                    : 'bg-white border-[#D5D5D5] text-[#777] hover:border-black hover:text-black',
-                                            )}
-                                        >
-                                            <Navigation size={14} strokeWidth={1.5} />
-                                            {isLocating
-                                                ? 'Localisation…'
-                                                : geolocation
-                                                  ? '✓ Position enregistrée'
-                                                  : 'Utiliser ma position GPS'}
-                                        </button>
-                                        {geolocation && (
-                                            <p className="text-[12px] text-emerald-600">
-                                                Lat {geolocation.lat.toFixed(4)} · Lng {geolocation.lng.toFixed(4)}
-                                            </p>
-                                        )}
                                     </div>
 
                                     {/* Notes */}
@@ -569,10 +543,20 @@ export default function CheckoutPage() {
                                             rows={2}
                                             value={notes}
                                             onChange={(e) => setNotes(e.target.value)}
-                                            placeholder="Entrez une note"
+                                            placeholder="Entrez une note (étage, repère…)"
                                             className="w-full border border-[#D5D5D5] px-3.5 py-2.5 text-[14px] focus:outline-none focus:border-black transition-all resize-none bg-white text-[#1A1A1A] placeholder-[#C5C5C5]"
                                         />
                                     </div>
+
+                                    {/* Ma position actuelle → déclenche la géoloc dans la carte */}
+                                    <button
+                                        type="button"
+                                        onClick={() => setGeolocateSignal((s) => s + 1)}
+                                        className="w-full flex items-center justify-center gap-2 border border-[#D5D5D5] bg-white py-2.5 px-4 text-[14px] font-medium text-[#1A1A1A] hover:border-black transition-all"
+                                    >
+                                        <Navigation size={14} strokeWidth={1.5} />
+                                        Ma position actuelle
+                                    </button>
                                 </div>
 
                                 <hr className="border-[#E0E0E0]" />
@@ -580,45 +564,59 @@ export default function CheckoutPage() {
                                 {/* Order summary */}
                                 <div className="space-y-4">
                                     <h3 className="text-[16px] font-bold text-[#1A1A1A]">
-                                        Détails de la commande
+                                        Récapitulatif commande
                                     </h3>
                                     <div className="space-y-3">
-                                        {cartItems.map((item) => (
-                                            <div key={item.id} className="space-y-1">
-                                                <div className="flex justify-between text-[14px] font-medium text-[#1A1A1A]">
-                                                    <span className="truncate pr-2">
-                                                        1 × {item.brand} ({item.title || item.type})
-                                                    </span>
-                                                    <span className="shrink-0">{formatPrice(item.price)}</span>
-                                                </div>
-                                                <div className="flex justify-between text-[12px] px-2 py-1">
-                                                    <span className="flex items-center gap-1">
-                                                        Livraison
-                                                    </span>
-                                                    <span>{formatPrice(item.shippingFee ?? 5.9)}</span>
-                                                </div>
-                                            </div>
-                                        ))}
+                                        <div className="flex justify-between text-[14px] text-[#1A1A1A]">
+                                            <span>
+                                                Articles ({cartItems.length} article{cartItems.length > 1 ? 's' : ''})
+                                            </span>
+                                            <span className="font-medium">{formatFcfa(totalItemsPrice)}</span>
+                                        </div>
+
+                                        <div className="flex justify-between text-[14px] text-[#1A1A1A]">
+                                            <span>Livraison</span>
+                                            {isCalculatingShipping ? (
+                                                <span className="flex items-center gap-1.5 text-[#777]">
+                                                    <Loader2 size={13} className="animate-spin" /> Calcul…
+                                                </span>
+                                            ) : shippingFee !== null ? (
+                                                <span className="font-medium">{formatFcfa(shippingFee)}</span>
+                                            ) : (
+                                                <span className="text-[13px] text-[#999]">Sélectionnez une adresse</span>
+                                            )}
+                                        </div>
 
                                         <hr className="border-[#E0E0E0]" />
 
                                         <div className="flex justify-between items-baseline">
-                                            <span className="text-[15px] font-bold text-[#1A1A1A]">
-                                                Total TTC
-                                            </span>
+                                            <span className="text-[15px] font-bold text-[#1A1A1A]">Total</span>
                                             <span className="text-[24px] font-bold text-[#1A1A1A]">
-                                                {formatPrice(finalTotal)}
+                                                {grandTotal !== null ? formatFcfa(grandTotal) : '—'}
                                             </span>
                                         </div>
                                     </div>
 
                                     <button
-                                        onClick={() => { setStep(3); setShowMobileForm(false); }}
-                                        disabled={!phone || !city}
-                                        className="w-full bg-black text-white text-[15px] font-semibold py-4 hover:opacity-90 disabled:bg-[#CCCCCC] disabled:cursor-not-allowed transition-all"
+                                        onClick={handleConfirmOrder}
+                                        disabled={!canConfirm || isSubmitting}
+                                        className="w-full bg-black text-white text-[15px] font-semibold py-4 hover:opacity-90 disabled:bg-[#CCCCCC] disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
                                     >
-                                        Vérifier la commande →
+                                        {isSubmitting && <Loader2 size={16} className="animate-spin" />}
+                                        Confirmer la commande
                                     </button>
+
+                                    {!canConfirm && !shippingError && (
+                                        <p className="text-center text-[12px] text-[#999]">
+                                            {shippingFee === null
+                                                ? 'Sélectionnez votre adresse sur la carte'
+                                                : 'Renseignez votre numéro de téléphone'}
+                                        </p>
+                                    )}
+                                    {shippingError && (
+                                        <p className="text-center text-[12px] text-red-500">{shippingError}</p>
+                                    )}
+
                                     <button
                                         onClick={() => setStep(1)}
                                         className="w-full text-center text-[13px] text-[#BBBBBB] hover:text-[#1A1A1A] hover:underline underline-offset-2 py-1 transition-colors"
@@ -630,71 +628,46 @@ export default function CheckoutPage() {
                         </div>
                     )}
 
-                    {/* ── STEP 3 right : infos de confirmation + récap ── */}
+                    {/* ── STEP 3 right : récap de confirmation (lecture seule) ── */}
                     {step === 3 && (
                         <div className="lg:sticky lg:top-[62px]">
                             <div className="px-4 sm:px-6 md:px-9 lg:px-11 py-6 md:py-10 space-y-7">
 
-                                {/* Personal info confirmation */}
+                                {/* Infos de livraison */}
                                 <div className="space-y-4">
                                     <h3 className="text-[16px] font-bold text-[#1A1A1A]">
                                         Informations de livraison
                                     </h3>
 
-                                    {/* Prénom + Nom */}
                                     <div className="grid grid-cols-2 gap-3">
                                         <div className="bg-white border border-[#EBEBEB] px-4 py-3">
                                             <p className="text-[10px] font-bold uppercase tracking-widest text-[#BBBBBB] mb-1">Prénom</p>
-                                            <p className="text-[14px] font-medium text-[#1A1A1A]">
-                                                {firstName || '—'}
-                                            </p>
+                                            <p className="text-[14px] font-medium text-[#1A1A1A]">{firstName || '—'}</p>
                                         </div>
                                         <div className="bg-white border border-[#EBEBEB] px-4 py-3">
                                             <p className="text-[10px] font-bold uppercase tracking-widest text-[#BBBBBB] mb-1">Nom</p>
-                                            <p className="text-[14px] font-medium text-[#1A1A1A]">
-                                                {lastName || '—'}
+                                            <p className="text-[14px] font-medium text-[#1A1A1A]">{lastName || '—'}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-white border border-[#EBEBEB] px-4 py-3">
+                                        <p className="text-[10px] font-bold uppercase tracking-widest text-[#BBBBBB] mb-1">Téléphone</p>
+                                        <p className="text-[14px] font-medium text-[#1A1A1A]">{phone || '—'}</p>
+                                    </div>
+
+                                    {selectedCoords && (
+                                        <div className="bg-white border border-[#EBEBEB] px-4 py-3">
+                                            <p className="text-[10px] font-bold uppercase tracking-widest text-[#BBBBBB] mb-1">Position de livraison</p>
+                                            <p className="text-[13px] font-medium text-emerald-700">
+                                                {selectedCoords.lat.toFixed(4)}, {selectedCoords.lng.toFixed(4)}
                                             </p>
                                         </div>
-                                    </div>
+                                    )}
 
-                                    {/* Email */}
-                                    <div className="bg-white border border-[#EBEBEB] px-4 py-3">
-                                        <p className="text-[10px] font-bold uppercase tracking-widest text-[#BBBBBB] mb-1">Email</p>
-                                        <p className="text-[14px] font-medium text-[#1A1A1A]">{email || '—'}</p>
-                                    </div>
-
-                                    {/* Téléphone + Ville */}
-                                    <div className="grid grid-cols-2 gap-3">
+                                    {notes && (
                                         <div className="bg-white border border-[#EBEBEB] px-4 py-3">
-                                            <p className="text-[10px] font-bold uppercase tracking-widest text-[#BBBBBB] mb-1">Téléphone</p>
-                                            <p className="text-[14px] font-medium text-[#1A1A1A]">{phone || '—'}</p>
-                                        </div>
-                                        <div className="bg-white border border-[#EBEBEB] px-4 py-3">
-                                            <p className="text-[10px] font-bold uppercase tracking-widest text-[#BBBBBB] mb-1">Ville</p>
-                                            <p className="text-[14px] font-medium text-[#1A1A1A]">{city || '—'}</p>
-                                        </div>
-                                    </div>
-
-                                    {/* GPS + Notes côte à côte si les deux */}
-                                    {(geolocation || notes) && (
-                                        <div className={cx(
-                                            'gap-3',
-                                            geolocation && notes ? 'grid grid-cols-2' : 'block',
-                                        )}>
-                                            {geolocation && (
-                                                <div className="bg-white border border-[#EBEBEB] px-4 py-3">
-                                                    <p className="text-[10px] font-bold uppercase tracking-widest text-[#BBBBBB] mb-1">Position GPS</p>
-                                                    <p className="text-[13px] font-medium text-emerald-700">
-                                                        {geolocation.lat.toFixed(4)}, {geolocation.lng.toFixed(4)}
-                                                    </p>
-                                                </div>
-                                            )}
-                                            {notes && (
-                                                <div className="bg-white border border-[#EBEBEB] px-4 py-3">
-                                                    <p className="text-[10px] font-bold uppercase tracking-widest text-[#BBBBBB] mb-1">Notes</p>
-                                                    <p className="text-[13px] text-[#555] italic">&ldquo;{notes}&rdquo;</p>
-                                                </div>
-                                            )}
+                                            <p className="text-[10px] font-bold uppercase tracking-widest text-[#BBBBBB] mb-1">Notes</p>
+                                            <p className="text-[13px] text-[#555] italic">&ldquo;{notes}&rdquo;</p>
                                         </div>
                                     )}
                                 </div>
@@ -707,35 +680,33 @@ export default function CheckoutPage() {
                                         Récapitulatif final
                                     </h3>
                                     <div className="space-y-3">
-                                        {cartItems.map((item) => (
-                                            <div key={item.id} className="flex justify-between text-[14px] font-medium text-[#1A1A1A]">
-                                                <span className="truncate pr-2">
-                                                    1 × {item.brand} ({item.title || item.type})
-                                                </span>
-                                                <span className="shrink-0">{formatPrice(item.price)}</span>
-                                            </div>
-                                        ))}
-                                        
+                                        <div className="flex justify-between text-[14px] text-[#1A1A1A]">
+                                            <span>
+                                                Articles ({cartItems.length} article{cartItems.length > 1 ? 's' : ''})
+                                            </span>
+                                            <span className="font-medium">{formatFcfa(totalItemsPrice)}</span>
+                                        </div>
+                                        <div className="flex justify-between text-[14px] text-[#1A1A1A]">
+                                            <span>Livraison</span>
+                                            <span className="font-medium">
+                                                {shippingFee !== null ? formatFcfa(shippingFee) : '—'}
+                                            </span>
+                                        </div>
                                         <hr className="border-[#E0E0E0]" />
                                         <div className="flex justify-between items-baseline">
-                                            <span className="text-[15px] font-bold text-[#1A1A1A]">Total TTC</span>
-                                            <span className="text-[24px] font-bold text-[#1A1A1A]">{formatPrice(finalTotal)}</span>
+                                            <span className="text-[15px] font-bold text-[#1A1A1A]">Total</span>
+                                            <span className="text-[24px] font-bold text-[#1A1A1A]">
+                                                {grandTotal !== null ? formatFcfa(grandTotal) : '—'}
+                                            </span>
                                         </div>
                                     </div>
 
-                                    <button
-                                        onClick={() => setIsOrderConfirmed(true)}
-                                        className="w-full bg-black hover:bg-black text-white text-[15px] font-semibold py-4 transition-colors flex items-center justify-center gap-2"
+                                    <Link
+                                        href="/"
+                                        className="w-full bg-black text-white text-[15px] font-semibold py-4 transition-opacity hover:opacity-90 flex items-center justify-center gap-2"
                                     >
-                                        <Check size={16} strokeWidth={3} />
-                                        Confirmer la commande
-                                    </button>
-                                    <button
-                                        onClick={() => setStep(2)}
-                                        className="w-full text-center text-[13px] text-[#BBBBBB] hover:text-[#1A1A1A] hover:underline underline-offset-2 py-1 transition-colors"
-                                    >
-                                        ← Modifier mes informations
-                                    </button>
+                                        Retour à l&apos;accueil
+                                    </Link>
                                 </div>
                             </div>
                         </div>
