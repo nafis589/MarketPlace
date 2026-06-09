@@ -92,9 +92,9 @@ const ImageGallery = ({ images }: { images: string[] }) => {
     );
 };
 
-import AuthModal from '@/app/components/auth/AuthModal';
 import { useAuth } from '@/app/context/AuthContext';
 import { useCart } from '@/app/context/CartContext';
+import { useUI } from '@/app/context/UIContext';
 
 // --- Main Component ---
 
@@ -105,12 +105,12 @@ interface ProductDetailProps {
 export default function ProductDetailComponent({ product }: ProductDetailProps) {
     const { isLoggedIn } = useAuth();
     const { addToCart } = useCart();
+    const { openLogin } = useUI();
     const p = product;
-    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
     const handleAddToCart = () => {
         if (!isLoggedIn) {
-            setIsAuthModalOpen(true);
+            openLogin();
         } else {
             addToCart(p);
         }
@@ -118,11 +118,6 @@ export default function ProductDetailComponent({ product }: ProductDetailProps) 
 
     return (
         <div className="min-h-screen bg-white font-sans text-gray-800">
-            {/* Auth Modal */}
-            <AuthModal
-                isOpen={isAuthModalOpen}
-                onClose={() => setIsAuthModalOpen(false)}
-            />
             <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-8 pb-4">
 
                 <Breadcrumb categories={[...p.categories, p.title]} />

@@ -9,6 +9,7 @@ import MegaMenu, { CategoryWithChildren } from './MegaMenu';
 import MobileMenu from '../ui/MobileMenu';
 import { useCart } from '@/app/context/CartContext';
 import { useAuth } from '@/app/context/AuthContext';
+import { useUI } from '@/app/context/UIContext';
 import AuthModal from '@/app/components/auth/AuthModal';
 import UserMenu from '@/app/components/auth/UserMenu';
 import CartPopover from '@/app/components/cart/CartPopover';
@@ -20,7 +21,8 @@ interface NavbarProps {
 }
 
 const Navbar: React.FC<NavbarProps> = ({ categories = [] }) => {
-    const { isLoggedIn, user, logout, openAuthModal, isAuthModalOpen, closeAuthModal, isUserMenuOpen, openUserMenu, closeUserMenu } = useAuth();
+    const { isLoggedIn, isUserMenuOpen, openUserMenu, closeUserMenu } = useAuth();
+    const { openLogin, openRegister, openCart, closeAll } = useUI();
     const {
         isCartOpen,
         setIsCartOpen,
@@ -65,15 +67,13 @@ const Navbar: React.FC<NavbarProps> = ({ categories = [] }) => {
     };
 
     const handleCartClick = () => {
-        setIsCartOpen(!isCartOpen);
+        if (isCartOpen) closeAll();
+        else openCart();
     };
 
     return (
         <>
-            <AuthModal
-                isOpen={isAuthModalOpen}
-                onClose={closeAuthModal}
-            />
+            <AuthModal />
             <AddToCartModal
                 isOpen={isAddModalOpen}
                 onClose={() => setIsAddModalOpen(false)}
@@ -142,13 +142,13 @@ const Navbar: React.FC<NavbarProps> = ({ categories = [] }) => {
                                 ) : (
                                     <>
                                         <button
-                                            onClick={() => openAuthModal('login')}
+                                            onClick={openLogin}
                                             className="hover:text-black transition-colors"
                                         >Se connecter</button>
                                         <button
-                                            onClick={() => openAuthModal('signup')}
+                                            onClick={openRegister}
                                             className="hover:text-black transition-colors"
-                                        >S'inscrire</button>
+                                        >S&apos;inscrire</button>
                                     </>
                                 )}
                             </div>
@@ -246,7 +246,7 @@ const Navbar: React.FC<NavbarProps> = ({ categories = [] }) => {
 
                     <div className="relative w-full h-full">
                         <button
-                            onClick={() => isLoggedIn ? openUserMenu() : openAuthModal('login')}
+                            onClick={() => isLoggedIn ? openUserMenu() : openLogin()}
                             className="flex flex-col items-center justify-center w-full h-full text-gray-500 hover:text-gray-900"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 mb-1">

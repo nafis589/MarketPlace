@@ -21,6 +21,8 @@ export const metadata: Metadata = {
 
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
+import { UIProvider } from "./context/UIContext";
+import { ToastProvider } from "./components/ui/Toast";
 import Navbar from "./components/layout/Navbar";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || "http://localhost:5000";
@@ -54,8 +56,12 @@ export default async function RootLayout({
       <body className="font-sans antialiased bg-white text-black overflow-x-clip max-w-full">
         <AuthProvider>
           <CartProvider>
-            <Navbar categories={categories} />
-            {children}
+            <UIProvider>
+              <ToastProvider>
+                <Navbar categories={categories} />
+                {children}
+              </ToastProvider>
+            </UIProvider>
           </CartProvider>
         </AuthProvider>
       </body>

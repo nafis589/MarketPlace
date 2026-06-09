@@ -1,72 +1,116 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { api, ApiClientError } from '@/lib/api-client';
+import type { AuthResponse, ProfileResponse, User } from '@/lib/types';
 
-type AuthModalMode = 'login' | 'signup';
-
-export interface UserProfile {
-    name: string;
-    email: string;
-    avatar?: string;
+export interface RegisterData {
+  email: string;
+  password: string;
+  first_name: string;
+  last_name: string;
 }
 
 interface AuthContextType {
-    isLoggedIn: boolean;
-    user: UserProfile | null;
-    login: (userData?: UserProfile) => void;
-    logout: () => void;
-    isAuthModalOpen: boolean;
-    authModalMode: AuthModalMode;
-    openAuthModal: (mode: AuthModalMode) => void;
-    closeAuthModal: () => void;
-    isUserMenuOpen: boolean;
-    openUserMenu: () => void;
-    closeUserMenu: () => void;
+  user: User | null;
+  isLoading: boolean;
+  isLoggedIn: boolean;
+  login: (email: string, password: string) => Promise<User>;
+  logout: () => Promise<void>;
+  register: (data: RegisterData) => Promise<User>;
+  isUserMenuOpen: boolean;
+  openUserMenu: () => void;
+  closeUserMenu: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+async function storeToken(token: string): Promise<void> {
+  const res = await fetch('/api/auth/set-cookie', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token }),
+  });
+  if (!res.ok) {
+    throw new Error('Impossible de sauvegarder la session');
+  }
+}
+
+async function clearToken(): Promise<void> {
+  await fetch('/api/auth/set-cookie', { method: 'DELETE' });
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [user, setUser] = useState<UserProfile | null>(null);
-    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-    const [authModalMode, setAuthModalMode] = useState<AuthModalMode>('login');
-    const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
-    const login = (userData?: UserProfile) => {
-        setIsLoggedIn(true);
-        setUser(userData || { name: 'Utilisateur', email: 'user@email.com' });
-        setIsAuthModalOpen(false);
-    };
-    const logout = () => {
-        setIsLoggedIn(false);
-        setUser(null);
-        setIsUserMenuOpen(false);
-    };
+  const hydrateUser = useCallback(async () => {
+    try {
+      const res = await fetch('/api/auth/session');
+      if (!res.ok) return;
+      const json = (await res.json()) as ProfileResponse;
+      if (json.data) {
+        setUser(json.data);
+      }
+    } catch {
+      // No session — stay logged out
+    }
+  }, []);
 
-    const openAuthModal = (mode: AuthModalMode) => {
-        setAuthModalMode(mode);
-        setIsAuthModalOpen(true);
-    };
+  useEffect(() => {
+    hydrateUser().finally(() => setIsLoading(false));
+  }, [hydrateUser]);
 
-    const closeAuthModal = () => {
-        setIsAuthModalOpen(false);
-    };
+  const login = useCallback(async (email: string, password: string): Promise<User> => {
+    const { data } = await api.post<AuthResponse>('/api/store/auth/login', { email, password });
+    await storeToken(data.accessToken);
+    setUser(data.user);
+    return data.user;
+  }, []);
 
-    const openUserMenu = () => setIsUserMenuOpen(true);
-    const closeUserMenu = () => setIsUserMenuOpen(false);
+  const register = useCallback(async (registerData: RegisterData): Promise<User> => {
+    const { data } = await api.post<AuthResponse>('/api/store/auth/register', registerData);
+    await storeToken(data.accessToken);
+    setUser(data.user);
+    return data.user;
+  }, []);
 
-    return (
-        <AuthContext.Provider value={{ isLoggedIn, user, login, logout, isAuthModalOpen, authModalMode, openAuthModal, closeAuthModal, isUserMenuOpen, openUserMenu, closeUserMenu }}>
-            {children}
-        </AuthContext.Provider>
-    );
+  const logout = useCallback(async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    await clearToken();
+    setUser(null);
+    setIsUserMenuOpen(false);
+  }, []);
+
+  const openUserMenu = useCallback(() => setIsUserMenuOpen(true), []);
+  const closeUserMenu = useCallback(() => setIsUserMenuOpen(false), []);
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        isLoading,
+        isLoggedIn: !!user,
+        login,
+        logout,
+        register,
+        isUserMenuOpen,
+        openUserMenu,
+        closeUserMenu,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
-    const context = useContext(AuthContext);
-    if (context === undefined) {
-        throw new Error('useAuth must be used within an AuthProvider');
-    }
-    return context;
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 }
+
+export { ApiClientError };

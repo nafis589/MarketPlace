@@ -36,7 +36,6 @@ const CheckIcon = () => (
     </svg>
 );
 
-import AuthModal from '@/app/components/auth/AuthModal';
 import ProductDescription from './ProductDescription';
 import RecentlyViewed from '@/app/components/sections/RecentlyViewed';
 import HomeProductSection from '@/app/components/ui/HomeProductSection';
@@ -60,21 +59,21 @@ interface ProductDetailProps {
 
 import { useAuth } from '@/app/context/AuthContext';
 import { useCart } from '@/app/context/CartContext';
+import { useUI } from '@/app/context/UIContext';
 
 export default function ProductDetail({ product }: ProductDetailProps) {
     const { isLoggedIn } = useAuth();
     const { addToCart } = useCart();
+    const { openLogin } = useUI();
 
-    // Use product data or fallbacks
     const [selectedImage, setSelectedImage] = useState(product.image);
-    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
     // Create thumbnails from the same image for demo purposes since we only have one
     const thumbnails = [product.image, product.image, product.image, product.image];
 
     const handleAddToCart = () => {
         if (!isLoggedIn) {
-            setIsAuthModalOpen(true);
+            openLogin();
         } else {
             addToCart(product);
         }
@@ -93,12 +92,6 @@ export default function ProductDetail({ product }: ProductDetailProps) {
 
     return (
         <div className="bg-white font-sans text-gray-900">
-            {/* Auth Modal */}
-            <AuthModal
-                isOpen={isAuthModalOpen}
-                onClose={() => setIsAuthModalOpen(false)}
-            />
-
             {/* Breadcrumbs */}
             <div className="max-w-7xl mx-auto px-4 pt-8 pb-4 hidden md:block">
                 <nav className="text-xs text-gray-500 flex items-center justify-center gap-2 flex-wrap">
