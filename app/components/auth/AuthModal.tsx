@@ -31,6 +31,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen: isOpenProp, onClose: onCl
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
 
@@ -54,6 +55,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen: isOpenProp, onClose: onCl
       }
       setEmail('');
       setPassword('');
+      setConfirmPassword('');
       setFirstName('');
       setLastName('');
       setShowPassword(false);
@@ -70,6 +72,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen: isOpenProp, onClose: onCl
   const handleSwitchMode = useCallback((newMode: AuthMode) => {
     setMode(newMode);
     setPassword('');
+    setConfirmPassword('');
     setError(null);
     if (!isControlled) {
       if (newMode === 'login') switchToLogin();
@@ -82,11 +85,13 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen: isOpenProp, onClose: onCl
   if (!isActuallyOpen) return null;
 
   const isLoginValid = email.trim() !== '' && password.trim() !== '';
+  const passwordsMatch = password === confirmPassword;
   const isRegisterValid =
     firstName.trim() !== '' &&
     lastName.trim() !== '' &&
     email.trim() !== '' &&
-    password.length >= 8;
+    password.length >= 8 &&
+    passwordsMatch;
 
   const handleAuthSuccess = (first_name: string) => {
     handleClose();
@@ -120,6 +125,10 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen: isOpenProp, onClose: onCl
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isRegisterValid || isSubmitting) return;
+    if (!passwordsMatch) {
+      setError('Les mots de passe ne correspondent pas.');
+      return;
+    }
     setIsSubmitting(true);
     setError(null);
     try {
@@ -281,6 +290,20 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen: isOpenProp, onClose: onCl
             {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
           <p className="text-xs text-gray-400 mt-1">Minimum 8 caractères</p>
+        </div>
+
+        <div className="relative">
+          <label className={labelClass}>Confirmer le mot de passe</label>
+          <input
+            type={showPassword ? 'text' : 'password'}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className={`${inputClass} pr-10`}
+            autoComplete="new-password"
+          />
+          {confirmPassword.length > 0 && !passwordsMatch && (
+            <p className="text-xs text-red-500 mt-1">Les mots de passe ne correspondent pas.</p>
+          )}
         </div>
 
         <button

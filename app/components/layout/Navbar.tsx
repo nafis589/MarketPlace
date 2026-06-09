@@ -52,7 +52,8 @@ const Navbar: React.FC<NavbarProps> = ({ categories = [] }) => {
         setIsMobileMenuOpen(false);
         setIsCartOpen(false);
         setIsAddModalOpen(false);
-    }, [pathname]);
+        closeUserMenu();
+    }, [pathname, closeUserMenu, setIsCartOpen, setIsAddModalOpen]);
 
     // Handle Hover with Delay to prevent flickering
     const handleMouseEnter = (slug: string) => {
@@ -137,7 +138,7 @@ const Navbar: React.FC<NavbarProps> = ({ categories = [] }) => {
                                                 </svg>
                                             </div>
                                         </button>
-                                        <UserMenu />
+                                        <UserMenu variant="desktop" />
                                     </div>
                                 ) : (
                                     <>
@@ -254,7 +255,7 @@ const Navbar: React.FC<NavbarProps> = ({ categories = [] }) => {
                             </svg>
                             <span className="text-[10px] font-medium">Moi</span>
                         </button>
-                        <UserMenu />
+                        <UserMenu variant="mobile" />
                     </div>
                 </div>
             </div>

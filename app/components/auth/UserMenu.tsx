@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/context/AuthContext';
-import Link from 'next/link';
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
 
 const menuItems = [
@@ -11,10 +11,17 @@ const menuItems = [
     { label: 'Mes commandes', href: '/commandes' },
 ];
 
-const UserMenu = () => {
+interface UserMenuProps {
+    variant: 'desktop' | 'mobile';
+}
+
+const UserMenu: React.FC<UserMenuProps> = ({ variant }) => {
     const { user, logout, isUserMenuOpen, closeUserMenu } = useAuth();
+    const router = useRouter();
     const menuRef = useRef<HTMLDivElement>(null);
     const [isMobile, setIsMobile] = useState(false);
+
+    const isActiveVariant = variant === 'mobile' ? isMobile : !isMobile;
 
     useEffect(() => {
         const checkMobile = () => setIsMobile(window.innerWidth < 1024);
@@ -23,9 +30,10 @@ const UserMenu = () => {
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
-    // Close on click outside (desktop only)
+    // Close on click outside — only for the active variant instance
     useEffect(() => {
-        if (!isUserMenuOpen || isMobile) return;
+        if (!isUserMenuOpen || !isActiveVariant || isMobile) return;
+
         const handleClickOutside = (e: MouseEvent) => {
             if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
                 closeUserMenu();
@@ -33,28 +41,35 @@ const UserMenu = () => {
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [isUserMenuOpen, isMobile, closeUserMenu]);
+    }, [isUserMenuOpen, isActiveVariant, isMobile, closeUserMenu]);
 
-    // Close on Escape key
     useEffect(() => {
-        if (!isUserMenuOpen) return;
+        if (!isUserMenuOpen || !isActiveVariant) return;
         const handleEsc = (e: KeyboardEvent) => {
             if (e.key === 'Escape') closeUserMenu();
         };
         document.addEventListener('keydown', handleEsc);
         return () => document.removeEventListener('keydown', handleEsc);
-    }, [isUserMenuOpen, closeUserMenu]);
+    }, [isUserMenuOpen, isActiveVariant, closeUserMenu]);
 
-    // Lock body scroll on mobile full-screen (must be before early return)
-    useLockBodyScroll(isUserMenuOpen && isMobile);
+    useLockBodyScroll(isUserMenuOpen && isActiveVariant && isMobile);
 
-    if (!isUserMenuOpen) return null;
+    if (!isUserMenuOpen || !isActiveVariant) return null;
+
+    const handleNavigate = (href: string) => {
+        closeUserMenu();
+        router.push(href);
+    };
+
+    const handleLogout = async () => {
+        closeUserMenu();
+        await logout();
+    };
 
     // --- Mobile Full-Screen ---
     if (isMobile) {
         return (
             <div className="fixed inset-0 z-50 bg-white flex flex-col">
-                {/* Header - close button on the right */}
                 <div className="flex justify-end px-4 pt-4">
                     <button
                         onClick={closeUserMenu}
@@ -67,7 +82,6 @@ const UserMenu = () => {
                     </button>
                 </div>
 
-                {/* Avatar icon in gray circle + First name (serif) */}
                 <div className="px-6 pt-4 pb-6 flex items-center gap-4">
                     <div className="w-12 h-12 rounded-full bg-gray-200 text-gray-700 flex items-center justify-center flex-shrink-0">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
@@ -77,27 +91,23 @@ const UserMenu = () => {
                     <p className="text-2xl font-serif font-medium">{user?.first_name || 'Utilisateur'}</p>
                 </div>
 
-                {/* Menu items */}
                 <div>
                     {menuItems.map((item) => (
-                        <Link
+                        <button
                             key={item.label}
-                            href={item.href}
-                            onClick={closeUserMenu}
-                            className="flex items-center px-6 py-4 hover:bg-gray-50 transition-colors"
+                            type="button"
+                            onClick={() => handleNavigate(item.href)}
+                            className="flex items-center w-full px-6 py-4 hover:bg-gray-50 transition-colors text-left"
                         >
                             <span className="text-sm font-medium">{item.label}</span>
-                        </Link>
+                        </button>
                     ))}
                 </div>
 
-                {/* Logout button - rapproché des options */}
                 <div className="px-6 pt-2 pb-8">
                     <button
-                        onClick={() => {
-                            logout();
-                            closeUserMenu();
-                        }}
+                        type="button"
+                        onClick={() => void handleLogout()}
                         className="flex items-center w-full py-3 text-gray-900 hover:text-black transition-colors"
                     >
                         <span className="text-sm font-medium">Déconnexion</span>
@@ -111,31 +121,26 @@ const UserMenu = () => {
     return (
         <div
             ref={menuRef}
-            className="absolute top-full right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-xl z-50 py-2"
+            className="absolute top-full right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-xl z-[60] py-2"
         >
-            {/* First name (serif) */}
             <div className="px-4 py-4">
                 <p className="text-lg font-serif font-medium">{user?.first_name || 'Utilisateur'}</p>
             </div>
 
-            {/* Menu items - no icons */}
             {menuItems.map((item) => (
-                <Link
+                <button
                     key={item.label}
-                    href={item.href}
-                    onClick={closeUserMenu}
-                    className="flex items-center px-4 py-3 hover:bg-gray-50 transition-colors text-sm"
+                    type="button"
+                    onClick={() => handleNavigate(item.href)}
+                    className="flex items-center w-full px-4 py-3 hover:bg-gray-50 transition-colors text-sm text-left"
                 >
                     <span className="font-medium">{item.label}</span>
-                </Link>
+                </button>
             ))}
 
-            {/* Logout - black text, no icon, no border */}
             <button
-                onClick={() => {
-                    logout();
-                    closeUserMenu();
-                }}
+                type="button"
+                onClick={() => void handleLogout()}
                 className="flex items-center px-4 py-3 hover:bg-gray-50 transition-colors text-sm text-gray-900 hover:text-black w-full"
             >
                 <span className="font-medium">Déconnexion</span>
