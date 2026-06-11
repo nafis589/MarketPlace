@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { Loader2 } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
@@ -12,6 +12,7 @@ import type {
   ShippingFeeError,
 } from '@/lib/types';
 import ShippingInfoCard from './ShippingInfoCard';
+import MapSearchBar from './MapSearchBar';
 
 const LOME_CENTER: [number, number] = [6.1375, 1.2123];
 
@@ -31,6 +32,18 @@ function MapClickHandler({ onSelect }: { onSelect: (lat: number, lng: number) =>
   return null;
 }
 
+/** Expose l'instance Leaflet au parent via ref. */
+function MapRefBinder({ mapRef }: { mapRef: React.MutableRefObject<L.Map | null> }) {
+  const map = useMap();
+  useEffect(() => {
+    mapRef.current = map;
+    return () => {
+      mapRef.current = null;
+    };
+  }, [map, mapRef]);
+  return null;
+}
+
 export default function DeliveryMap({
   vendorId,
   onLocationSelect,
@@ -42,6 +55,8 @@ export default function DeliveryMap({
   const [position, setPosition] = useState<[number, number] | null>(null);
   const [successResult, setSuccessResult] = useState<LocationSelectResult['shippingResult'] | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
+
+  const mapRef = useRef<L.Map | null>(null);
 
   useEffect(() => {
     delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl;
@@ -87,17 +102,30 @@ export default function DeliveryMap({
   );
 
   const selectPosition = useCallback(
-    (lat: number, lng: number) => {
+    (lat: number, lng: number, flyToZoom?: number) => {
       setPosition([lat, lng]);
+      if (flyToZoom != null) {
+        mapRef.current?.flyTo([lat, lng], flyToZoom);
+      }
       void calculateShipping(lat, lng);
     },
     [calculateShipping],
   );
 
+  const handleSearchSelect = useCallback(
+    (lat: number, lon: number) => {
+      selectPosition(lat, lon, 14);
+    },
+    [selectPosition],
+  );
+
   const handleGeolocate = useCallback(() => {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
-      (pos) => selectPosition(pos.coords.latitude, pos.coords.longitude),
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        selectPosition(latitude, longitude, 15);
+      },
       () => {},
     );
   }, [selectPosition]);
@@ -123,20 +151,35 @@ export default function DeliveryMap({
 
   return (
     <div className="relative w-full h-full" style={{ height: mapHeight }}>
+      {/* Barre de recherche — décalée après les contrôles zoom Leaflet (≈46px) */}
+      <div
+        className={[
+          'absolute top-3 sm:top-4 z-[1000] pointer-events-auto',
+          /* left: zoom + marge · right: bord carte (ou bouton flèche mobile) · max-w pour ne pas traverser la colonne */
+          'left-[3.25rem] sm:left-14',
+          fullscreen
+            ? 'right-4 max-lg:right-[4.25rem] lg:max-w-md xl:max-w-lg'
+            : 'right-4 max-w-md',
+        ].join(' ')}
+      >
+        <MapSearchBar onSelect={handleSearchSelect} />
+      </div>
+
       <div className="absolute inset-0">
         <MapContainer center={LOME_CENTER} zoom={8} style={{ height: '100%', width: '100%' }}>
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          <MapClickHandler onSelect={selectPosition} />
+          <MapRefBinder mapRef={mapRef} />
+          <MapClickHandler onSelect={(lat, lng) => selectPosition(lat, lng)} />
           {position && (
             <Marker position={position} draggable eventHandlers={markerEventHandlers} />
           )}
         </MapContainer>
       </div>
 
-      {/* Overlay bas de carte : chargement ou carte d'infos (pas d'erreurs) */}
+      {/* Overlay bas de carte : chargement ou carte d'infos */}
       {(isCalculating || successResult) && (
         <div
           className={[

@@ -455,7 +455,7 @@ export default function CheckoutPage() {
                             <button
                                 onClick={() => setStep(2)}
                                 disabled={cartItems.length === 0}
-                                className="w-full bg-[#B0B0B0] hover:bg-black text-white text-[15px] font-semibold py-4 transition-colors disabled:cursor-not-allowed disabled:bg-[#CCCCCC]"
+                                className="w-full bg-black text-white text-[15px] font-semibold py-4 transition-colors disabled:cursor-not-allowed disabled:bg-[#CCCCCC]"
                             >
                                 Passer la commande
                             </button>
