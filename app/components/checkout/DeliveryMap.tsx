@@ -21,6 +21,7 @@ interface DeliveryMapProps {
   onLocationSelect: (result: LocationSelectResult) => void;
   onError?: (error: ShippingFeeError | null) => void;
   onCalculatingChange?: (isCalculating: boolean) => void;
+  onGeolocatingChange?: (isGeolocating: boolean) => void;
   geolocateSignal?: number;
   fullscreen?: boolean;
 }
@@ -49,6 +50,7 @@ export default function DeliveryMap({
   onLocationSelect,
   onError,
   onCalculatingChange,
+  onGeolocatingChange,
   geolocateSignal,
   fullscreen = false,
 }: DeliveryMapProps) {
@@ -121,14 +123,18 @@ export default function DeliveryMap({
 
   const handleGeolocate = useCallback(() => {
     if (!navigator.geolocation) return;
+    onGeolocatingChange?.(true);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
         selectPosition(latitude, longitude, 15);
+        onGeolocatingChange?.(false);
       },
-      () => {},
+      () => {
+        onGeolocatingChange?.(false);
+      },
     );
-  }, [selectPosition]);
+  }, [selectPosition, onGeolocatingChange]);
 
   const lastSignal = useRef(geolocateSignal);
   useEffect(() => {

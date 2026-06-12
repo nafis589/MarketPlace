@@ -4,6 +4,8 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { X, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useAuth, ApiClientError } from '@/app/context/AuthContext';
 import { useUI } from '@/app/context/UIContext';
+import { handlePostLoginSellIntent } from '@/lib/sell-article';
+import type { User } from '@/lib/types';
 import { useToast } from '@/app/components/ui/Toast';
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
 
@@ -17,7 +19,7 @@ interface AuthModalProps {
 
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen: isOpenProp, onClose: onCloseProp, defaultMode = 'login' }) => {
   const { login, register, openUserMenu } = useAuth();
-  const { loginOpen, registerOpen, closeAll, switchToLogin, switchToRegister } = useUI();
+  const { loginOpen, registerOpen, loginIntent, closeAll, clearLoginIntent, switchToLogin, switchToRegister } = useUI();
   const { showToast } = useToast();
 
   const [mode, setMode] = useState<AuthMode>(defaultMode);
@@ -174,6 +176,14 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen: isOpenProp, onClose: onCl
     if (isMobile) openUserMenu();
   };
 
+  const completeAuthAfterSellFlow = (loggedInUser: User) => {
+    if (loginIntent === 'sell' && handlePostLoginSellIntent(loggedInUser, clearLoginIntent)) {
+      handleClose();
+      return;
+    }
+    handleAuthSuccess(loggedInUser.first_name);
+  };
+
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isLoginValid || isSubmitting) return;
@@ -181,7 +191,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen: isOpenProp, onClose: onCl
     setError(null);
     try {
       const loggedInUser = await login(email.trim(), password);
-      handleAuthSuccess(loggedInUser.first_name);
+      completeAuthAfterSellFlow(loggedInUser);
     } catch (err) {
       if (err instanceof ApiClientError) {
         setError(

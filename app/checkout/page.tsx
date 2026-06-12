@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import {
-    Navigation,
+    LocateFixed,
     Check,
     ChevronDown,
     ChevronUp,
@@ -60,6 +60,7 @@ export default function CheckoutPage() {
     const [selectedCoords, setSelectedCoords]         = useState<{ lat: number; lng: number } | null>(null);
     const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
     const [geolocateSignal, setGeolocateSignal]       = useState(0);
+    const [isGeolocating, setIsGeolocating]           = useState(false);
     const [isSubmitting, setIsSubmitting]             = useState(false);
 
     // Vendeur ciblé pour le calcul de livraison (panier mono-vendeur pour l'instant).
@@ -343,6 +344,7 @@ export default function CheckoutPage() {
                                 onLocationSelect={handleLocationSelect}
                                 onError={handleShippingError}
                                 onCalculatingChange={setIsCalculatingShipping}
+                                onGeolocatingChange={setIsGeolocating}
                                 geolocateSignal={geolocateSignal}
                                 fullscreen
                             />
@@ -552,9 +554,14 @@ export default function CheckoutPage() {
                                     <button
                                         type="button"
                                         onClick={() => setGeolocateSignal((s) => s + 1)}
-                                        className="w-full flex items-center justify-center gap-2 border border-[#D5D5D5] bg-white py-2.5 px-4 text-[14px] font-medium text-[#1A1A1A] hover:border-black transition-all"
+                                        disabled={isGeolocating}
+                                        className="w-full flex items-center justify-center gap-2 border border-[#D5D5D5] bg-white py-2.5 px-4 text-[14px] font-medium text-[#1A1A1A] hover:border-black transition-all disabled:cursor-wait disabled:opacity-70"
                                     >
-                                        <Navigation size={14} strokeWidth={1.5} />
+                                        {isGeolocating ? (
+                                            <Loader2 size={14} className="animate-spin" />
+                                        ) : (
+                                            <LocateFixed size={14} strokeWidth={1.5} />
+                                        )}
                                         Ma position actuelle
                                     </button>
                                 </div>

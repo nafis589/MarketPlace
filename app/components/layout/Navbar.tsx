@@ -10,6 +10,7 @@ import MobileMenu from '../ui/MobileMenu';
 import { useCart } from '@/app/context/CartContext';
 import { useAuth } from '@/app/context/AuthContext';
 import { useUI } from '@/app/context/UIContext';
+import { handleSellArticleClick } from '@/lib/sell-article';
 import AuthModal from '@/app/components/auth/AuthModal';
 import UserMenu from '@/app/components/auth/UserMenu';
 import CartPopover from '@/app/components/cart/CartPopover';
@@ -21,8 +22,8 @@ interface NavbarProps {
 }
 
 const Navbar: React.FC<NavbarProps> = ({ categories = [] }) => {
-    const { isLoggedIn, isUserMenuOpen, openUserMenu, closeUserMenu } = useAuth();
-    const { openLogin, openRegister, openCart, closeAll } = useUI();
+    const { isLoggedIn, user, isUserMenuOpen, openUserMenu, closeUserMenu } = useAuth();
+    const { openLogin, openLoginForSell, openRegister, openCart, closeAll } = useUI();
     const {
         isCartOpen,
         setIsCartOpen,
@@ -70,6 +71,10 @@ const Navbar: React.FC<NavbarProps> = ({ categories = [] }) => {
     const handleCartClick = () => {
         if (isCartOpen) closeAll();
         else openCart();
+    };
+
+    const onSellArticleClick = () => {
+        handleSellArticleClick({ isLoggedIn, user, openLoginForSell });
     };
 
     return (
@@ -123,7 +128,13 @@ const Navbar: React.FC<NavbarProps> = ({ categories = [] }) => {
 
                         {/* Right: Actions */}
                         <div className="flex items-center justify-end flex-1 gap-6">
-                            <button className="hidden lg:inline-flex items-center justify-center px-6 py-2 text-sm font-bold bg-black text-white hover:bg-gray-800 border border-black transition-all duration-300">Vendre un article</button>
+                            <button
+                                type="button"
+                                onClick={onSellArticleClick}
+                                className="hidden lg:inline-flex items-center justify-center px-6 py-2 text-sm font-bold bg-black text-white hover:bg-gray-800 border border-black transition-all duration-300"
+                            >
+                                Vendre un article
+                            </button>
 
                             <div className="hidden lg:flex items-center gap-4 text-sm font-medium text-gray-700">
                                 {isLoggedIn ? (
@@ -229,14 +240,18 @@ const Navbar: React.FC<NavbarProps> = ({ categories = [] }) => {
                         <span className="text-[10px] font-medium">Favoris</span>
                     </Link>
 
-                    <Link href="/vendre" className="flex flex-col items-center justify-center w-full h-full text-gray-500 hover:text-gray-900">
+                    <button
+                        type="button"
+                        onClick={onSellArticleClick}
+                        className="flex flex-col items-center justify-center w-full h-full text-gray-500 hover:text-gray-900"
+                    >
                         <div className="mb-1">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                         </div>
                         <span className="text-[10px] font-medium">Vendre</span>
-                    </Link>
+                    </button>
 
                     <Link href="/notifications" className="flex flex-col items-center justify-center w-full h-full text-gray-500 hover:text-gray-900">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 mb-1">
