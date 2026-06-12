@@ -12,6 +12,7 @@ const TopDeals = ({ products }: TopDealsProps) => {
         <HomeProductSection
             title="Offres Exceptionnelles"
             products={products}
+            viewAllHref="/nouveautes?tag=offer"
         />
     );
 };

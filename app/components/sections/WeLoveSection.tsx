@@ -12,6 +12,7 @@ export default function WeLoveSection({ products }: WeLoveSectionProps) {
         <HomeProductSection
             title="We Love"
             products={products}
+            viewAllHref="/nouveautes?tag=we_love"
         />
     );
 }

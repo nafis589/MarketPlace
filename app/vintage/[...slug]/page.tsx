@@ -1,63 +1,64 @@
-'use client';
-
-import React, { use } from 'react';
 import ProductGrid from '@/app/components/ProductGrid';
 import EmptyState from '@/app/components/EmptyState';
 import CategoryHeader from '@/app/components/ui/CategoryHeader';
-import { getProductsByFilter } from '@/app/lib/cloudinaryHelper';
 import Header from '@/app/components/sections/Header';
 import Footer from '@/app/components/sections/Footer';
-import { unslugify } from '@/app/lib/routing-utils';
+import { fetchCategoryProductsBySlug } from '@/app/lib/productsApi';
+import { mapApiProductsToGridProducts } from '@/app/lib/mapProductGrid';
+import { API_URL, safeServerFetch } from '@/app/lib/homeApi';
+import type { ApiCategory } from '@/app/lib/homeApi';
 
 interface PageProps {
-    params: Promise<{
-        slug: string[];
-    }>;
+  params: Promise<{ slug: string[] }>;
 }
 
-export default function VintageCategoryPage({ params }: PageProps) {
-    const { slug } = use(params);
-    const category = slug[0];
-    const type = slug[1];
+async function fetchCategory(slug: string): Promise<ApiCategory | null> {
+  const res = await safeServerFetch(`${API_URL}/api/store/categories/${slug}`, {
+    next: { revalidate: 3600 },
+  });
+  if (!res?.ok) return null;
+  try {
+    const json = (await res.json()) as { data?: ApiCategory };
+    return json.data ?? null;
+  } catch {
+    return null;
+  }
+}
 
-    let products = [];
-    let title = "";
+export default async function VintageCategoryPage({ params }: PageProps) {
+  const { slug } = await params;
+  const targetSlug = slug[1] ?? slug[0];
 
-    if (type) {
-        products = getProductsByFilter({ category, type });
-        title = `${type} Vintage`;
-    } else {
-        products = getProductsByFilter({ category });
-        title = `${unslugify(category)} Vintage`;
-    }
+  const [category, { products: apiProducts }] = await Promise.all([
+    fetchCategory(targetSlug),
+    fetchCategoryProductsBySlug(targetSlug, { limit: 120 }),
+  ]);
 
-    return (
-        <main className="min-h-screen bg-white font-sans">
-            <Header />
-            <div className="pt-[100px] md:pt-[120px]">
-                <div className="max-w-[1600px] mx-auto px-6 py-8">
-                    <CategoryHeader
-                        title={title}
-                        count={products.length}
-                        breadcrumbs={[
-                            { label: 'Accueil', href: '/' },
-                            { label: 'Vintage', href: '/vintage' },
-                            ...(type ? [
-                                { label: unslugify(category), href: `/vintage/${category}` },
-                                { label: unslugify(type), href: `/vintage/${category}/${type}` }
-                            ] : [
-                                { label: unslugify(category), href: `/vintage/${category}` }
-                            ])
-                        ]}
-                    />
-                    {products.length > 0 ? (
-                        <ProductGrid products={products} />
-                    ) : (
-                        <EmptyState message={`Aucun produit trouvé.`} />
-                    )}
-                </div>
-            </div>
-            <Footer />
-        </main>
-    );
+  const products = mapApiProductsToGridProducts(apiProducts);
+  const title = category?.name ?? targetSlug;
+
+  return (
+    <main className="min-h-screen bg-white font-sans">
+      <Header />
+      <div className="pt-[100px] md:pt-[120px]">
+        <div className="max-w-[1600px] mx-auto px-6 py-8">
+          <CategoryHeader
+            title={title}
+            count={products.length}
+            breadcrumbs={[
+              { label: 'Accueil', href: '/' },
+              { label: 'Vintage', href: '/vintage' },
+              { label: title, href: `/vintage/${slug.join('/')}` },
+            ]}
+          />
+          {products.length > 0 ? (
+            <ProductGrid products={products} />
+          ) : (
+            <EmptyState message="Aucun produit trouvé." />
+          )}
+        </div>
+      </div>
+      <Footer />
+    </main>
+  );
 }

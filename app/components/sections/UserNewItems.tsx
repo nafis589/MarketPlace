@@ -12,6 +12,7 @@ const UserNewItems = ({ products }: UserNewItemsProps) => {
         <HomeProductSection
             title="Vos nouveautés"
             products={products}
+            viewAllHref="/nouveautes?sort=newest"
         />
     );
 };

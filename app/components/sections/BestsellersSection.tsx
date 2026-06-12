@@ -12,6 +12,7 @@ export default function BestsellersSection({ products }: BestsellersSectionProps
         <HomeProductSection
             title="Nos best-sellers"
             products={products}
+            viewAllHref="/nouveautes?sort=popularity"
         />
     );
 }

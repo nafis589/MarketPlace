@@ -12,6 +12,7 @@ const TrendingNow = ({ products }: TrendingNowProps) => {
         <HomeProductSection
             title="Tendances du moment"
             products={products}
+            viewAllHref="/nouveautes?sort=popularity"
         />
     );
 };
