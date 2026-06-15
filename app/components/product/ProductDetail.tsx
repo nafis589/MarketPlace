@@ -20,6 +20,13 @@ export interface ProductDetailData {
   material: string;
   color: string;
   description: string;
+  createdAt: string;
+  vendorRegion: string;
+  categoryPath: {
+    universe: string | null;
+    category: string | null;
+    subcategory: string | null;
+  };
   vendor: { shop_name: string; rating: number; total_sales: number };
 }
 
@@ -192,18 +199,18 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
       <ProductDescription
         product={{
           id: product.id,
-          title: product.title,
-          brand: product.brand,
-          price: product.price,
-          currency: product.currency,
           description: product.description,
+          brand: product.brand,
           condition: product.condition,
           size: product.size,
           material: product.material,
           color: product.color,
+          createdAt: product.createdAt,
           vendorName: product.vendor.shop_name,
+          vendorRegion: product.vendorRegion,
           vendorRating: product.vendor.rating,
           vendorTotalSales: product.vendor.total_sales,
+          categoryPath: product.categoryPath,
         }}
       />
 

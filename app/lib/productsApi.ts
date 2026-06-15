@@ -9,8 +9,15 @@ export interface ApiProductDetail extends ApiProductListItem {
   color: string | null;
   status: string;
   views_count: number;
+  created_at: string;
   images: { id: string; url: string; position: number; is_primary: boolean }[];
   vendor: { shop_name: string; rating: number; total_sales: number };
+  vendor_region?: string | null;
+  category_path?: {
+    universe: string | null;
+    category: string | null;
+    subcategory: string | null;
+  };
   reviews: { id: string; rating: number; comment: string | null }[];
 }
 

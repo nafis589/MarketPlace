@@ -58,6 +58,13 @@ export default async function ProductPage({ params }: PageProps) {
     material: apiProduct.material ?? '',
     color: apiProduct.color ?? '',
     description: apiProduct.description ?? '',
+    createdAt: apiProduct.created_at,
+    vendorRegion: apiProduct.vendor_region ?? '',
+    categoryPath: apiProduct.category_path ?? {
+      universe: null,
+      category: null,
+      subcategory: null,
+    },
     vendor: apiProduct.vendor,
   };
 

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Eye, Heart } from 'lucide-react';
+import { MapPin, Heart } from 'lucide-react';
 
 const ROW = {
   brand: 'min-h-[1.25rem]',
@@ -60,7 +60,7 @@ export default function ProductCardContent({
       <div className={`mt-auto pt-1 flex items-end ${ROW.price}`}>{price}</div>
 
       <div className={`flex items-center gap-1 text-xs text-gray-500 ${ROW.region}`}>
-        <Eye size={12} strokeWidth={2} className="shrink-0" />
+        <MapPin size={12} strokeWidth={2} className="shrink-0" />
         <span className="truncate">{region || '\u00A0'}</span>
       </div>
     </div>

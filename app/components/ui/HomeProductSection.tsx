@@ -127,7 +127,7 @@ export default function HomeProductSection({ title, products, viewAllHref }: Hom
         <button
           type="button"
           onClick={scrollRight}
-          className="absolute -right-5 top-1/2 -translate-y-1/2 z-10 bg-white border border-black w-10 h-10 flex items-center justify-center hover:bg-gray-100 transition-colors shadow-sm flex"
+          className="absolute -right-5 top-1/2 -translate-y-1/2 z-10 bg-white border border-black w-10 h-10 hidden lg:flex items-center justify-center hover:bg-gray-100 transition-colors shadow-sm"
           aria-label="Voir plus"
         >
           <ChevronRight size={20} strokeWidth={1} />
