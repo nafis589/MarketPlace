@@ -92,9 +92,9 @@ const ImageGallery = ({ images }: { images: string[] }) => {
     );
 };
 
-import { useAuth } from '@/app/context/AuthContext';
 import { useCart } from '@/app/context/CartContext';
 import { useUI } from '@/app/context/UIContext';
+import { useToast } from '@/app/components/ui/Toast';
 
 // --- Main Component ---
 
@@ -103,16 +103,18 @@ interface ProductDetailProps {
 }
 
 export default function ProductDetailComponent({ product }: ProductDetailProps) {
-    const { isLoggedIn } = useAuth();
-    const { addToCart } = useCart();
-    const { openLogin } = useUI();
+    const { addItem } = useCart();
+    const { openCart } = useUI();
+    const { showToast } = useToast();
     const p = product;
 
-    const handleAddToCart = () => {
-        if (!isLoggedIn) {
-            openLogin();
-        } else {
-            addToCart(p);
+    const handleAddToCart = async () => {
+        try {
+            await addItem(String(p.id));
+            showToast('Ajouté au panier ✓');
+            openCart();
+        } catch {
+            showToast('Impossible d\'ajouter au panier');
         }
     };
 

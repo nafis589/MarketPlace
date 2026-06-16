@@ -1,92 +1,127 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { DEMO_VENDOR_ID } from '@/lib/demo-vendor';
-
-export interface CartSeller {
-    username: string;
-    badge: string;
-    location: string;
-    itemsCount: number;
-    salesCount: number;
-}
-
-export interface CartItem {
-    id: number;
-    brand: string;
-    type: string;
-    size: string;
-    price: number;
-    image: string;
-    originalPrice?: number;
-    shippingFee?: number;
-    seller?: CartSeller;
-    title?: string;
-    vendorId?: string;
-}
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  ReactNode,
+} from 'react';
+import { cartApi, type CartItem } from '@/lib/cart-api';
+import { useAuth } from './AuthContext';
 
 interface CartContextType {
-    cartItems: CartItem[];
-    addToCart: (item: any) => void;
-    removeFromCart: (id: number) => void;
-    isCartOpen: boolean;
-    setIsCartOpen: (isOpen: boolean) => void;
-    isAddModalOpen: boolean;
-    setIsAddModalOpen: (isOpen: boolean) => void;
-    lastAddedItem: CartItem | null;
+  items: CartItem[];
+  total: number;
+  count: number;
+  isLoading: boolean;
+  addItem: (productId: string, quantity?: number) => Promise<void>;
+  removeItem: (itemId: string) => Promise<void>;
+  updateQuantity: (itemId: string, qty: number) => Promise<void>;
+  clearCart: () => Promise<void>;
+  refresh: () => Promise<void>;
+  isCartOpen: boolean;
+  setIsCartOpen: (isOpen: boolean) => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+function applyCartData(
+  data: { items: CartItem[]; total: number; itemCount: number },
+  setItems: (items: CartItem[]) => void,
+  setTotal: (total: number) => void,
+  setCount: (count: number) => void,
+) {
+  setItems(data.items);
+  setTotal(data.total);
+  setCount(data.itemCount);
+}
+
 export function CartProvider({ children }: { children: ReactNode }) {
-    const [cartItems, setCartItems] = useState<CartItem[]>([]);
-    const [isCartOpen, setIsCartOpen] = useState(false);
-    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-    const [lastAddedItem, setLastAddedItem] = useState<CartItem | null>(null);
+  const { isLoggedIn, isLoading: authLoading } = useAuth();
+  const [items, setItems] = useState<CartItem[]>([]);
+  const [total, setTotal] = useState(0);
+  const [count, setCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
-    const addToCart = (product: any) => {
-        // Determine image source
-        const image = product.image || (product.images && product.images[0]) || '';
+  const refresh = useCallback(async () => {
+    try {
+      const { data } = await cartApi.getCart();
+      applyCartData(data, setItems, setTotal, setCount);
+    } catch {
+      setItems([]);
+      setTotal(0);
+      setCount(0);
+    }
+  }, []);
 
-        const newItem: CartItem = {
-            id: Date.now(),
-            brand: product.brand || 'Inconnu',
-            type: product.category || product.type || 'Article',
-            size: product.size || 'Taille unique',
-            price: product.price || 0,
-            image: image,
-            vendorId: product.vendorId ?? product.seller?.id ?? DEMO_VENDOR_ID,
-        };
+  useEffect(() => {
+    refresh().finally(() => setIsLoading(false));
+  }, [refresh]);
 
-        setCartItems(prev => [...prev, newItem]);
-        setLastAddedItem(newItem);
-        setIsAddModalOpen(true);
-    };
+  useEffect(() => {
+    if (!authLoading) {
+      refresh();
+    }
+  }, [isLoggedIn, authLoading, refresh]);
 
-    const removeFromCart = (id: number) => {
-        setCartItems(prev => prev.filter(item => item.id !== id));
-    };
+  const addItem = useCallback(
+    async (productId: string, quantity = 1) => {
+      const { data } = await cartApi.addItem(productId, quantity);
+      applyCartData(data, setItems, setTotal, setCount);
+    },
+    [],
+  );
 
-    return (
-        <CartContext.Provider value={{
-            cartItems,
-            addToCart,
-            removeFromCart,
-            isCartOpen,
-            setIsCartOpen,
-            isAddModalOpen,
-            setIsAddModalOpen,
-            lastAddedItem
-        }}>
-            {children}
-        </CartContext.Provider>
-    );
+  const removeItem = useCallback(async (itemId: string) => {
+    const { data } = await cartApi.removeItem(itemId);
+    applyCartData(data, setItems, setTotal, setCount);
+  }, []);
+
+  const updateQuantity = useCallback(async (itemId: string, qty: number) => {
+    if (qty < 1) {
+      const { data } = await cartApi.removeItem(itemId);
+      applyCartData(data, setItems, setTotal, setCount);
+      return;
+    }
+    const { data } = await cartApi.updateItem(itemId, qty);
+    applyCartData(data, setItems, setTotal, setCount);
+  }, []);
+
+  const clearCart = useCallback(async () => {
+    const { data } = await cartApi.clearCart();
+    applyCartData(data, setItems, setTotal, setCount);
+  }, []);
+
+  return (
+    <CartContext.Provider
+      value={{
+        items,
+        total,
+        count,
+        isLoading,
+        addItem,
+        removeItem,
+        updateQuantity,
+        clearCart,
+        refresh,
+        isCartOpen,
+        setIsCartOpen,
+      }}
+    >
+      {children}
+    </CartContext.Provider>
+  );
 }
 
 export function useCart() {
-    const context = useContext(CartContext);
-    if (context === undefined) {
-        throw new Error('useCart must be used within a CartProvider');
-    }
-    return context;
+  const context = useContext(CartContext);
+  if (context === undefined) {
+    throw new Error('useCart must be used within a CartProvider');
+  }
+  return context;
 }
+
+export type { CartItem };

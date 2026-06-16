@@ -25,12 +25,12 @@ import { UIProvider } from "./context/UIContext";
 import { ToastProvider } from "./components/ui/Toast";
 import AppFrame from "./components/layout/AppFrame";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || "http://localhost:5000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || "http://localhost:9000";
 
 async function getCategories() {
   try {
     const res = await fetch(`${API_URL}/api/store/categories`, {
-      cache: "no-store",
+      next: { revalidate: 3600 },
     });
     if (!res.ok) {
       console.error(`Failed to fetch categories: ${res.status}`);

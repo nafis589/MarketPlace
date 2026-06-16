@@ -14,8 +14,6 @@ import { handleSellArticleClick } from '@/lib/sell-article';
 import AuthModal from '@/app/components/auth/AuthModal';
 import UserMenu from '@/app/components/auth/UserMenu';
 import CartPopover from '@/app/components/cart/CartPopover';
-import EmptyCartPopover from '@/app/components/cart/EmptyCartPopover';
-import AddToCartModal from '@/app/components/cart/AddToCartModal';
 
 interface NavbarProps {
     categories: CategoryWithChildren[];
@@ -24,13 +22,7 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ categories = [] }) => {
     const { isLoggedIn, user, isUserMenuOpen, openUserMenu, closeUserMenu } = useAuth();
     const { openLogin, openLoginForSell, openRegister, openCart, closeAll } = useUI();
-    const {
-        isCartOpen,
-        setIsCartOpen,
-        cartItems,
-        isAddModalOpen,
-        setIsAddModalOpen
-    } = useCart();
+    const { isCartOpen, setIsCartOpen, count } = useCart();
 
     const [hoveredSlug, setHoveredSlug] = useState<string | null>(null);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -52,9 +44,8 @@ const Navbar: React.FC<NavbarProps> = ({ categories = [] }) => {
         setHoveredSlug(null);
         setIsMobileMenuOpen(false);
         setIsCartOpen(false);
-        setIsAddModalOpen(false);
         closeUserMenu();
-    }, [pathname, closeUserMenu, setIsCartOpen, setIsAddModalOpen]);
+    }, [pathname, closeUserMenu, setIsCartOpen]);
 
     // Handle Hover with Delay to prevent flickering
     const handleMouseEnter = (slug: string) => {
@@ -80,10 +71,6 @@ const Navbar: React.FC<NavbarProps> = ({ categories = [] }) => {
     return (
         <>
             <AuthModal />
-            <AddToCartModal
-                isOpen={isAddModalOpen}
-                onClose={() => setIsAddModalOpen(false)}
-            />
             <nav
                 className={`fixed top-0 left-0 right-0 z-50 bg-white transition-all duration-300 border-b border-gray-100 max-w-full ${isScrolled ? 'shadow-sm' : ''
                     }`}
@@ -174,16 +161,14 @@ const Navbar: React.FC<NavbarProps> = ({ categories = [] }) => {
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 5c.07.286-.06.586-.343.648a.75.75 0 01-.343 0l-1.263-5a.75.75 0 01.343-.648zM3.75 21h16.5M4.5 3h15M9 3v2.25M15 3v2.25" />
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6a3 3 0 00-3-3h-3a3 3 0 00-3 3v4.5m13.5 0h-15v9a2.25 2.25 0 002.25 2.25h10.5A2.25 2.25 0 0019.5 19.5v-9z" />
                                     </svg>
-                                    <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
-                                        {cartItems.length}
-                                    </span>
+                                    {count > 0 && (
+                                        <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] min-w-4 h-4 px-0.5 flex items-center justify-center rounded-full">
+                                            {count > 9 ? '9+' : count}
+                                        </span>
+                                    )}
                                 </button>
 
-                                {isLoggedIn ? (
-                                    <CartPopover isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
-                                ) : (
-                                    <EmptyCartPopover isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
-                                )}
+                                <CartPopover isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
                             </div>
                         </div>
                     </div>

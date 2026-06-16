@@ -5,6 +5,7 @@ import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { formatPrice } from '@/app/utils/formatPrice';
 import ProductCardContent from '@/app/components/ProductCardContent';
+import ProductCardImage from '@/app/components/ProductCardImage';
 
 export type BadgeType = 'BLACK_FRIDAY' | 'WE_LOVE' | null;
 
@@ -79,18 +80,17 @@ export default function HomeProductSection({ title, products, viewAllHref }: Hom
               href={`/product/product-${product.id}`}
               className="snap-start shrink-0 w-1/2 sm:w-[280px] md:w-[300px] xl:w-1/5 group relative p-4 flex flex-col h-full hover:bg-gray-50 transition-colors cursor-pointer"
             >
-              <div className="relative aspect-[3/3.5] mb-3 w-full overflow-hidden bg-gray-100 shrink-0">
-                <img
-                  src={product.imageUrl}
-                  alt={product.name}
-                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                {product.badge && (
-                  <div className="absolute bottom-0 left-0 z-10">
-                    <ProductBadge type={product.badge} />
-                  </div>
-                )}
-              </div>
+              <ProductCardImage
+                src={product.imageUrl}
+                alt={product.name}
+                badge={
+                  product.badge ? (
+                    <div className="absolute bottom-0 left-0 z-10">
+                      <ProductBadge type={product.badge} />
+                    </div>
+                  ) : undefined
+                }
+              />
 
               <ProductCardContent
                 brand={product.brand}

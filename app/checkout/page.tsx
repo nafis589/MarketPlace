@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import {
     LocateFixed,
@@ -14,7 +15,12 @@ import {
     ArrowRight,
 } from 'lucide-react';
 import { useCart } from '@/app/context/CartContext';
-import { api } from '@/lib/api-client';
+import { useAuth } from '@/app/context/AuthContext';
+import { useUI } from '@/app/context/UIContext';
+import { useToast } from '@/app/components/ui/Toast';
+import { getLineTotal } from '@/lib/cart-api';
+import { ordersApi, type StoreOrder } from '@/lib/orders-api';
+import { formatOrderRef } from '@/app/lib/order-utils';
 import { DEMO_VENDOR_ID } from '@/lib/demo-vendor';
 import type { LocationSelectResult, ShippingFeeError, ShippingMethod } from '@/lib/types';
 
@@ -31,17 +37,15 @@ function cx(...classes: (string | boolean | undefined | null)[]) {
     return classes.filter(Boolean).join(' ');
 }
 
-const CURRENCY = '€';
-function formatPrice(price: number): string {
-    return `${price.toFixed(2).replace('.', ',')} ${CURRENCY}`;
-}
-
-function formatFcfa(value: number): string {
-    return `${Math.round(value).toLocaleString('fr-FR')} FCFA`;
-}
+import { formatPrice as formatFcfa } from '@/app/utils/formatPrice';
+import { PRODUCT_IMAGE_PLACEHOLDER } from '@/app/lib/mapHomeProduct';
 
 export default function CheckoutPage() {
-    const { cartItems, removeFromCart } = useCart();
+    const router = useRouter();
+    const { items, total, removeItem, refresh: refreshCart } = useCart();
+    const { isLoggedIn } = useAuth();
+    const { openLogin } = useUI();
+    const { showToast } = useToast();
 
     const [step, setStep] = useState(1);
 
@@ -62,19 +66,15 @@ export default function CheckoutPage() {
     const [geolocateSignal, setGeolocateSignal]       = useState(0);
     const [isGeolocating, setIsGeolocating]           = useState(false);
     const [isSubmitting, setIsSubmitting]             = useState(false);
+    const [placedOrder, setPlacedOrder]               = useState<StoreOrder | null>(null);
 
     // Vendeur ciblé pour le calcul de livraison (panier mono-vendeur pour l'instant).
-    const vendorId =
-        cartItems.find((item) => item.vendorId)?.vendorId ?? DEMO_VENDOR_ID;
+    const vendorId = DEMO_VENDOR_ID;
 
-    // Per-item seller toggle — default false = collapsed ("Plus d'infos")
-    const [sellerOpen, setSellerOpen] = useState<Record<number, boolean>>({});
-    const isSellerOpen = (id: number) => sellerOpen[id] ?? false;
-    const toggleSeller = (id: number) =>
+    const [sellerOpen, setSellerOpen] = useState<Record<string, boolean>>({});
+    const isSellerOpen = (id: string) => sellerOpen[id] ?? false;
+    const toggleSeller = (id: string) =>
         setSellerOpen((prev) => ({ ...prev, [id]: !isSellerOpen(id) }));
-
-    // Right column price accordion — default false = collapsed
-    const [showPriceDetails, setShowPriceDetails] = useState(false);
 
     // Step 2 mobile : panneau formulaire en overlay plein écran
     const [showMobileForm, setShowMobileForm] = useState(false);
@@ -104,7 +104,7 @@ export default function CheckoutPage() {
             ro.disconnect();
             window.removeEventListener('resize', recompute);
         };
-    }, [step, showPriceDetails, cartItems.length]);
+    }, [step, items.length]);
 
     const handleLocationSelect = (result: LocationSelectResult) => {
         setSelectedCoords({ lat: result.lat, lng: result.lng });
@@ -128,39 +128,42 @@ export default function CheckoutPage() {
         }
     };
 
-    const totalItemsPrice = cartItems.reduce((acc, item) => acc + item.price, 0);
-    const totalShipping   = cartItems.reduce((acc, item) => acc + (item.shippingFee ?? 5.9), 0);
-    const serviceFee      = totalItemsPrice * 0.08;
-    const finalTotal      = totalItemsPrice + totalShipping + serviceFee;
+    const totalItemsPrice = total;
     const grandTotal = shippingFee !== null ? totalItemsPrice + shippingFee : null;
-    const canConfirm = shippingFee !== null && !shippingError && selectedCoords !== null && !!phone.trim();
+    const canConfirm = shippingFee !== null && !shippingError && selectedCoords !== null && !!phone.trim() && shippingMethod !== null;
 
     const handleConfirmOrder = async () => {
-        if (!canConfirm || !selectedCoords || shippingFee === null) return;
+        if (!canConfirm || !selectedCoords || shippingFee === null || !shippingMethod) return;
+        if (!isLoggedIn) {
+            openLogin();
+            return;
+        }
         setIsSubmitting(true);
         try {
-            await api.post('/api/store/orders', {
+            const { data } = await ordersApi.placeOrder({
                 payment_method: 'CASH_ON_DELIVERY',
                 shipping_address: {
                     first_name: firstName,
                     last_name: lastName,
                     phone,
-                    notes,
+                    notes: notes || null,
                     latitude: selectedCoords.lat,
                     longitude: selectedCoords.lng,
-                    region_id: shippingRegionId,
+                    region_id: shippingRegionId ?? '',
                 },
                 shipping_fee: shippingFee,
                 shipping_method: shippingMethod,
                 shipping_distance_km: shippingDistanceKm,
             });
-        } catch {
-            // La création de commande arrive dans une phase ultérieure : on affiche
-            // tout de même la confirmation côté client en attendant.
-        } finally {
-            setIsSubmitting(false);
+            const order = data.orders[0] ?? null;
+            setPlacedOrder(order);
+            await refreshCart();
             setShowMobileForm(false);
             setStep(3);
+        } catch {
+            showToast('Impossible de confirmer la commande');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -203,7 +206,7 @@ export default function CheckoutPage() {
                                 1. Panier
                             </h1>
 
-                            {cartItems.length === 0 ? (
+                            {items.length === 0 ? (
                                 <div className="py-20 flex flex-col items-start gap-4">
                                     <Package size={40} strokeWidth={1} className="text-[#D5D5D5]" />
                                     <p className="text-[15px] text-[#AAAAAA] font-light">
@@ -218,7 +221,7 @@ export default function CheckoutPage() {
                                 </div>
                             ) : (
                                 <div className="divide-y divide-[#F0F0F0]">
-                                    {cartItems.map((item) => (
+                                    {items.map((item) => (
                                         <div key={item.id} className="py-4 space-y-6">
 
                                             {/* ── Seller ── */}
@@ -232,16 +235,8 @@ export default function CheckoutPage() {
                                                         </div>
                                                         <div>
                                                             <p className="font-bold text-[16px] text-[#1A1A1A] leading-tight">
-                                                                {item.seller?.username || 'friperie_luxe'}
+                                                                Vendeur
                                                             </p>
-                                                            <div className="flex items-center gap-1.5 mt-1">
-                                                                <svg className="w-3.5 h-3.5 text-[#1A1A1A]" viewBox="0 0 24 24" fill="currentColor">
-                                                                    <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-                                                                </svg>
-                                                                <span className="text-[13px] text-[#555]">
-                                                                    {item.seller?.badge || 'Vendeur Expert'}
-                                                                </span>
-                                                            </div>
                                                         </div>
                                                     </div>
 
@@ -264,15 +259,15 @@ export default function CheckoutPage() {
                                                 {isSellerOpen(item.id) && (
                                                     <div className="space-y-2 text-[12px] sm:text-[13px] text-[#555] pl-[64px]">
                                                         <div className="flex gap-8">
-                                                            <span>{item.seller?.itemsCount ?? 8} produits en vente</span>
-                                                            <span>{item.seller?.salesCount ?? 30} produits vendus</span>
+                                                            <span>8 produits en vente</span>
+                                                            <span>30 produits vendus</span>
                                                         </div>
                                                         <div className="flex items-center gap-1.5">
                                                             <svg className="w-3.5 h-3.5 text-[#555]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                                             </svg>
-                                                            <span>{item.seller?.location || 'France'}</span>
+                                                            <span>Togo</span>
                                                         </div>
                                                     </div>
                                                 )}
@@ -285,8 +280,8 @@ export default function CheckoutPage() {
                                                 <div className="shrink-0">
                                                     <div className="w-[80px] h-[100px] sm:w-[96px] sm:h-[120px] bg-[#F8F8F8] border border-[#EBEBEB] overflow-hidden">
                                                         <img
-                                                            src={item.image}
-                                                            alt={item.title || item.brand}
+                                                            src={item.product.primary_image || PRODUCT_IMAGE_PLACEHOLDER}
+                                                            alt={item.product.title}
                                                             className="w-full h-full object-cover"
                                                         />
                                                     </div>
@@ -297,15 +292,16 @@ export default function CheckoutPage() {
                                                     {/* Haut : texte + croix */}
                                                     <div className="flex items-start justify-between gap-2">
                                                         <div className="space-y-0.5 sm:space-y-1 min-w-0">
-                                                            <h3 className="font-bold text-[13px] sm:text-[15px] tracking-wide uppercase text-[#1A1A1A]">
-                                                                {item.brand}
+                                                            <h3 className="font-bold text-[13px] sm:text-[15px] tracking-wide text-[#1A1A1A]">
+                                                                {item.product.title}
                                                             </h3>
-                                                            <p className="text-[12px] sm:text-[14px] text-[#333]">{item.title || item.type}</p>
-                                                            <p className="text-[12px] sm:text-[14px] text-[#777]">Taille : {item.size}</p>
+                                                            {item.quantity > 1 && (
+                                                                <p className="text-[12px] sm:text-[14px] text-[#777]">Quantité : {item.quantity}</p>
+                                                            )}
                                                         </div>
                                                         {/* Croix de suppression */}
                                                         <button
-                                                            onClick={() => removeFromCart(item.id)}
+                                                            onClick={() => removeItem(item.id)}
                                                             className="shrink-0 w-6 h-6 flex items-center justify-center text-[#C0C0C0] hover:text-[#1A1A1A] transition-colors mt-0.5"
                                                             aria-label="Supprimer l'article"
                                                         >
@@ -314,13 +310,8 @@ export default function CheckoutPage() {
                                                     </div>
                                                     {/* Bas : prix */}
                                                     <div className="flex items-center gap-2">
-                                                        {item.originalPrice && (
-                                                            <span className="text-[12px] sm:text-[14px] text-[#AAAAAA] line-through">
-                                                                {formatPrice(item.originalPrice)}
-                                                            </span>
-                                                        )}
                                                         <span className="text-[13px] sm:text-[15px] font-semibold text-[#C0392B]">
-                                                            {formatPrice(item.price)}
+                                                            {formatFcfa(getLineTotal(item))}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -370,12 +361,35 @@ export default function CheckoutPage() {
                                     <Check size={38} strokeWidth={2.5} className="text-white" />
                                 </div>
                             </div>
-                            <h2 className="text-[20px] font-bold text-[#1A1A1A] leading-snug mb-3">
+                            <h2 className="text-[20px] font-bold text-[#1A1A1A] leading-snug mb-2">
                                 Votre commande est en bonne voie !
                             </h2>
-                            <p className="text-[14px] text-[#666] font-light leading-relaxed">
-                                Nous l&apos;avons transmise à nos équipes et attendons la validation du vendeur pour finaliser votre livraison.
+                            {placedOrder && (
+                                <p className="text-sm font-mono font-semibold text-[#1A1A1A] mb-2">
+                                    {formatOrderRef(placedOrder.id)}
+                                </p>
+                            )}
+                            <p className="text-[14px] text-[#666] font-light leading-relaxed mb-8">
+                                Nous l&apos;avons transmise au vendeur pour validation et préparation de la livraison.
                             </p>
+                            <div className="flex flex-col gap-3 w-full">
+                                {placedOrder && (
+                                    <button
+                                        type="button"
+                                        onClick={() => router.push(`/commandes/${placedOrder.id}`)}
+                                        className="w-full bg-black text-white text-[15px] font-semibold py-3.5 hover:opacity-90"
+                                    >
+                                        Suivre ma commande
+                                    </button>
+                                )}
+                                <button
+                                    type="button"
+                                    onClick={() => router.push('/')}
+                                    className="w-full border border-black text-black text-[15px] font-semibold py-3.5 hover:bg-gray-50"
+                                >
+                                    Continuer les achats
+                                </button>
+                            </div>
                         </div>
                     )}
                 </div>
@@ -393,70 +407,39 @@ export default function CheckoutPage() {
                             className="lg:sticky px-4 sm:px-6 md:px-9 lg:px-11 py-6 md:py-10 space-y-0"
                         >
 
-                            <h2 className="text-[18px] font-bold text-[#1A1A1A] mb-8">
-                                Détails de la commande
+                            <h2 className="text-[18px] font-bold text-[#1A1A1A] mb-4">
+                                Sous-total
                             </h2>
 
-                            {/* Price details accordion */}
                             <div className="space-y-3 mb-6">
-                                <button
-                                    onClick={() => setShowPriceDetails(!showPriceDetails)}
-                                    className="w-full flex items-center justify-between text-[14px] text-[#1A1A1A] hover:opacity-70 transition-opacity"
-                                >
-                                    <div className="flex items-center gap-1.5">
-                                        <span className="font-medium">
-                                            Détails du prix ({cartItems.length} article
-                                            {cartItems.length > 1 ? 's' : ''})
-                                        </span>
-                                        {showPriceDetails ? (
-                                            <ChevronUp size={14} className="text-[#555]" />
-                                        ) : (
-                                            <ChevronDown size={14} className="text-[#555]" />
-                                        )}
-                                    </div>
-                                    <span className="font-medium">{formatPrice(totalItemsPrice)}</span>
-                                </button>
-
-                                {showPriceDetails && (
-                                    <div className="space-y-4">
-                                        {cartItems.map((item) => (
-                                            <div key={item.id} className="space-y-1.5">
-                                                <div className="flex justify-between text-[14px] text-[#1A1A1A]">
-                                                    <span className="font-medium truncate pr-2">
-                                                        {item.brand}, {item.title || item.type}
-                                                    </span>
-                                                    <span className="font-medium shrink-0">{formatPrice(item.price)}</span>
-                                                </div>
-                                                <div className="space-y-1 pl-4">
-                                                    <div className="flex justify-between text-[13px] text-[#777]">
-                                                        <span>Prix</span>
-                                                        <span>{formatPrice(item.originalPrice ?? item.price)}</span>
-                                                    </div>
-                                                    <div className="flex justify-between text-[13px] text-[#777]">
-                                                        <span>Frais de service acheteur (TVA incl.)</span>
-                                                        <span>{formatPrice(item.price * 0.08)}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
+                                {items.map((item) => {
+                                    const lineTotal = getLineTotal(item);
+                                    return (
+                                        <div key={item.id} className="flex justify-between text-[14px] text-[#1A1A1A]">
+                                            <span className="truncate pr-2">
+                                                {item.product.title}
+                                                {item.quantity > 1 ? ` × ${item.quantity}` : ''}
+                                            </span>
+                                            <span className="font-medium shrink-0">{formatFcfa(lineTotal)}</span>
+                                        </div>
+                                    );
+                                })}
                             </div>
 
                             <hr className="border-[#E0E0E0] mb-6" />
 
-                            {/* Total */}
                             <div className="flex justify-between items-baseline mb-7">
-                                <span className="text-[16px] font-bold text-[#1A1A1A]">Total TTC</span>
+                                <span className="text-[16px] font-bold text-[#1A1A1A]">Sous-total</span>
                                 <span className="text-[28px] font-bold text-[#1A1A1A]">
-                                    {formatPrice(finalTotal)}
+                                    {formatFcfa(totalItemsPrice)}
                                 </span>
                             </div>
+                            <p className="text-xs text-[#999] mb-6">Hors frais de livraison</p>
 
                             {/* CTA */}
                             <button
                                 onClick={() => setStep(2)}
-                                disabled={cartItems.length === 0}
+                                disabled={items.length === 0}
                                 className="w-full bg-black text-white text-[15px] font-semibold py-4 transition-colors disabled:cursor-not-allowed disabled:bg-[#CCCCCC]"
                             >
                                 Passer la commande
@@ -576,7 +559,7 @@ export default function CheckoutPage() {
                                     <div className="space-y-3">
                                         <div className="flex justify-between text-[14px] text-[#1A1A1A]">
                                             <span>
-                                                Articles ({cartItems.length} article{cartItems.length > 1 ? 's' : ''})
+                                                Articles ({items.length} article{items.length > 1 ? 's' : ''})
                                             </span>
                                             <span className="font-medium">{formatFcfa(totalItemsPrice)}</span>
                                         </div>
@@ -689,7 +672,7 @@ export default function CheckoutPage() {
                                     <div className="space-y-3">
                                         <div className="flex justify-between text-[14px] text-[#1A1A1A]">
                                             <span>
-                                                Articles ({cartItems.length} article{cartItems.length > 1 ? 's' : ''})
+                                                Articles ({items.length} article{items.length > 1 ? 's' : ''})
                                             </span>
                                             <span className="font-medium">{formatFcfa(totalItemsPrice)}</span>
                                         </div>
@@ -709,10 +692,16 @@ export default function CheckoutPage() {
                                     </div>
 
                                     <Link
-                                        href="/"
-                                        className="w-full bg-black text-white text-[15px] font-semibold py-4 transition-opacity hover:opacity-90 flex items-center justify-center gap-2"
+                                        href={placedOrder ? `/commandes/${placedOrder.id}` : '/commandes'}
+                                        className="w-full bg-black text-white text-[15px] font-semibold py-4 transition-opacity hover:opacity-90 flex items-center justify-center gap-2 mb-3"
                                     >
-                                        Retour à l&apos;accueil
+                                        Suivre ma commande
+                                    </Link>
+                                    <Link
+                                        href="/"
+                                        className="w-full border border-black text-black text-[15px] font-semibold py-4 transition-colors hover:bg-gray-50 flex items-center justify-center"
+                                    >
+                                        Continuer les achats
                                     </Link>
                                 </div>
                             </div>

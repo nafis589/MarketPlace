@@ -6,9 +6,15 @@ interface PaginationProps {
     currentPage: number;
     totalPages: number;
     onPageChange: (page: number) => void;
+    disableNext?: boolean;
 }
 
-const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPageChange }) => {
+const Pagination: React.FC<PaginationProps> = ({
+    currentPage,
+    totalPages,
+    onPageChange,
+    disableNext = false,
+}) => {
     // Helper to generate page numbers
     const getPageNumbers = () => {
         const pages = [];
@@ -62,8 +68,8 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPage
             {/* Suivant */}
             <button
                 onClick={() => onPageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className={`flex items-center gap-1.5 px-3 py-2 transition-colors ${currentPage === totalPages ? 'text-[#C5C5C5] cursor-not-allowed' : 'text-black'
+                disabled={disableNext || currentPage === totalPages}
+                className={`flex items-center gap-1.5 px-3 py-2 transition-colors ${disableNext || currentPage === totalPages ? 'text-[#C5C5C5] cursor-not-allowed' : 'text-black'
                     }`}
             >
                 <span className="text-[17px]">Suivant</span>

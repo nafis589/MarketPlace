@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import ProductCardContent from './ProductCardContent';
+import ProductCardImage from './ProductCardImage';
 
 interface Product {
   id: string;
@@ -23,15 +24,9 @@ export default function ProductCard({ product }: ProductCardProps) {
   return (
     <Link
       href={productUrl}
-      className="group flex flex-col h-full border-r border-b border-gray-200 p-4 relative bg-white hover:bg-gray-50 transition-colors"
+      className="group relative flex h-full flex-col border-r border-b border-gray-200 bg-white p-4 transition-colors hover:bg-gray-50"
     >
-      <div className="relative aspect-[3/3.5] mb-3 w-full overflow-hidden bg-gray-100 shrink-0">
-        <img
-          src={product.image}
-          alt={product.title}
-          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-        />
-      </div>
+      <ProductCardImage src={product.image} alt={product.title} />
 
       <ProductCardContent
         brand={product.brand}
@@ -39,7 +34,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         condition={product.condition}
         region={product.vendorRegion}
         price={
-          <span className="text-gray-900 font-bold text-base">{product.priceLabel}</span>
+          <span className="text-base font-bold text-gray-900">{product.priceLabel}</span>
         }
       />
     </Link>

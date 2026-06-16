@@ -42,9 +42,10 @@ body {
 }
 
 /* Prevent images and media from causing overflow */
-img, video, iframe {
+img,
+video,
+iframe {
   max-width: 100%;
-  height: auto;
 }
 
 /* Hide scrollbar for horizontally scrollable elements */

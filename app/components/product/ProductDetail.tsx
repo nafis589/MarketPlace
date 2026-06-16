@@ -53,14 +53,14 @@ const ChevronDown = () => (
   </svg>
 );
 
-import { useAuth } from '@/app/context/AuthContext';
 import { useCart } from '@/app/context/CartContext';
 import { useUI } from '@/app/context/UIContext';
+import { useToast } from '@/app/components/ui/Toast';
 
 export default function ProductDetail({ product, relatedProducts = [] }: ProductDetailProps) {
-  const { isLoggedIn } = useAuth();
-  const { addToCart } = useCart();
-  const { openLogin } = useUI();
+  const { addItem } = useCart();
+  const { openCart } = useUI();
+  const { showToast } = useToast();
 
   const galleryImages = useMemo(() => {
     const urls = product.images.filter(Boolean);
@@ -69,22 +69,13 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
 
   const [selectedImage, setSelectedImage] = useState(galleryImages[0]);
 
-  const handleAddToCart = () => {
-    if (!isLoggedIn) {
-      openLogin();
-    } else {
-      addToCart({
-        id: product.id,
-        title: product.title,
-        brand: product.brand,
-        name: product.title,
-        price: product.price,
-        currency: product.currency,
-        image: galleryImages[0],
-        category: '',
-        type: '',
-        gender: '',
-      });
+  const handleAddToCart = async () => {
+    try {
+      await addItem(product.id);
+      showToast('Ajouté au panier ✓');
+      openCart();
+    } catch {
+      showToast('Impossible d\'ajouter au panier');
     }
   };
 

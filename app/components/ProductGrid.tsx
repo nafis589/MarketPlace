@@ -16,23 +16,44 @@ interface Product {
 
 interface ProductGridProps {
     products: Product[];
+    pagination?: {
+        currentPage: number;
+        totalPages: number;
+        onPageChange: (page: number) => void;
+        disableNext?: boolean;
+    };
 }
 
-export default function ProductGrid({ products }: ProductGridProps) {
-    const [currentPage, setCurrentPage] = useState(1);
+export default function ProductGrid({ products, pagination }: ProductGridProps) {
+    const [internalPage, setInternalPage] = useState(1);
     const itemsPerPage = 60;
 
-    const totalPages = Math.ceil(products.length / itemsPerPage);
+    const useExternalPagination = Boolean(pagination);
+
+    const totalPages = useExternalPagination
+        ? pagination!.totalPages
+        : Math.ceil(products.length / itemsPerPage);
+
+    const currentPage = useExternalPagination ? pagination!.currentPage : internalPage;
 
     const currentProducts = useMemo(() => {
+        if (useExternalPagination) return products;
         const startIndex = (currentPage - 1) * itemsPerPage;
         return products.slice(startIndex, startIndex + itemsPerPage);
-    }, [products, currentPage, itemsPerPage]);
+    }, [products, currentPage, itemsPerPage, useExternalPagination]);
 
     const handlePageChange = (page: number) => {
-        setCurrentPage(page);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (useExternalPagination) {
+            pagination!.onPageChange(page);
+        } else {
+            setInternalPage(page);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     };
+
+    const canGoNext = useExternalPagination
+        ? !pagination?.disableNext && currentPage < totalPages
+        : currentPage < totalPages;
 
     return (
         <div className="flex flex-col gap-12">
@@ -42,11 +63,14 @@ export default function ProductGrid({ products }: ProductGridProps) {
                 ))}
             </div>
 
-            <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-            />
+            {totalPages > 1 && (
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                    disableNext={useExternalPagination ? !canGoNext : currentPage >= totalPages}
+                />
+            )}
         </div>
     );
 }

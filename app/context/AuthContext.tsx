@@ -63,7 +63,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [hydrateUser]);
 
   const login = useCallback(async (email: string, password: string): Promise<User> => {
-    const { data } = await api.post<AuthResponse>('/api/store/auth/login', { email, password });
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ email, password }),
+    });
+    const json = (await res.json()) as AuthResponse | { error?: { code: string; message: string } };
+    if (!res.ok) {
+      const err = json as { error?: { code: string; message: string } };
+      throw new ApiClientError(
+        err.error?.code ?? 'LOGIN_FAILED',
+        err.error?.message ?? 'Connexion impossible',
+        res.status,
+      );
+    }
+    const { data } = json as AuthResponse;
     await storeToken(data.accessToken);
     setUser(data.user);
     return data.user;
