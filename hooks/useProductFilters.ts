@@ -24,8 +24,11 @@ export function useProductFilters() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const getFilter = (key: string) => searchParams.get(key);
-  const getFilterArray = (key: string) => searchParams.getAll(key);
+  const getFilter = useCallback((key: string) => searchParams.get(key), [searchParams]);
+  const getFilterArray = useCallback(
+    (key: string) => searchParams.getAll(key),
+    [searchParams],
+  );
 
   const setFilter = useCallback(
     (key: string, value: string | null) => {

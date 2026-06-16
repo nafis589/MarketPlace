@@ -13,7 +13,7 @@ export default function ProductCardImage({ src, alt, priority, badge }: ProductC
   const isDataUrl = src.startsWith('data:');
 
   return (
-    <div className="relative mb-3 aspect-[3/4] w-full shrink-0 overflow-hidden bg-gray-100">
+    <div className="relative mb-3 aspect-[4/5] w-full shrink-0 overflow-hidden bg-gray-100">
       <Image
         src={src}
         alt={alt}

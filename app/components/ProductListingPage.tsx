@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import EmptyState from '@/app/components/EmptyState';
 import ProductFilterControls from '@/app/components/ProductFilterControls';
@@ -115,6 +115,11 @@ export default function ProductListingPage({
     return params.toString();
   }, [paramsKey, extraKey]);
 
+  const getFilterRef = useRef(getFilter);
+  const setFiltersRef = useRef(setFilters);
+  getFilterRef.current = getFilter;
+  setFiltersRef.current = setFilters;
+
   useEffect(() => {
     let cancelled = false;
 
@@ -123,12 +128,13 @@ export default function ProductListingPage({
       if (cancelled) return;
       setFilterOptions(options);
 
+      const read = getFilterRef.current;
       const stale: Record<string, string | null> = {};
-      const condition = getFilter('condition');
-      const size = getFilter('size');
-      const color = getFilter('color');
-      const material = getFilter('material');
-      const brand = getFilter('brand');
+      const condition = read('condition');
+      const size = read('size');
+      const color = read('color');
+      const material = read('material');
+      const brand = read('brand');
 
       if (condition && !options.conditions.some((o) => o.value === condition)) {
         stale.condition = null;
@@ -138,14 +144,14 @@ export default function ProductListingPage({
       if (material && !options.materials.some((o) => o.value === material)) stale.material = null;
       if (brand && !options.brands.some((o) => o.value === brand)) stale.brand = null;
 
-      if (Object.keys(stale).length > 0) setFilters(stale);
+      if (Object.keys(stale).length > 0) setFiltersRef.current(stale);
     };
 
     void loadFilters();
     return () => {
       cancelled = true;
     };
-  }, [scopeKey, getFilter, setFilters]);
+  }, [scopeKey]);
 
   useEffect(() => {
     let cancelled = false;
