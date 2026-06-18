@@ -1,82 +1,120 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
+import { cn } from '@/lib/utils';
 
 interface PaginationProps {
-    currentPage: number;
-    totalPages: number;
-    onPageChange: (page: number) => void;
-    disableNext?: boolean;
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  disableNext?: boolean;
 }
 
-const Pagination: React.FC<PaginationProps> = ({
-    currentPage,
-    totalPages,
-    onPageChange,
-    disableNext = false,
+function preventPaginationNavigation(event: React.MouseEvent<HTMLAnchorElement>) {
+  event.preventDefault();
+}
+
+function getPageNumbers(currentPage: number, totalPages: number): (number | 'ellipsis')[] {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  const pages: (number | 'ellipsis')[] = [1];
+
+  if (currentPage > 3) {
+    pages.push('ellipsis');
+  }
+
+  const start = Math.max(2, currentPage - 1);
+  const end = Math.min(totalPages - 1, currentPage + 1);
+
+  for (let page = start; page <= end; page += 1) {
+    pages.push(page);
+  }
+
+  if (currentPage < totalPages - 2) {
+    pages.push('ellipsis');
+  }
+
+  pages.push(totalPages);
+  return pages;
+}
+
+const ProductPagination: React.FC<PaginationProps> = ({
+  currentPage,
+  totalPages,
+  onPageChange,
+  disableNext = false,
 }) => {
-    // Helper to generate page numbers
-    const getPageNumbers = () => {
-        const pages = [];
-        if (totalPages <= 8) {
-            for (let i = 1; i <= totalPages; i++) pages.push(i);
-        } else {
-            // Logic to match 1 2 3 4 5 6 ... 10
-            for (let i = 1; i <= 6; i++) pages.push(i);
-            pages.push('...');
-            pages.push(totalPages);
-        }
-        return pages;
-    };
+  const pageNumbers = useMemo(
+    () => getPageNumbers(currentPage, totalPages),
+    [currentPage, totalPages],
+  );
 
-    if (totalPages <= 1) return null;
+  if (totalPages <= 1) return null;
 
-    return (
-        <div className="flex items-center justify-center gap-2 py-16 text-base font-sans">
-            {/* Précédent */}
-            <button
-                onClick={() => onPageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className={`flex items-center gap-1.5 px-3 py-2 transition-colors ${currentPage === 1 ? 'text-[#C5C5C5] cursor-not-allowed' : 'text-black'
-                    }`}
-            >
-                <div className="w-2 h-2 border-l border-t border-current rotate-[-45deg] mr-1" />
-                <span className="text-[17px]">Précédent</span>
-            </button>
+  const canPrevious = currentPage > 1;
+  const canNext = !disableNext && currentPage < totalPages;
 
-            {/* Page Numbers */}
-            <div className="flex items-center gap-0 mx-2">
-                {getPageNumbers().map((page, index) => (
-                    <React.Fragment key={index}>
-                        {page === '...' ? (
-                            <span className="px-4 text-gray-400">...</span>
-                        ) : (
-                            <button
-                                onClick={() => onPageChange(page as number)}
-                                className={`min-w-[40px] h-10 flex items-center justify-center transition-colors text-[17px] ${currentPage === page
-                                        ? 'text-black border-b-2'
-                                        : 'text-black'
-                                    }`}
-                            >
-                                {page}
-                            </button>
-                        )}
-                    </React.Fragment>
-                ))}
-            </div>
+  return (
+    <Pagination className="py-16">
+      <PaginationContent className="gap-1">
+        <PaginationItem>
+          <PaginationPrevious
+            href="#"
+            text="Précédent"
+            className={cn(!canPrevious && 'pointer-events-none opacity-50')}
+            onClick={(event) => {
+              preventPaginationNavigation(event);
+              if (canPrevious) onPageChange(currentPage - 1);
+            }}
+          />
+        </PaginationItem>
 
-            {/* Suivant */}
-            <button
-                onClick={() => onPageChange(currentPage + 1)}
-                disabled={disableNext || currentPage === totalPages}
-                className={`flex items-center gap-1.5 px-3 py-2 transition-colors ${disableNext || currentPage === totalPages ? 'text-[#C5C5C5] cursor-not-allowed' : 'text-black'
-                    }`}
-            >
-                <span className="text-[17px]">Suivant</span>
-                <div className="w-2 h-2 border-r border-t border-current rotate-[45deg] ml-1" />
-            </button>
-        </div>
-    );
+        {pageNumbers.map((page, index) =>
+          page === 'ellipsis' ? (
+            <PaginationItem key={`ellipsis-${index}`}>
+              <PaginationEllipsis />
+            </PaginationItem>
+          ) : (
+            <PaginationItem key={page}>
+              <PaginationLink
+                href="#"
+                isActive={currentPage === page}
+                onClick={(event) => {
+                  preventPaginationNavigation(event);
+                  onPageChange(page);
+                }}
+              >
+                {page}
+              </PaginationLink>
+            </PaginationItem>
+          ),
+        )}
+
+        <PaginationItem>
+          <PaginationNext
+            href="#"
+            text="Suivant"
+            className={cn(!canNext && 'pointer-events-none opacity-50')}
+            onClick={(event) => {
+              preventPaginationNavigation(event);
+              if (canNext) onPageChange(currentPage + 1);
+            }}
+          />
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
+  );
 };
 
-export default Pagination;
+export default ProductPagination;
