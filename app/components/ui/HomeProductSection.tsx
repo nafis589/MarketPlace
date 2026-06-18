@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef } from 'react';
-import { ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { formatPrice } from '@/app/utils/formatPrice';
 import ProductCardContent from '@/app/components/ProductCardContent';
@@ -47,38 +47,53 @@ interface HomeProductSectionProps {
   viewAllHref?: string;
 }
 
+const SCROLL_OFFSET = 300;
+
 export default function HomeProductSection({ title, products, viewAllHref }: HomeProductSectionProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const scrollRight = () => {
-    scrollContainerRef.current?.scrollBy({ left: 300, behavior: 'smooth' });
+  const scrollLeft = () => {
+    scrollContainerRef.current?.scrollBy({ left: -SCROLL_OFFSET, behavior: 'smooth' });
   };
+
+  const scrollRight = () => {
+    scrollContainerRef.current?.scrollBy({ left: SCROLL_OFFSET, behavior: 'smooth' });
+  };
+
+  const viewMoreLinkClassName =
+    'rounded-full border border-black bg-white px-8 py-2.5 text-sm font-semibold text-black transition-colors hover:bg-gray-100';
 
   return (
     <div className="bg-gray-50 py-10 px-6 font-sans">
-      <div className="max-w-[1600px] mx-auto flex items-end justify-between mb-6 gap-4">
+      <div className="mx-auto mb-6 flex max-w-[1600px] items-end justify-between gap-4">
         <h2 className="text-4xl font-serif text-[#0B1E3B]">{title}</h2>
-        {viewAllHref && (
-          <Link
-            href={viewAllHref}
-            className="text-sm font-bold uppercase tracking-widest border-b border-black pb-1 hover:text-gray-600 hover:border-gray-600 transition-colors shrink-0"
-          >
-            Voir tout
+        {viewAllHref ? (
+          <Link href={viewAllHref} className={`${viewMoreLinkClassName} hidden shrink-0 md:inline-flex`}>
+            Voir plus
           </Link>
-        )}
+        ) : null}
       </div>
 
       <div className="relative max-w-[1600px] mx-auto group/section">
+        <button
+          type="button"
+          onClick={scrollLeft}
+          className="absolute -left-5 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center border border-black bg-white shadow-sm transition-colors hover:bg-gray-100 lg:flex"
+          aria-label="Voir précédent"
+        >
+          <ChevronLeft size={20} strokeWidth={1} />
+        </button>
+
         <div
           ref={scrollContainerRef}
-          className="flex items-stretch overflow-x-auto snap-x snap-mandatory scrollbar-hide bg-white border border-gray-200 divide-x divide-gray-200 -mr-6 md:mr-0"
+          className="flex items-stretch overflow-x-auto snap-x snap-mandatory scrollbar-hide -mr-6 divide-x divide-gray-200 border border-gray-200 bg-white md:mr-0"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           {products.map((product) => (
             <Link
               key={product.id}
               href={`/product/product-${product.id}`}
-              className="snap-start shrink-0 w-1/2 sm:w-[280px] md:w-[300px] xl:w-1/5 group relative p-4 flex flex-col h-full hover:bg-gray-50 transition-colors cursor-pointer"
+              className="group relative flex h-full w-1/2 shrink-0 cursor-pointer snap-start flex-col p-4 transition-colors hover:bg-gray-50 sm:w-[280px] md:w-[300px] xl:w-1/5"
             >
               <ProductCardImage
                 src={product.imageUrl}
@@ -100,19 +115,19 @@ export default function HomeProductSection({ title, products, viewAllHref }: Hom
                 price={
                   product.oldPrice ? (
                     <div className="flex flex-col leading-tight">
-                      <span className="text-gray-400 text-sm line-through decoration-1">
+                      <span className="text-sm text-gray-400 line-through decoration-1">
                         {product.currency === 'FCFA'
                           ? formatPrice(product.oldPrice)
                           : `${product.currency}${product.oldPrice}`}
                       </span>
-                      <span className="text-[#D32F2F] font-bold text-base">
+                      <span className="text-base font-bold text-[#D32F2F]">
                         {product.currency === 'FCFA'
                           ? formatPrice(product.price)
                           : `${product.currency}${product.price}`}
                       </span>
                     </div>
                   ) : (
-                    <span className="text-gray-900 font-bold text-base">
+                    <span className="text-base font-bold text-gray-900">
                       {product.currency === 'FCFA'
                         ? formatPrice(product.price)
                         : `${product.currency}${product.price}`}
@@ -127,12 +142,23 @@ export default function HomeProductSection({ title, products, viewAllHref }: Hom
         <button
           type="button"
           onClick={scrollRight}
-          className="absolute -right-5 top-1/2 -translate-y-1/2 z-10 bg-white border border-black w-10 h-10 hidden lg:flex items-center justify-center hover:bg-gray-100 transition-colors shadow-sm"
+          className="absolute -right-5 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center border border-black bg-white shadow-sm transition-colors hover:bg-gray-100 lg:flex"
           aria-label="Voir plus"
         >
           <ChevronRight size={20} strokeWidth={1} />
         </button>
       </div>
+
+      {viewAllHref ? (
+        <div className="mx-auto mt-8 flex max-w-[1600px] justify-center px-2 md:hidden">
+          <Link
+            href={viewAllHref}
+            className={`${viewMoreLinkClassName} w-full max-w-xl py-3.5 text-center sm:max-w-2xl sm:py-4 sm:text-base`}
+          >
+            Voir plus
+          </Link>
+        </div>
+      ) : null}
     </div>
   );
 }

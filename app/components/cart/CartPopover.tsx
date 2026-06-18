@@ -71,14 +71,14 @@ const CartPopover: React.FC<CartPopoverProps> = ({ isOpen, onClose }) => {
                                     </div>
                                     <button
                                         onClick={() => removeItem(item.id)}
-                                        className="text-gray-400 hover:text-red-500 shrink-0"
+                                        className="text-gray-400 hover:text-black shrink-0 p-0.5"
                                         aria-label="Supprimer"
                                     >
-                                        🗑
+                                        <X size={18} strokeWidth={1.5} />
                                     </button>
                                 </div>
                                 <div className="flex items-center justify-between mt-2">
-                                    <div className="flex items-center border border-gray-200">
+                                    <div className="flex items-center">
                                         <button
                                             type="button"
                                             onClick={() => updateQuantity(item.id, item.quantity - 1)}

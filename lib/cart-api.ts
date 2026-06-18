@@ -1,11 +1,20 @@
 import { ApiClientError } from './api-client';
 import type { ApiError } from './types';
 
+export interface CartItemVendor {
+  id: string;
+  shop_name: string;
+  total_sales: number;
+  active_products: number;
+  region: string | null;
+}
+
 export interface CartItemProduct {
   title: string;
   primary_image: string | null;
   price: number;
   status: string;
+  vendor: CartItemVendor;
 }
 
 export interface CartItem {

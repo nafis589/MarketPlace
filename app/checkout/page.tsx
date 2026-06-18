@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import {
     LocateFixed,
-    Check,
+    CircleCheckBig,
     ChevronDown,
     ChevronUp,
     Package,
@@ -18,7 +18,7 @@ import { useCart } from '@/app/context/CartContext';
 import { useAuth } from '@/app/context/AuthContext';
 import { useUI } from '@/app/context/UIContext';
 import { useToast } from '@/app/components/ui/Toast';
-import { getLineTotal } from '@/lib/cart-api';
+import { getLineTotal, type CartItem, type CartItemVendor } from '@/lib/cart-api';
 import { ordersApi, type StoreOrder } from '@/lib/orders-api';
 import { formatOrderRef } from '@/app/lib/order-utils';
 import { DEMO_VENDOR_ID } from '@/lib/demo-vendor';
@@ -67,6 +67,12 @@ export default function CheckoutPage() {
     const [isGeolocating, setIsGeolocating]           = useState(false);
     const [isSubmitting, setIsSubmitting]             = useState(false);
     const [placedOrder, setPlacedOrder]               = useState<StoreOrder | null>(null);
+    const [orderSnapshot, setOrderSnapshot]           = useState<{
+        lineCount: number;
+        itemsSubtotal: number;
+        shippingFee: number;
+        grandTotal: number;
+    } | null>(null);
 
     // Vendeur ciblé pour le calcul de livraison (panier mono-vendeur pour l'instant).
     const vendorId = DEMO_VENDOR_ID;
@@ -75,6 +81,28 @@ export default function CheckoutPage() {
     const isSellerOpen = (id: string) => sellerOpen[id] ?? false;
     const toggleSeller = (id: string) =>
         setSellerOpen((prev) => ({ ...prev, [id]: !isSellerOpen(id) }));
+
+    const itemsByVendor = useMemo(() => {
+        const groups: { vendorId: string; vendor: CartItemVendor | undefined; items: CartItem[] }[] = [];
+        const indexByVendor = new Map<string, number>();
+
+        for (const item of items) {
+            const vendorId = item.product.vendor?.id ?? `unknown-${item.id}`;
+            const existing = indexByVendor.get(vendorId);
+            if (existing !== undefined) {
+                groups[existing].items.push(item);
+            } else {
+                indexByVendor.set(vendorId, groups.length);
+                groups.push({
+                    vendorId,
+                    vendor: item.product.vendor,
+                    items: [item],
+                });
+            }
+        }
+
+        return groups;
+    }, [items]);
 
     // Step 2 mobile : panneau formulaire en overlay plein écran
     const [showMobileForm, setShowMobileForm] = useState(false);
@@ -130,6 +158,12 @@ export default function CheckoutPage() {
 
     const totalItemsPrice = total;
     const grandTotal = shippingFee !== null ? totalItemsPrice + shippingFee : null;
+    const recapLineCount = orderSnapshot?.lineCount ?? items.length;
+    const recapItemsSubtotal = orderSnapshot?.itemsSubtotal ?? totalItemsPrice;
+    const recapShippingFee = orderSnapshot?.shippingFee ?? shippingFee;
+    const recapGrandTotal =
+        orderSnapshot?.grandTotal ??
+        (placedOrder ? placedOrder.total_amount : grandTotal);
     const canConfirm = shippingFee !== null && !shippingError && selectedCoords !== null && !!phone.trim() && shippingMethod !== null;
 
     const handleConfirmOrder = async () => {
@@ -156,6 +190,12 @@ export default function CheckoutPage() {
                 shipping_distance_km: shippingDistanceKm,
             });
             const order = data.orders[0] ?? null;
+            setOrderSnapshot({
+                lineCount: items.length,
+                itemsSubtotal: total,
+                shippingFee,
+                grandTotal: total + shippingFee,
+            });
             setPlacedOrder(order);
             await refreshCart();
             setShowMobileForm(false);
@@ -202,7 +242,7 @@ export default function CheckoutPage() {
                     {/* ── STEP 1 : Panier ── */}
                     {step === 1 && (
                         <div className="max-w-2xl">
-                            <h1 className="text-[20px] sm:text-[24px] md:text-[26px] font-bold text-[#1A1A1A] mb-6 md:mb-10 tracking-tight">
+                            <h1 className="text-[20px] sm:text-[24px] md:text-[26px] font-bold text-[#1A1A1A] mb-3 md:mb-4 tracking-tight">
                                 1. Panier
                             </h1>
 
@@ -221,34 +261,38 @@ export default function CheckoutPage() {
                                 </div>
                             ) : (
                                 <div className="divide-y divide-[#F0F0F0]">
-                                    {items.map((item) => (
-                                        <div key={item.id} className="py-4 space-y-6">
+                                    {itemsByVendor.map((group) => {
+                                        const vendor = group.vendor;
+                                        const sellerName = vendor?.shop_name ?? 'Vendeur';
+                                        const sellerInitial = sellerName.charAt(0).toUpperCase();
 
-                                            {/* ── Seller ── */}
-                                            <div className="space-y-4">
+                                        return (
+                                        <div key={group.vendorId} className="py-3 space-y-4">
+
+                                            {/* ── Seller (une fois par vendeur) ── */}
+                                            <div className="space-y-3">
                                                 <div className="flex items-start justify-between">
                                                     <div className="flex items-center gap-4">
                                                         <div className="w-[48px] h-[48px] rounded-full bg-[#E5E5E5] flex items-center justify-center shrink-0 overflow-hidden">
-                                                            <svg className="w-8 h-8 text-[#BBBBBB] mt-1" fill="currentColor" viewBox="0 0 24 24">
-                                                                <path fillRule="evenodd" d="M12 12a5 5 0 100-10 5 5 0 000 10zm-7 9a7 7 0 0114 0H5z" clipRule="evenodd" />
-                                                            </svg>
+                                                            <span className="text-[18px] font-bold text-[#888]">
+                                                                {sellerInitial}
+                                                            </span>
                                                         </div>
                                                         <div>
                                                             <p className="font-bold text-[16px] text-[#1A1A1A] leading-tight">
-                                                                Vendeur
+                                                                {sellerName}
                                                             </p>
                                                         </div>
                                                     </div>
 
-                                                    {/* Per-item toggle */}
                                                     <button
-                                                        onClick={() => toggleSeller(item.id)}
+                                                        onClick={() => toggleSeller(group.vendorId)}
                                                         className="flex items-center gap-1 text-[13px] text-[#1A1A1A] hover:opacity-60 transition-opacity whitespace-nowrap"
                                                     >
                                                         <span>
-                                                            {isSellerOpen(item.id) ? "Moins d'infos" : "Plus d'infos"}
+                                                            {isSellerOpen(group.vendorId) ? "Moins d'infos" : "Plus d'infos"}
                                                         </span>
-                                                        {isSellerOpen(item.id) ? (
+                                                        {isSellerOpen(group.vendorId) ? (
                                                             <ChevronUp size={14} />
                                                         ) : (
                                                             <ChevronDown size={14} />
@@ -256,25 +300,29 @@ export default function CheckoutPage() {
                                                     </button>
                                                 </div>
 
-                                                {isSellerOpen(item.id) && (
+                                                {isSellerOpen(group.vendorId) && vendor && (
                                                     <div className="space-y-2 text-[12px] sm:text-[13px] text-[#555] pl-[64px]">
                                                         <div className="flex gap-8">
-                                                            <span>8 produits en vente</span>
-                                                            <span>30 produits vendus</span>
+                                                            <span>{vendor.active_products} produit{vendor.active_products > 1 ? 's' : ''} en vente</span>
+                                                            <span>{vendor.total_sales} produit{vendor.total_sales > 1 ? 's' : ''} vendu{vendor.total_sales > 1 ? 's' : ''}</span>
                                                         </div>
-                                                        <div className="flex items-center gap-1.5">
-                                                            <svg className="w-3.5 h-3.5 text-[#555]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                            </svg>
-                                                            <span>Togo</span>
-                                                        </div>
+                                                        {vendor.region && (
+                                                            <div className="flex items-center gap-1.5">
+                                                                <svg className="w-3.5 h-3.5 text-[#555]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                                </svg>
+                                                                <span>{vendor.region}</span>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>
 
-                                            {/* ── Product row ── */}
-                                            <div className="flex gap-4 sm:gap-5">
+                                            {/* ── Produits du vendeur ── */}
+                                            <div className="space-y-4">
+                                            {group.items.map((item) => (
+                                            <div key={item.id} className="flex gap-4 sm:gap-5">
 
                                                 {/* Image seule à gauche */}
                                                 <div className="shrink-0">
@@ -316,9 +364,12 @@ export default function CheckoutPage() {
                                                     </div>
                                                 </div>
                                             </div>
+                                            ))}
+                                            </div>
 
                                         </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             )}
                         </div>
@@ -354,12 +405,8 @@ export default function CheckoutPage() {
                     {/* ── STEP 3 : success visual (sticky, centered) ── */}
                     {step === 3 && (
                         <div className="flex flex-col items-center text-center px-10 max-w-sm mx-auto">
-                            {/* Green circle inspired by reference image */}
-                            <div className="relative mb-8">
-                                <div className="absolute inset-0 rounded-full bg-green-300 opacity-40 scale-[1.6] blur-2xl" />
-                                <div className="relative w-[88px] h-[88px] bg-gradient-to-br from-[#4ADE80] to-[#16A34A] rounded-full flex items-center justify-center shadow-xl">
-                                    <Check size={38} strokeWidth={2.5} className="text-white" />
-                                </div>
+                            <div className="mb-8">
+                                <CircleCheckBig size={88} strokeWidth={1.5} className="text-[#16A34A]" />
                             </div>
                             <h2 className="text-[20px] font-bold text-[#1A1A1A] leading-snug mb-2">
                                 Votre commande est en bonne voie !
@@ -672,37 +719,24 @@ export default function CheckoutPage() {
                                     <div className="space-y-3">
                                         <div className="flex justify-between text-[14px] text-[#1A1A1A]">
                                             <span>
-                                                Articles ({items.length} article{items.length > 1 ? 's' : ''})
+                                                Articles ({recapLineCount} article{recapLineCount > 1 ? 's' : ''})
                                             </span>
-                                            <span className="font-medium">{formatFcfa(totalItemsPrice)}</span>
+                                            <span className="font-medium">{formatFcfa(recapItemsSubtotal)}</span>
                                         </div>
                                         <div className="flex justify-between text-[14px] text-[#1A1A1A]">
                                             <span>Livraison</span>
                                             <span className="font-medium">
-                                                {shippingFee !== null ? formatFcfa(shippingFee) : '—'}
+                                                {recapShippingFee !== null ? formatFcfa(recapShippingFee) : '—'}
                                             </span>
                                         </div>
                                         <hr className="border-[#E0E0E0]" />
                                         <div className="flex justify-between items-baseline">
                                             <span className="text-[15px] font-bold text-[#1A1A1A]">Total</span>
                                             <span className="text-[24px] font-bold text-[#1A1A1A]">
-                                                {grandTotal !== null ? formatFcfa(grandTotal) : '—'}
+                                                {recapGrandTotal !== null ? formatFcfa(recapGrandTotal) : '—'}
                                             </span>
                                         </div>
                                     </div>
-
-                                    <Link
-                                        href={placedOrder ? `/commandes/${placedOrder.id}` : '/commandes'}
-                                        className="w-full bg-black text-white text-[15px] font-semibold py-4 transition-opacity hover:opacity-90 flex items-center justify-center gap-2 mb-3"
-                                    >
-                                        Suivre ma commande
-                                    </Link>
-                                    <Link
-                                        href="/"
-                                        className="w-full border border-black text-black text-[15px] font-semibold py-4 transition-colors hover:bg-gray-50 flex items-center justify-center"
-                                    >
-                                        Continuer les achats
-                                    </Link>
                                 </div>
                             </div>
                         </div>
