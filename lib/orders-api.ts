@@ -90,11 +90,19 @@ async function parseResponse<T>(res: Response): Promise<T> {
   const json = (await res.json()) as T | ApiError;
   if (!res.ok) {
     const err = json as ApiError;
-    throw new ApiClientError(
-      err.error?.code ?? 'UNKNOWN_ERROR',
-      err.error?.message ?? 'Erreur serveur',
-      res.status,
-    );
+    let message = err.error?.message ?? 'Erreur serveur';
+
+    if (err.error?.code === 'VALIDATION_ERROR' && err.error.details) {
+      const details = err.error.details as Record<string, string[] | undefined>;
+      const fieldMessages = Object.entries(details)
+        .flatMap(([field, messages]) =>
+          (messages ?? []).map((msg) => `${field}: ${msg}`),
+        )
+        .join(' · ');
+      if (fieldMessages) message = fieldMessages;
+    }
+
+    throw new ApiClientError(err.error?.code ?? 'UNKNOWN_ERROR', message, res.status);
   }
   return json as T;
 }

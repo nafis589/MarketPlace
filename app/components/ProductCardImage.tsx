@@ -7,9 +7,10 @@ interface ProductCardImageProps {
   alt: string;
   priority?: boolean;
   badge?: React.ReactNode;
+  sold?: boolean;
 }
 
-export default function ProductCardImage({ src, alt, priority, badge }: ProductCardImageProps) {
+export default function ProductCardImage({ src, alt, priority, badge, sold }: ProductCardImageProps) {
   const isDataUrl = src.startsWith('data:');
 
   return (
@@ -20,9 +21,19 @@ export default function ProductCardImage({ src, alt, priority, badge }: ProductC
         fill
         unoptimized={isDataUrl}
         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-        className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
+        className={`object-cover object-center transition-transform duration-500 group-hover:scale-105 ${
+          sold ? 'opacity-80' : ''
+        }`}
         priority={priority}
       />
+      {sold && (
+        <>
+          <div className="absolute inset-0 bg-gray-500/30" />
+          <span className="absolute left-0 top-0 m-2 rounded-sm bg-gray-800/90 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
+            Vendu
+          </span>
+        </>
+      )}
       {badge}
     </div>
   );

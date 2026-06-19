@@ -18,6 +18,7 @@ interface ProductCardContentProps {
   price: React.ReactNode;
   region: string;
   onFavoriteClick?: (e: React.MouseEvent) => void;
+  disabled?: boolean;
 }
 
 export default function ProductCardContent({
@@ -27,6 +28,7 @@ export default function ProductCardContent({
   price,
   region,
   onFavoriteClick,
+  disabled,
 }: ProductCardContentProps) {
   return (
     <div className="flex flex-col gap-1 mt-1 flex-1">
@@ -36,16 +38,20 @@ export default function ProductCardContent({
         </p>
         <button
           type="button"
+          disabled={disabled}
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
+            if (disabled) return;
             onFavoriteClick?.(e);
           }}
-          className="shrink-0"
+          className={`shrink-0 ${disabled ? 'cursor-not-allowed opacity-40' : ''}`}
           aria-label="Ajouter aux favoris"
         >
           <Heart
-            className="w-5 h-5 text-gray-900 hover:text-red-500 transition-colors cursor-pointer"
+            className={`w-5 h-5 text-gray-900 transition-colors ${
+              disabled ? '' : 'hover:text-red-500 cursor-pointer'
+            }`}
             strokeWidth={1}
           />
         </button>

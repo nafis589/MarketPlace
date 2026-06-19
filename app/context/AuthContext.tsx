@@ -45,18 +45,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
-  const hydrateUser = useCallback(async () => {
+  const fetchSessionUser = useCallback(async (): Promise<User | null> => {
     try {
       const res = await fetch('/api/auth/session');
-      if (!res.ok) return;
+      if (!res.ok) return null;
       const json = (await res.json()) as ProfileResponse;
-      if (json.data) {
-        setUser(json.data);
-      }
+      return json.data ?? null;
     } catch {
-      // No session — stay logged out
+      return null;
     }
   }, []);
+
+  const hydrateUser = useCallback(async () => {
+    const sessionUser = await fetchSessionUser();
+    if (sessionUser) {
+      setUser(sessionUser);
+    }
+  }, [fetchSessionUser]);
 
   useEffect(() => {
     hydrateUser().finally(() => setIsLoading(false));
@@ -80,16 +85,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     const { data } = json as AuthResponse;
     await storeToken(data.accessToken);
-    setUser(data.user);
-    return data.user;
-  }, []);
+    const enriched = (await fetchSessionUser()) ?? data.user;
+    setUser(enriched);
+    return enriched;
+  }, [fetchSessionUser]);
 
   const register = useCallback(async (registerData: RegisterData): Promise<User> => {
-    const { data } = await api.post<AuthResponse>('/api/store/auth/register', registerData);
+    const res = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(registerData),
+    });
+    const json = (await res.json()) as AuthResponse | { error?: { code: string; message: string } };
+    if (!res.ok) {
+      const err = json as { error?: { code: string; message: string } };
+      throw new ApiClientError(
+        err.error?.code ?? 'REGISTER_FAILED',
+        err.error?.message ?? 'Inscription impossible',
+        res.status,
+      );
+    }
+    const { data } = json as AuthResponse;
     await storeToken(data.accessToken);
-    setUser(data.user);
-    return data.user;
-  }, []);
+    const enriched = (await fetchSessionUser()) ?? data.user;
+    setUser(enriched);
+    return enriched;
+  }, [fetchSessionUser]);
 
   const logout = useCallback(async () => {
     await fetch('/api/auth/logout', { method: 'POST' });

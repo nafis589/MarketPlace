@@ -21,7 +21,7 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ categories = [] }) => {
     const { isLoggedIn, user, isUserMenuOpen, openUserMenu, closeUserMenu } = useAuth();
-    const { openLogin, openLoginForSell, openRegister, openCart, closeAll } = useUI();
+    const { openLogin, openLoginForSell, openRegister, openCart, openSearch, closeSearch, closeAll } = useUI();
     const { isCartOpen, setIsCartOpen, count } = useCart();
 
     const [hoveredSlug, setHoveredSlug] = useState<string | null>(null);
@@ -45,7 +45,8 @@ const Navbar: React.FC<NavbarProps> = ({ categories = [] }) => {
         setIsMobileMenuOpen(false);
         setIsCartOpen(false);
         closeUserMenu();
-    }, [pathname, closeUserMenu, setIsCartOpen]);
+        closeSearch();
+    }, [pathname, closeUserMenu, setIsCartOpen, closeSearch]);
 
     // Handle Hover with Delay to prevent flickering
     const handleMouseEnter = (slug: string) => {
@@ -97,8 +98,14 @@ const Navbar: React.FC<NavbarProps> = ({ categories = [] }) => {
                             <div className="relative w-full">
                                 <input
                                     type="text"
+                                    readOnly
                                     placeholder="Rechercher par marque, article..."
-                                    className="w-full bg-gray-100 border-none rounded-sm py-2.5 pl-10 pr-4 text-sm focus:ring-1 focus:ring-black outline-none transition-all"
+                                    onFocus={(e) => {
+                                        e.target.blur();
+                                        openSearch();
+                                    }}
+                                    onClick={openSearch}
+                                    className="w-full bg-gray-100 border-none rounded-sm py-2.5 pl-10 pr-4 text-sm focus:ring-1 focus:ring-black outline-none transition-all cursor-text"
                                 />
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />

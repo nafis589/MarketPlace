@@ -8,6 +8,7 @@ export interface User {
   role: UserRole;
   avatar_url: string | null;
   phone: string | null;
+  vendorId?: string | null;
 }
 
 export interface ApiError {

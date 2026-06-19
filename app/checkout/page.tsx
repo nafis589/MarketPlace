@@ -18,8 +18,9 @@ import { useCart } from '@/app/context/CartContext';
 import { useAuth } from '@/app/context/AuthContext';
 import { useUI } from '@/app/context/UIContext';
 import { useToast } from '@/app/components/ui/Toast';
-import { getLineTotal, type CartItem, type CartItemVendor } from '@/lib/cart-api';
+import { getLineTotal, cartApi, type CartItem, type CartItemVendor } from '@/lib/cart-api';
 import { ordersApi, type StoreOrder } from '@/lib/orders-api';
+import { ApiClientError } from '@/lib/api-client';
 import { formatOrderRef } from '@/app/lib/order-utils';
 import { DEMO_VENDOR_ID } from '@/lib/demo-vendor';
 import type { LocationSelectResult, ShippingFeeError, ShippingMethod } from '@/lib/types';
@@ -43,7 +44,7 @@ import { PRODUCT_IMAGE_PLACEHOLDER } from '@/app/lib/mapHomeProduct';
 export default function CheckoutPage() {
     const router = useRouter();
     const { items, total, removeItem, refresh: refreshCart } = useCart();
-    const { isLoggedIn } = useAuth();
+    const { isLoggedIn, user } = useAuth();
     const { openLogin } = useUI();
     const { showToast } = useToast();
 
@@ -74,9 +75,6 @@ export default function CheckoutPage() {
         grandTotal: number;
     } | null>(null);
 
-    // Vendeur ciblé pour le calcul de livraison (panier mono-vendeur pour l'instant).
-    const vendorId = DEMO_VENDOR_ID;
-
     const [sellerOpen, setSellerOpen] = useState<Record<string, boolean>>({});
     const isSellerOpen = (id: string) => sellerOpen[id] ?? false;
     const toggleSeller = (id: string) =>
@@ -103,6 +101,18 @@ export default function CheckoutPage() {
 
         return groups;
     }, [items]);
+
+    const shippingVendorId =
+        itemsByVendor[0]?.vendorId && !itemsByVendor[0].vendorId.startsWith('unknown-')
+            ? itemsByVendor[0].vendorId
+            : DEMO_VENDOR_ID;
+
+    useEffect(() => {
+        if (!user) return;
+        setFirstName((prev) => prev || user.first_name || '');
+        setLastName((prev) => prev || user.last_name || '');
+        setPhone((prev) => prev || user.phone || '');
+    }, [user]);
 
     // Step 2 mobile : panneau formulaire en overlay plein écran
     const [showMobileForm, setShowMobileForm] = useState(false);
@@ -164,16 +174,40 @@ export default function CheckoutPage() {
     const recapGrandTotal =
         orderSnapshot?.grandTotal ??
         (placedOrder ? placedOrder.total_amount : grandTotal);
-    const canConfirm = shippingFee !== null && !shippingError && selectedCoords !== null && !!phone.trim() && shippingMethod !== null;
+    const canConfirm =
+        shippingFee !== null &&
+        shippingFee > 0 &&
+        !shippingError &&
+        selectedCoords !== null &&
+        !!firstName.trim() &&
+        !!lastName.trim() &&
+        !!phone.trim() &&
+        !!shippingRegionId &&
+        shippingMethod !== null;
+
+    const confirmHint = (() => {
+        if (shippingError) return null;
+        if (shippingFee === null) return 'Sélectionnez votre adresse sur la carte';
+        if (!firstName.trim() || !lastName.trim()) return 'Renseignez votre prénom et votre nom';
+        if (!phone.trim()) return 'Renseignez votre numéro de téléphone';
+        if (!shippingRegionId) return 'Adresse de livraison invalide — recliquez sur la carte';
+        return null;
+    })();
 
     const handleConfirmOrder = async () => {
-        if (!canConfirm || !selectedCoords || shippingFee === null || !shippingMethod) return;
+        if (!canConfirm || !selectedCoords || shippingFee === null || !shippingMethod || !shippingRegionId) return;
         if (!isLoggedIn) {
             openLogin();
             return;
         }
         setIsSubmitting(true);
         try {
+            const { data: cartData } = await cartApi.getCart();
+            if (cartData.items.length === 0) {
+                showToast('Votre panier est vide. Ajoutez des articles avant de commander.');
+                return;
+            }
+
             const { data } = await ordersApi.placeOrder({
                 payment_method: 'CASH_ON_DELIVERY',
                 shipping_address: {
@@ -183,7 +217,7 @@ export default function CheckoutPage() {
                     notes: notes || null,
                     latitude: selectedCoords.lat,
                     longitude: selectedCoords.lng,
-                    region_id: shippingRegionId ?? '',
+                    region_id: shippingRegionId,
                 },
                 shipping_fee: shippingFee,
                 shipping_method: shippingMethod,
@@ -200,8 +234,12 @@ export default function CheckoutPage() {
             await refreshCart();
             setShowMobileForm(false);
             setStep(3);
-        } catch {
-            showToast('Impossible de confirmer la commande');
+        } catch (err) {
+            const message =
+                err instanceof ApiClientError
+                    ? err.message
+                    : 'Impossible de confirmer la commande';
+            showToast(message);
         } finally {
             setIsSubmitting(false);
         }
@@ -382,7 +420,7 @@ export default function CheckoutPage() {
                             showMobileForm && 'max-lg:hidden',
                         )}>
                             <DeliveryMap
-                                vendorId={vendorId}
+                                vendorId={shippingVendorId}
                                 onLocationSelect={handleLocationSelect}
                                 onError={handleShippingError}
                                 onCalculatingChange={setIsCalculatingShipping}
@@ -524,10 +562,11 @@ export default function CheckoutPage() {
                                     <div className="grid grid-cols-2 gap-3">
                                         <div className="space-y-1.5">
                                             <label className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wide">
-                                                Prénom
+                                                Prénom <span className="text-red-400">*</span>
                                             </label>
                                             <input
                                                 type="text"
+                                                required
                                                 value={firstName}
                                                 onChange={(e) => setFirstName(e.target.value)}
                                                 placeholder="Entrez votre prénom"
@@ -536,10 +575,11 @@ export default function CheckoutPage() {
                                         </div>
                                         <div className="space-y-1.5">
                                             <label className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wide">
-                                                Nom
+                                                Nom <span className="text-red-400">*</span>
                                             </label>
                                             <input
                                                 type="text"
+                                                required
                                                 value={lastName}
                                                 onChange={(e) => setLastName(e.target.value)}
                                                 placeholder="Entrez votre nom"
@@ -643,11 +683,9 @@ export default function CheckoutPage() {
                                         Confirmer la commande
                                     </button>
 
-                                    {!canConfirm && !shippingError && (
+                                    {!canConfirm && confirmHint && (
                                         <p className="text-center text-[12px] text-[#999]">
-                                            {shippingFee === null
-                                                ? 'Sélectionnez votre adresse sur la carte'
-                                                : 'Renseignez votre numéro de téléphone'}
+                                            {confirmHint}
                                         </p>
                                     )}
                                     {shippingError && (

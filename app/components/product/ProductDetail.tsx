@@ -9,6 +9,8 @@ import { PRODUCT_IMAGE_PLACEHOLDER } from '@/app/lib/mapHomeProduct';
 
 export interface ProductDetailData {
   id: string;
+  vendor_id?: string;
+  status?: string;
   title: string;
   brand: string;
   price: number;
@@ -56,11 +58,24 @@ const ChevronDown = () => (
 import { useCart } from '@/app/context/CartContext';
 import { useUI } from '@/app/context/UIContext';
 import { useToast } from '@/app/components/ui/Toast';
+import { useAuth } from '@/app/context/AuthContext';
+import { VENDOR_DASHBOARD_URL } from '@/lib/vendor-dashboard';
 
 export default function ProductDetail({ product, relatedProducts = [] }: ProductDetailProps) {
   const { addItem } = useCart();
   const { openCart } = useUI();
   const { showToast } = useToast();
+  const { user } = useAuth();
+
+  const isOwnProduct =
+    user?.role === 'VENDOR' &&
+    !!user?.vendorId &&
+    !!product.vendor_id &&
+    user.vendorId === product.vendor_id;
+
+  const handleManageProduct = () => {
+    window.open(`${VENDOR_DASHBOARD_URL}/products/${product.id}`, '_blank');
+  };
 
   const galleryImages = useMemo(() => {
     const urls = product.images.filter(Boolean);
@@ -69,7 +84,11 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
 
   const [selectedImage, setSelectedImage] = useState(galleryImages[0]);
 
+  const isSold = product.status === 'SOLD';
+  const hasRelated = relatedProducts.length > 0;
+
   const handleAddToCart = async () => {
+    if (isSold) return;
     try {
       await addItem(product.id);
       showToast('Ajouté au panier ✓');
@@ -78,6 +97,16 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
       showToast('Impossible d\'ajouter au panier');
     }
   };
+
+  const scrollToSimilar = () => {
+    document.getElementById('similar-products')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const SoldBadge = () => (
+    <div className="absolute left-0 top-0 z-20 m-4 rounded-sm bg-red-600 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-white shadow-md">
+      Vendu
+    </div>
+  );
 
   const attributes = [product.size, product.condition, product.color, product.material]
     .filter(Boolean)
@@ -123,29 +152,35 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
             </div>
 
             <div className="flex-1 relative bg-gray-100 overflow-hidden min-h-[500px]">
-              <div className="absolute top-0 right-0 p-4 flex items-center gap-1 z-10">
-                <button type="button" className="hover:text-red-500">
-                  <HeartIcon />
-                </button>
-              </div>
+              {isSold && <SoldBadge />}
+              {!isOwnProduct && (
+                <div className="absolute top-0 right-0 p-4 flex items-center gap-1 z-10">
+                  <button type="button" className="hover:text-red-500">
+                    <HeartIcon />
+                  </button>
+                </div>
+              )}
               <img
                 src={selectedImage}
                 alt={product.title}
-                className="absolute inset-0 w-full h-full object-cover"
+                className={`absolute inset-0 w-full h-full object-cover ${isSold ? 'opacity-70' : ''}`}
               />
             </div>
           </div>
 
           <div className="lg:hidden relative">
-            <div className="absolute top-4 right-4 z-10 flex items-center gap-1 bg-white/80 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm">
-              <button type="button" className="text-gray-900 hover:text-red-500">
-                <HeartIcon />
-              </button>
-            </div>
+            {isSold && <SoldBadge />}
+            {!isOwnProduct && (
+              <div className="absolute top-4 right-4 z-10 flex items-center gap-1 bg-white/80 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm">
+                <button type="button" className="text-gray-900 hover:text-red-500">
+                  <HeartIcon />
+                </button>
+              </div>
+            )}
             <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide bg-gray-100 aspect-[3/4]">
               {galleryImages.map((src, idx) => (
                 <div key={idx} className="snap-center shrink-0 w-full h-full relative">
-                  <img src={src} alt={`${product.title} - ${idx + 1}`} className="absolute inset-0 w-full h-full object-cover" />
+                  <img src={src} alt={`${product.title} - ${idx + 1}`} className={`absolute inset-0 w-full h-full object-cover ${isSold ? 'opacity-70' : ''}`} />
                 </div>
               ))}
             </div>
@@ -155,12 +190,26 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
         <div className="lg:col-span-5 bg-gray-50/50 p-6 lg:pl-10">
           <div className="flex justify-between items-start mb-6">
             <span className="text-2xl font-medium">{product.priceLabel}</span>
-            <div className="flex flex-col items-end text-right">
-              <p className="text-sm font-medium text-gray-900">{product.vendor.shop_name}</p>
-              <p className="text-xs text-gray-500">
-                {product.vendor.total_sales} ventes · ★ {product.vendor.rating.toFixed(1)}
-              </p>
-            </div>
+            {product.vendor_id ? (
+              <Link
+                href={`/vendeur/${product.vendor_id}`}
+                className="flex flex-col items-end text-right group/vendor"
+              >
+                <p className="text-sm font-medium text-gray-900 group-hover/vendor:underline">
+                  {product.vendor.shop_name}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {product.vendor.total_sales} ventes · ★ {product.vendor.rating.toFixed(1)}
+                </p>
+              </Link>
+            ) : (
+              <div className="flex flex-col items-end text-right">
+                <p className="text-sm font-medium text-gray-900">{product.vendor.shop_name}</p>
+                <p className="text-xs text-gray-500">
+                  {product.vendor.total_sales} ventes · ★ {product.vendor.rating.toFixed(1)}
+                </p>
+              </div>
+            )}
           </div>
 
           {attributes && (
@@ -170,19 +219,61 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
           )}
 
           <div className="space-y-3 mb-8">
-            <button
-              type="button"
-              onClick={handleAddToCart}
-              className="w-full bg-black text-white py-3 font-medium hover:bg-gray-800 transition-colors uppercase text-sm tracking-wide"
-            >
-              Ajouter au panier
-            </button>
-            <button
-              type="button"
-              className="w-full bg-white text-black border border-black py-3 font-medium hover:bg-gray-50 transition-colors uppercase text-sm tracking-wide"
-            >
-              Faire une offre
-            </button>
+            {isOwnProduct ? (
+              <div className="rounded-sm border border-gray-200 bg-gray-100 p-4">
+                <p className="text-sm text-gray-700">
+                  Ceci est votre article. Gérez-le depuis votre espace vendeur.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleManageProduct}
+                  className="mt-3 w-full bg-black py-3 text-sm font-medium uppercase tracking-wide text-white transition-colors hover:bg-gray-800"
+                >
+                  Gérer cet article →
+                </button>
+              </div>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={handleAddToCart}
+                  disabled={isSold}
+                  className={`w-full py-3 font-medium uppercase text-sm tracking-wide transition-colors ${
+                    isSold
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-black text-white hover:bg-gray-800'
+                  }`}
+                >
+                  Ajouter au panier
+                </button>
+                <button
+                  type="button"
+                  disabled={isSold}
+                  className={`w-full py-3 font-medium uppercase text-sm tracking-wide transition-colors border ${
+                    isSold
+                      ? 'bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed'
+                      : 'bg-white text-black border-black hover:bg-gray-50'
+                  }`}
+                >
+                  Faire une offre
+                </button>
+
+                {isSold && (
+                  <div className="pt-2 text-sm">
+                    <p className="font-medium text-gray-900">Cet article a déjà été vendu.</p>
+                    {hasRelated && (
+                      <button
+                        type="button"
+                        onClick={scrollToSimilar}
+                        className="mt-1 font-medium text-black underline underline-offset-2 hover:text-gray-700"
+                      >
+                        Découvrez des articles similaires ↓
+                      </button>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -190,6 +281,7 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
       <ProductDescription
         product={{
           id: product.id,
+          vendorId: product.vendor_id,
           description: product.description,
           brand: product.brand,
           condition: product.condition,
@@ -205,8 +297,14 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
         }}
       />
 
-      {relatedProducts.length > 0 && (
-        <HomeProductSection title="À découvrir" products={relatedProducts} viewAllHref="/nouveautes" />
+      {hasRelated && (
+        <div id="similar-products" className="scroll-mt-[120px]">
+          <HomeProductSection
+            title={isSold ? 'Articles similaires' : 'À découvrir'}
+            products={relatedProducts}
+            viewAllHref="/nouveautes"
+          />
+        </div>
       )}
 
       <RecentlyViewedClient />

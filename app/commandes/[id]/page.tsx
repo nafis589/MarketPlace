@@ -3,9 +3,10 @@
 import React, { use, useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Loader2, X } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import Header from '@/app/components/sections/Header';
 import Footer from '@/app/components/sections/Footer';
+import ConfirmModal from '@/app/components/ui/ConfirmModal';
 import { PRODUCT_IMAGE_PLACEHOLDER } from '@/app/lib/mapHomeProduct';
 import { ordersApi, type StoreOrderDetail } from '@/lib/orders-api';
 import {
@@ -31,6 +32,7 @@ export default function CommandeDetailPage({ params }: PageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
 
   const loadOrder = useCallback(async () => {
     setIsLoading(true);
@@ -52,10 +54,10 @@ export default function CommandeDetailPage({ params }: PageProps) {
 
   const handleCancel = async () => {
     if (!order || order.status !== 'PENDING') return;
-    if (!window.confirm('Annuler cette commande ?')) return;
     setIsCancelling(true);
     try {
       await ordersApi.cancelOrder(order.id);
+      setCancelModalOpen(false);
       await loadOrder();
     } catch {
       setError('Impossible d\'annuler la commande');
@@ -112,12 +114,7 @@ export default function CommandeDetailPage({ params }: PageProps) {
                 </span>
               </div>
 
-              {order.status === 'CANCELLED' ? (
-                <section className="border border-red-200 bg-red-50 rounded-2xl p-5 mb-6 flex items-center gap-3">
-                  <X className="w-5 h-5 text-red-500 shrink-0" />
-                  <p className="text-sm text-red-700">Cette commande a été annulée.</p>
-                </section>
-              ) : (
+              {order.status !== 'CANCELLED' && (
                 <section className="border border-gray-200 rounded-2xl p-5 md:p-7 mb-6">
                   <h2 className="text-base font-semibold mb-6">Suivi de commande</h2>
                   <div className="flex items-center justify-between relative px-2">
@@ -223,11 +220,11 @@ export default function CommandeDetailPage({ params }: PageProps) {
               {order.status === 'PENDING' && (
                 <button
                   type="button"
-                  onClick={handleCancel}
+                  onClick={() => setCancelModalOpen(true)}
                   disabled={isCancelling}
                   className="w-full md:w-auto px-6 py-3 border border-red-300 text-red-600 text-sm font-medium hover:bg-red-50 disabled:opacity-50 transition-colors"
                 >
-                  {isCancelling ? 'Annulation…' : 'Annuler la commande'}
+                  Annuler la commande
                 </button>
               )}
             </>
@@ -236,6 +233,20 @@ export default function CommandeDetailPage({ params }: PageProps) {
       </div>
 
       <Footer />
+
+      <ConfirmModal
+        open={cancelModalOpen}
+        title="Annuler cette commande ?"
+        description="Cette action est définitive. Vous ne pourrez plus modifier cette commande."
+        confirmLabel="Oui, annuler"
+        cancelLabel="Non, garder"
+        variant="danger"
+        isLoading={isCancelling}
+        onConfirm={() => void handleCancel()}
+        onCancel={() => {
+          if (!isCancelling) setCancelModalOpen(false);
+        }}
+      />
     </main>
   );
 }

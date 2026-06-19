@@ -47,6 +47,8 @@ export default async function ProductPage({ params }: PageProps) {
 
   const product = {
     id: apiProduct.id,
+    vendor_id: apiProduct.vendor_id,
+    status: apiProduct.status,
     title: apiProduct.title,
     brand: apiProduct.brand ?? '',
     price: apiProduct.price,

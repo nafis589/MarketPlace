@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { X, Minus, Plus } from 'lucide-react';
 import { useCart } from '@/app/context/CartContext';
+import { useAuth } from '@/app/context/AuthContext';
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
 import { formatPrice } from '@/app/utils/formatPrice';
 import { getLineTotal } from '@/lib/cart-api';
@@ -18,6 +19,7 @@ interface CartPopoverProps {
 const CartPopover: React.FC<CartPopoverProps> = ({ isOpen, onClose }) => {
     const router = useRouter();
     const { items, total, updateQuantity, removeItem } = useCart();
+    const { user } = useAuth();
     const [mounted, setMounted] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
 
@@ -28,6 +30,23 @@ const CartPopover: React.FC<CartPopoverProps> = ({ isOpen, onClose }) => {
         window.addEventListener('resize', check);
         return () => window.removeEventListener('resize', check);
     }, []);
+
+    // Un vendeur ne peut pas acheter ses propres articles : on les retire du panier à l'ouverture.
+    useEffect(() => {
+        if (!isOpen) return;
+        if (user?.role !== 'VENDOR' || !user?.vendorId) return;
+        const ownItems = items.filter((item) => item.product?.vendor?.id === user.vendorId);
+        if (ownItems.length === 0) return;
+        (async () => {
+            for (const item of ownItems) {
+                try {
+                    await removeItem(item.id);
+                } catch {
+                    // ignore — le backend bloque déjà l'ajout/commande
+                }
+            }
+        })();
+    }, [isOpen, items, user, removeItem]);
 
     useLockBodyScroll(isOpen && isMobile);
 

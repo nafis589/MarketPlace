@@ -1,7 +1,5 @@
 import Header from './components/sections/Header';
-import HeroBanner from './components/sections/HeroBanner';
-import PromoSlider from './components/sections/PromoSlider';
-import BestsellersSection from './components/sections/BestsellersSection';
+import HeroBanner from './components/sections/HeroBanner';import BestsellersSection from './components/sections/BestsellersSection';
 import TopDeals from './components/sections/TopDeals';
 import TrendingNow from './components/sections/TrendingNow';
 import UserNewItems from './components/sections/UserNewItems';
@@ -98,9 +96,7 @@ export default async function Home() {
       <Header />
       <div className="pt-[72px] md:pt-[88px]">
         <HeroBanner />
-        <PromoSlider />
-        {categories.length > 0 && <HomeCategorySection categories={categories} />}
-        {bestsellerProducts.length > 0 && (
+        {categories.length > 0 && <HomeCategorySection categories={categories} />}        {bestsellerProducts.length > 0 && (
           <BestsellersSection products={bestsellerProducts} />
         )}
         <RecentlyViewedClient />

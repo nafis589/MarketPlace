@@ -12,6 +12,7 @@ interface Product {
   priceLabel: string;
   condition: string;
   vendorRegion: string;
+  sold?: boolean;
 }
 
 interface ProductCardProps {
@@ -26,13 +27,14 @@ export default function ProductCard({ product }: ProductCardProps) {
       href={productUrl}
       className="group relative flex h-full flex-col border-r border-b border-gray-200 bg-white p-4 transition-colors hover:bg-gray-50"
     >
-      <ProductCardImage src={product.image} alt={product.title} />
+      <ProductCardImage src={product.image} alt={product.title} sold={product.sold} />
 
       <ProductCardContent
         brand={product.brand}
         title={product.title}
         condition={product.condition}
         region={product.vendorRegion}
+        disabled={product.sold}
         price={
           <span className="text-base font-bold text-gray-900">{product.priceLabel}</span>
         }

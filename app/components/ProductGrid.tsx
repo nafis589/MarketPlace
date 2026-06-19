@@ -12,6 +12,7 @@ interface Product {
     priceLabel: string;
     condition: string;
     vendorRegion: string;
+    sold?: boolean;
 }
 
 interface ProductGridProps {

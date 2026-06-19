@@ -42,11 +42,15 @@ export function ProductListingHeader({
   total,
   breadcrumbs,
   isLoading,
+  hideResultCount,
+  titleClassName,
 }: {
   title: string;
   total: number;
   breadcrumbs: ListingBreadcrumb[];
   isLoading?: boolean;
+  hideResultCount?: boolean;
+  titleClassName?: string;
 }) {
   return (
     <div className="mb-8 w-full font-sans">
@@ -62,12 +66,14 @@ export function ProductListingHeader({
       </nav>
 
       <div className="mb-8 flex items-baseline">
-        <h1 className="font-serif text-2xl tracking-tight text-gray-900 capitalize md:text-3xl lg:text-5xl">
+        <h1 className={`font-serif text-2xl tracking-tight text-gray-900 md:text-3xl lg:text-5xl ${titleClassName ?? 'capitalize'}`}>
           {title}
         </h1>
-        <span className="ml-4 text-lg text-gray-500">
-          — {isLoading ? '…' : total} Résultats
-        </span>
+        {!hideResultCount && (
+          <span className="ml-4 text-lg text-gray-500">
+            — {isLoading ? '…' : total} Résultats
+          </span>
+        )}
       </div>
     </div>
   );

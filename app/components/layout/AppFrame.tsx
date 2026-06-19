@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Navbar from './Navbar';
+import SearchPanel from '@/app/components/search/SearchPanel';
 import type { CategoryWithChildren } from './MegaMenu';
 
 interface AppFrameProps {
@@ -18,6 +19,7 @@ export default function AppFrame({ categories, children }: AppFrameProps) {
   return (
     <>
       {!hideChrome && <Navbar categories={categories} />}
+      {!hideChrome && <SearchPanel />}
       {children}
     </>
   );

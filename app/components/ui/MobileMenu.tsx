@@ -1,6 +1,9 @@
+'use client';
+
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
+import { useUI } from '@/app/context/UIContext';
 import MobileAccordion from './MobileAccordion';
 import { CategoryWithChildren } from '../layout/MegaMenu';
 
@@ -88,8 +91,8 @@ const DynamicMobileMenuSection: React.FC<DynamicMobileMenuSectionProps> = ({ cat
 };
 
 const MobileMenu: React.FC<MobileMenuProps> = ({ categories = [], isOpen, onClose }) => {
-    // Lock body scroll when mobile menu is open
     useLockBodyScroll(isOpen);
+    const { openSearch } = useUI();
 
     const [activeMainItem, setActiveMainItem] = useState<string | null>(null);
 
@@ -137,8 +140,18 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ categories = [], isOpen, onClos
                     <div className="relative w-full">
                         <input
                             type="text"
+                            readOnly
                             placeholder="Rechercher par marque, article..."
-                            className="w-full bg-white border border-gray-200 rounded-sm py-2.5 pl-10 pr-4 text-sm focus:ring-1 focus:ring-black outline-none"
+                            onFocus={(e) => {
+                                e.target.blur();
+                                onClose();
+                                openSearch();
+                            }}
+                            onClick={() => {
+                                onClose();
+                                openSearch();
+                            }}
+                            className="w-full bg-white border border-gray-200 rounded-sm py-2.5 pl-10 pr-4 text-sm focus:ring-1 focus:ring-black outline-none cursor-text"
                         />
                         <svg
                             xmlns="http://www.w3.org/2000/svg"

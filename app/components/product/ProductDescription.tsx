@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import Link from 'next/link';
 import { Info } from 'lucide-react';
 
 interface ProductDescriptionProps {
   product: {
     id: string;
+    vendorId?: string;
     description?: string;
     brand?: string;
     condition?: string;
@@ -106,22 +108,43 @@ export default function ProductDescription({ product }: ProductDescriptionProps)
 
           <div className="border border-gray-200 bg-white">
             <div className="p-6">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-lg font-serif shrink-0">
-                  {sellerName.charAt(0).toUpperCase()}
+              {product.vendorId ? (
+                <Link href={`/vendeur/${product.vendorId}`} className="group/seller flex items-center gap-4 mb-6">
+                  <div className="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-lg font-serif shrink-0">
+                    {sellerName.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="font-bold text-gray-900 group-hover/seller:underline">{sellerName}</p>
+                    <p className="text-sm text-gray-500">{sellerHandle}</p>
+                  </div>
+                </Link>
+              ) : (
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-lg font-serif shrink-0">
+                    {sellerName.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="font-bold text-gray-900">{sellerName}</p>
+                    <p className="text-sm text-gray-500">{sellerHandle}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-bold text-gray-900">{sellerName}</p>
-                  <p className="text-sm text-gray-500">{sellerHandle}</p>
-                </div>
-              </div>
+              )}
 
-              <button
-                type="button"
-                className="w-full py-3 rounded-full border border-black text-sm font-medium hover:bg-gray-50 transition-colors mb-6"
-              >
-                Suivre
-              </button>
+              {product.vendorId ? (
+                <Link
+                  href={`/vendeur/${product.vendorId}`}
+                  className="block w-full py-3 rounded-full border border-black text-center text-sm font-medium hover:bg-gray-50 transition-colors mb-6"
+                >
+                  Voir la boutique
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  className="w-full py-3 rounded-full border border-black text-sm font-medium hover:bg-gray-50 transition-colors mb-6"
+                >
+                  Suivre
+                </button>
+              )}
 
               <p className="text-sm text-gray-700">
                 Expédie généralement en <span className="font-bold">2 jours</span>
