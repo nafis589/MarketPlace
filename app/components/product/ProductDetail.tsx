@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
+import { MessageCircle } from 'lucide-react';
 import ProductDescription from './ProductDescription';
 import HomeProductSection, { type Product as HomeProduct } from '@/app/components/ui/HomeProductSection';
 import RecentlyViewedClient from '@/app/components/home/RecentlyViewedClient';
@@ -59,13 +60,17 @@ import { useCart } from '@/app/context/CartContext';
 import { useUI } from '@/app/context/UIContext';
 import { useToast } from '@/app/components/ui/Toast';
 import { useAuth } from '@/app/context/AuthContext';
+import { useChat } from '@/app/context/ChatContext';
 import { VENDOR_DASHBOARD_URL } from '@/lib/vendor-dashboard';
+import OfferModal from '@/app/components/offers/OfferModal';
 
 export default function ProductDetail({ product, relatedProducts = [] }: ProductDetailProps) {
   const { addItem } = useCart();
-  const { openCart } = useUI();
+  const { openCart, openLogin } = useUI();
   const { showToast } = useToast();
-  const { user } = useAuth();
+  const { user, isLoggedIn } = useAuth();
+  const { openChatWithVendor, starting: chatStarting } = useChat();
+  const [offerModalOpen, setOfferModalOpen] = useState(false);
 
   const isOwnProduct =
     user?.role === 'VENDOR' &&
@@ -75,6 +80,28 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
 
   const handleManageProduct = () => {
     window.open(`${VENDOR_DASHBOARD_URL}/products/${product.id}`, '_blank');
+  };
+
+  const handleStartOffer = () => {
+    if (isSold || isOwnProduct) return;
+    if (!isLoggedIn) {
+      openLogin();
+      return;
+    }
+    setOfferModalOpen(true);
+  };
+
+  const handleStartChat = async () => {
+    if (!isLoggedIn) {
+      openLogin();
+      return;
+    }
+    if (!product.vendor_id) return;
+    try {
+      await openChatWithVendor(product.vendor_id, product.id);
+    } catch {
+      showToast('Impossible de démarrer la conversation');
+    }
   };
 
   const galleryImages = useMemo(() => {
@@ -220,7 +247,7 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
 
           <div className="space-y-3 mb-8">
             {isOwnProduct ? (
-              <div className="rounded-sm border border-gray-200 bg-gray-100 p-4">
+              <div className="p-4">
                 <p className="text-sm text-gray-700">
                   Ceci est votre article. Gérez-le depuis votre espace vendeur.
                 </p>
@@ -246,17 +273,30 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
                 >
                   Ajouter au panier
                 </button>
-                <button
-                  type="button"
-                  disabled={isSold}
-                  className={`w-full py-3 font-medium uppercase text-sm tracking-wide transition-colors border ${
-                    isSold
-                      ? 'bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed'
-                      : 'bg-white text-black border-black hover:bg-gray-50'
-                  }`}
-                >
-                  Faire une offre
-                </button>
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={handleStartOffer}
+                    disabled={isSold}
+                    className={`flex-1 py-3 font-medium uppercase text-sm tracking-wide transition-colors border ${
+                      isSold
+                        ? 'bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed'
+                        : 'bg-white text-black border-black hover:bg-gray-50'
+                    }`}
+                  >
+                    Faire une offre
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleStartChat}
+                    disabled={chatStarting}
+                    aria-label="Contacter le vendeur"
+                    title="Contacter le vendeur"
+                    className="flex w-14 shrink-0 items-center justify-center border border-black text-black transition-colors hover:bg-gray-50 disabled:opacity-60"
+                  >
+                    <MessageCircle className="h-5 w-5" strokeWidth={1.5} />
+                  </button>
+                </div>
 
                 {isSold && (
                   <div className="pt-2 text-sm">
@@ -308,6 +348,21 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
       )}
 
       <RecentlyViewedClient />
+
+      <OfferModal
+        open={offerModalOpen}
+        product={{
+          id: product.id,
+          title: product.title,
+          brand: product.brand,
+          price: product.price,
+          priceLabel: product.priceLabel,
+          condition: product.condition,
+          image: galleryImages[0] ?? null,
+        }}
+        onClose={() => setOfferModalOpen(false)}
+        onSuccess={() => showToast('Offre envoyée ! Le vendeur a 48h pour répondre.')}
+      />
     </div>
   );
 }

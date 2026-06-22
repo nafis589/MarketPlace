@@ -22,6 +22,7 @@ export const metadata: Metadata = {
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import { UIProvider } from "./context/UIContext";
+import { ChatProvider } from "./context/ChatContext";
 import { ToastProvider } from "./components/ui/Toast";
 import AppFrame from "./components/layout/AppFrame";
 
@@ -57,9 +58,11 @@ export default async function RootLayout({
         <AuthProvider>
           <CartProvider>
             <UIProvider>
-              <ToastProvider>
-                <AppFrame categories={categories}>{children}</AppFrame>
-              </ToastProvider>
+              <ChatProvider>
+                <ToastProvider>
+                  <AppFrame categories={categories}>{children}</AppFrame>
+                </ToastProvider>
+              </ChatProvider>
             </UIProvider>
           </CartProvider>
         </AuthProvider>

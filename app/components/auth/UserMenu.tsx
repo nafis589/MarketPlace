@@ -7,6 +7,8 @@ import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
 
 const menuItems = [
     { label: 'Mon profil', href: '/profil' },
+    { label: 'Mes offres', href: '/compte/offres' },
+    { label: 'Messages', href: '/messages' },
     { label: 'Paramètres', href: '/parametres' },
     { label: 'Mes commandes', href: '/commandes' },
 ];
