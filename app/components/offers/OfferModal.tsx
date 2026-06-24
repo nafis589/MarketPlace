@@ -162,15 +162,13 @@ export default function OfferModal({ open, product, onClose, onSuccess }: OfferM
             {hint && (
               <p
                 className={`mt-2 text-sm ${
-                  hint.type === 'error' ? 'text-red-600' : 'text-amber-600'
+                  hint.type === 'error' ? 'text-red-600' : 'text-black'
                 }`}
               >
                 {hint.text}
               </p>
             )}
-            {amount > 0 && amount < 100 && (
-              <p className="mt-2 text-sm text-gray-500">Montant minimum : 100 FCFA</p>
-            )}
+            
             {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
           </div>
         </div>
