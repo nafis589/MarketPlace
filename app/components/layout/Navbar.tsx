@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Bell } from 'lucide-react';
 import MenuLink from '../ui/MenuLink';
 import MegaMenu, { CategoryWithChildren } from './MegaMenu';
 
@@ -10,6 +11,8 @@ import MobileMenu from '../ui/MobileMenu';
 import { useCart } from '@/app/context/CartContext';
 import { useAuth } from '@/app/context/AuthContext';
 import { useUI } from '@/app/context/UIContext';
+import { useChat } from '@/app/context/ChatContext';
+import { useNotifications } from '@/app/context/NotificationContext';
 import { handleSellArticleClick } from '@/lib/sell-article';
 import AuthModal from '@/app/components/auth/AuthModal';
 import UserMenu from '@/app/components/auth/UserMenu';
@@ -21,8 +24,10 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ categories = [] }) => {
     const { isLoggedIn, user, isUserMenuOpen, openUserMenu, closeUserMenu } = useAuth();
-    const { openLogin, openLoginForSell, openRegister, openCart, openSearch, closeSearch, closeAll } = useUI();
+    const { openLogin, openLoginForSell, openRegister, openCart, openSearch, closeSearch, closeAll, openNotif, closeNotif } = useUI();
     const { isCartOpen, setIsCartOpen, count } = useCart();
+    const { totalUnread: messageUnread } = useChat();
+    const { unreadCount: notificationsUnread } = useNotifications();
 
     const [hoveredSlug, setHoveredSlug] = useState<string | null>(null);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -46,7 +51,8 @@ const Navbar: React.FC<NavbarProps> = ({ categories = [] }) => {
         setIsCartOpen(false);
         closeUserMenu();
         closeSearch();
-    }, [pathname, closeUserMenu, setIsCartOpen, closeSearch]);
+        closeNotif();
+    }, [pathname, closeUserMenu, setIsCartOpen, closeSearch, closeNotif]);
 
     // Handle Hover with Delay to prevent flickering
     const handleMouseEnter = (slug: string) => {
@@ -67,6 +73,12 @@ const Navbar: React.FC<NavbarProps> = ({ categories = [] }) => {
 
     const onSellArticleClick = () => {
         handleSellArticleClick({ isLoggedIn, user, openLoginForSell });
+    };
+
+    const totalNotifBadge = notificationsUnread + messageUnread;
+
+    const handleNotifClick = () => {
+        openNotif();
     };
 
     return (
@@ -161,6 +173,21 @@ const Navbar: React.FC<NavbarProps> = ({ categories = [] }) => {
 
                             <div className="relative">
                                 <button
+                                    onClick={handleNotifClick}
+                                    className="p-2 hover:bg-gray-100 rounded-full transition-colors relative"
+                                    aria-label="Notifications"
+                                >
+                                    <Bell className="w-6 h-6" strokeWidth={1.75} />
+                                    {totalNotifBadge > 0 && (
+                                        <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] min-w-4 h-4 px-0.5 flex items-center justify-center rounded-full">
+                                            {totalNotifBadge > 99 ? '99+' : totalNotifBadge}
+                                        </span>
+                                    )}
+                                </button>
+                            </div>
+
+                            <div className="relative">
+                                <button
                                     onClick={handleCartClick}
                                     className="p-2 hover:bg-gray-100 rounded-full transition-colors relative"
                                 >
@@ -245,12 +272,19 @@ const Navbar: React.FC<NavbarProps> = ({ categories = [] }) => {
                         <span className="text-[10px] font-medium">Vendre</span>
                     </button>
 
-                    <Link href="/notifications" className="flex flex-col items-center justify-center w-full h-full text-gray-500 hover:text-gray-900">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 mb-1">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
-                        </svg>
+                    <button
+                        type="button"
+                        onClick={handleNotifClick}
+                        className="flex flex-col items-center justify-center w-full h-full text-gray-500 hover:text-gray-900 relative"
+                    >
+                        <Bell className="w-6 h-6 mb-1" strokeWidth={1.75} />
                         <span className="text-[10px] font-medium">Notifications</span>
-                    </Link>
+                        {totalNotifBadge > 0 && (
+                            <span className="absolute top-2 right-[30%] bg-red-500 text-white text-[10px] min-w-4 h-4 px-0.5 flex items-center justify-center rounded-full">
+                                {totalNotifBadge > 99 ? '99+' : totalNotifBadge}
+                            </span>
+                        )}
+                    </button>
 
                     <div className="relative w-full h-full">
                         <button

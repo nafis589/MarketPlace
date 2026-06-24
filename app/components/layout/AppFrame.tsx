@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import Navbar from './Navbar';
 import SearchPanel from '@/app/components/search/SearchPanel';
 import ChatDrawer from '@/app/components/chat/ChatDrawer';
+import NotificationPanel from '@/app/components/notifications/NotificationPanel';
 import type { CategoryWithChildren } from './MegaMenu';
 
 interface AppFrameProps {
@@ -21,6 +22,7 @@ export default function AppFrame({ categories, children }: AppFrameProps) {
     <>
       {!hideChrome && <Navbar categories={categories} />}
       {!hideChrome && <SearchPanel />}
+      {!hideChrome && <NotificationPanel />}
       {children}
       <ChatDrawer />
     </>

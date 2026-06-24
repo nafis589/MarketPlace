@@ -23,6 +23,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import { UIProvider } from "./context/UIContext";
 import { ChatProvider } from "./context/ChatContext";
+import { NotificationProvider } from "./context/NotificationContext";
 import { ToastProvider } from "./components/ui/Toast";
 import AppFrame from "./components/layout/AppFrame";
 
@@ -59,9 +60,11 @@ export default async function RootLayout({
           <CartProvider>
             <UIProvider>
               <ChatProvider>
-                <ToastProvider>
-                  <AppFrame categories={categories}>{children}</AppFrame>
-                </ToastProvider>
+                <NotificationProvider>
+                  <ToastProvider>
+                    <AppFrame categories={categories}>{children}</AppFrame>
+                  </ToastProvider>
+                </NotificationProvider>
               </ChatProvider>
             </UIProvider>
           </CartProvider>

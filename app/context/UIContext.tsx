@@ -10,11 +10,14 @@ interface UIContextType {
   registerOpen: boolean;
   cartOpen: boolean;
   searchOpen: boolean;
+  notifOpen: boolean;
   loginIntent: LoginIntent;
   openLogin: () => void;
   openLoginForSell: () => void;
   openRegister: () => void;
   openCart: () => void;
+  openNotif: () => void;
+  closeNotif: () => void;
   openSearch: () => void;
   closeSearch: () => void;
   closeAll: () => void;
@@ -30,6 +33,7 @@ export function UIProvider({ children }: { children: ReactNode }) {
   const [loginOpen, setLoginOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const [loginIntent, setLoginIntent] = useState<LoginIntent>(null);
 
   const clearLoginIntent = useCallback(() => setLoginIntent(null), []);
@@ -38,6 +42,7 @@ export function UIProvider({ children }: { children: ReactNode }) {
     setLoginIntent(null);
     setRegisterOpen(false);
     setSearchOpen(false);
+    setNotifOpen(false);
     setLoginOpen(true);
     setIsCartOpen(false);
   }, [setIsCartOpen]);
@@ -46,6 +51,7 @@ export function UIProvider({ children }: { children: ReactNode }) {
     setLoginIntent('sell');
     setRegisterOpen(false);
     setSearchOpen(false);
+    setNotifOpen(false);
     setLoginOpen(true);
     setIsCartOpen(false);
   }, [setIsCartOpen]);
@@ -54,6 +60,7 @@ export function UIProvider({ children }: { children: ReactNode }) {
     setLoginOpen(false);
     setRegisterOpen(true);
     setSearchOpen(false);
+    setNotifOpen(false);
     setIsCartOpen(false);
   }, [setIsCartOpen]);
 
@@ -61,13 +68,27 @@ export function UIProvider({ children }: { children: ReactNode }) {
     setLoginOpen(false);
     setRegisterOpen(false);
     setSearchOpen(false);
+    setNotifOpen(false);
     setIsCartOpen(true);
   }, [setIsCartOpen]);
+
+  const openNotif = useCallback(() => {
+    setLoginOpen(false);
+    setRegisterOpen(false);
+    setSearchOpen(false);
+    setIsCartOpen(false);
+    setNotifOpen(true);
+  }, [setIsCartOpen]);
+
+  const closeNotif = useCallback(() => {
+    setNotifOpen(false);
+  }, []);
 
   const openSearch = useCallback(() => {
     setLoginOpen(false);
     setRegisterOpen(false);
     setIsCartOpen(false);
+    setNotifOpen(false);
     setSearchOpen(true);
   }, [setIsCartOpen]);
 
@@ -80,6 +101,7 @@ export function UIProvider({ children }: { children: ReactNode }) {
     setRegisterOpen(false);
     setIsCartOpen(false);
     setSearchOpen(false);
+    setNotifOpen(false);
     setLoginIntent(null);
   }, [setIsCartOpen]);
 
@@ -100,18 +122,21 @@ export function UIProvider({ children }: { children: ReactNode }) {
         registerOpen,
         cartOpen: isCartOpen,
         searchOpen,
+        notifOpen,
         loginIntent,
         openLogin,
         openLoginForSell,
         openRegister,
         openCart,
+        openNotif,
+        closeNotif,
         openSearch,
         closeSearch,
         closeAll,
         clearLoginIntent,
         switchToLogin,
         switchToRegister,
-      }}
+      }} 
     >
       {children}
     </UIContext.Provider>
