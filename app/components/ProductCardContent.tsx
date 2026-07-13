@@ -18,6 +18,8 @@ interface ProductCardContentProps {
   price: React.ReactNode;
   region: string;
   onFavoriteClick?: (e: React.MouseEvent) => void;
+  isFavorite?: boolean;
+  animating?: boolean;
   disabled?: boolean;
 }
 
@@ -28,6 +30,8 @@ export default function ProductCardContent({
   price,
   region,
   onFavoriteClick,
+  isFavorite = false,
+  animating = false,
   disabled,
 }: ProductCardContentProps) {
   return (
@@ -49,9 +53,9 @@ export default function ProductCardContent({
           aria-label="Ajouter aux favoris"
         >
           <Heart
-            className={`w-5 h-5 text-gray-900 transition-colors ${
-              disabled ? '' : 'hover:text-red-500 cursor-pointer'
-            }`}
+            className={`w-5 h-5 transition-all duration-200 ${
+              isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-900'
+            } ${disabled ? '' : 'hover:text-red-500 cursor-pointer'} ${animating ? 'scale-125' : ''}`}
             strokeWidth={1}
           />
         </button>

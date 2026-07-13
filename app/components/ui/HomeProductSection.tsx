@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { formatPrice } from '@/app/utils/formatPrice';
 import ProductCardContent from '@/app/components/ProductCardContent';
 import ProductCardImage from '@/app/components/ProductCardImage';
+import { useFavoriteToggle } from '@/app/hooks/useFavoriteToggle';
 
 export type BadgeType = 'BLACK_FRIDAY' | 'WE_LOVE' | null;
 
@@ -49,6 +50,61 @@ interface HomeProductSectionProps {
 
 const SCROLL_OFFSET = 300;
 
+function HomeProductCard({ product }: { product: Product }) {
+  const { isFavorite, animating, handleFavoriteClick } = useFavoriteToggle(String(product.id));
+
+  return (
+    <Link
+      href={`/product/product-${product.id}`}
+      className="group relative flex h-full w-1/2 shrink-0 cursor-pointer snap-start flex-col p-4 transition-colors hover:bg-gray-50 sm:w-[280px] md:w-[300px] xl:w-1/5"
+    >
+      <ProductCardImage
+        src={product.imageUrl}
+        alt={product.name}
+        badge={
+          product.badge ? (
+            <div className="absolute bottom-0 left-0 z-10">
+              <ProductBadge type={product.badge} />
+            </div>
+          ) : undefined
+        }
+      />
+
+      <ProductCardContent
+        brand={product.brand}
+        title={product.name}
+        condition={product.size}
+        region={product.location}
+        isFavorite={isFavorite}
+        animating={animating}
+        onFavoriteClick={handleFavoriteClick}
+        price={
+          product.oldPrice ? (
+            <div className="flex flex-col leading-tight">
+              <span className="text-sm text-gray-400 line-through decoration-1">
+                {product.currency === 'FCFA'
+                  ? formatPrice(product.oldPrice)
+                  : `${product.currency}${product.oldPrice}`}
+              </span>
+              <span className="text-base font-bold text-[#D32F2F]">
+                {product.currency === 'FCFA'
+                  ? formatPrice(product.price)
+                  : `${product.currency}${product.price}`}
+              </span>
+            </div>
+          ) : (
+            <span className="text-base font-bold text-gray-900">
+              {product.currency === 'FCFA'
+                ? formatPrice(product.price)
+                : `${product.currency}${product.price}`}
+            </span>
+          )
+        }
+      />
+    </Link>
+  );
+}
+
 export default function HomeProductSection({ title, products, viewAllHref }: HomeProductSectionProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -90,52 +146,7 @@ export default function HomeProductSection({ title, products, viewAllHref }: Hom
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           {products.map((product) => (
-            <Link
-              key={product.id}
-              href={`/product/product-${product.id}`}
-              className="group relative flex h-full w-1/2 shrink-0 cursor-pointer snap-start flex-col p-4 transition-colors hover:bg-gray-50 sm:w-[280px] md:w-[300px] xl:w-1/5"
-            >
-              <ProductCardImage
-                src={product.imageUrl}
-                alt={product.name}
-                badge={
-                  product.badge ? (
-                    <div className="absolute bottom-0 left-0 z-10">
-                      <ProductBadge type={product.badge} />
-                    </div>
-                  ) : undefined
-                }
-              />
-
-              <ProductCardContent
-                brand={product.brand}
-                title={product.name}
-                condition={product.size}
-                region={product.location}
-                price={
-                  product.oldPrice ? (
-                    <div className="flex flex-col leading-tight">
-                      <span className="text-sm text-gray-400 line-through decoration-1">
-                        {product.currency === 'FCFA'
-                          ? formatPrice(product.oldPrice)
-                          : `${product.currency}${product.oldPrice}`}
-                      </span>
-                      <span className="text-base font-bold text-[#D32F2F]">
-                        {product.currency === 'FCFA'
-                          ? formatPrice(product.price)
-                          : `${product.currency}${product.price}`}
-                      </span>
-                    </div>
-                  ) : (
-                    <span className="text-base font-bold text-gray-900">
-                      {product.currency === 'FCFA'
-                        ? formatPrice(product.price)
-                        : `${product.currency}${product.price}`}
-                    </span>
-                  )
-                }
-              />
-            </Link>
+            <HomeProductCard key={product.id} product={product} />
           ))}
         </div>
 

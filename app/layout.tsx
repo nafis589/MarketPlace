@@ -24,6 +24,7 @@ import { CartProvider } from "./context/CartContext";
 import { UIProvider } from "./context/UIContext";
 import { ChatProvider } from "./context/ChatContext";
 import { NotificationProvider } from "./context/NotificationContext";
+import { FavoritesProvider } from "./context/FavoritesContext";
 import { ToastProvider } from "./components/ui/Toast";
 import AppFrame from "./components/layout/AppFrame";
 
@@ -61,9 +62,11 @@ export default async function RootLayout({
             <UIProvider>
               <ChatProvider>
                 <NotificationProvider>
-                  <ToastProvider>
-                    <AppFrame categories={categories}>{children}</AppFrame>
-                  </ToastProvider>
+                  <FavoritesProvider>
+                    <ToastProvider>
+                      <AppFrame categories={categories}>{children}</AppFrame>
+                    </ToastProvider>
+                  </FavoritesProvider>
                 </NotificationProvider>
               </ChatProvider>
             </UIProvider>

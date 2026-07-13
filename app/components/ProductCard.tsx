@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import ProductCardContent from './ProductCardContent';
 import ProductCardImage from './ProductCardImage';
+import { useFavoriteToggle } from '@/app/hooks/useFavoriteToggle';
 
 interface Product {
   id: string;
@@ -21,6 +22,7 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const productUrl = `/product/product-${product.id}`;
+  const { isFavorite, animating, handleFavoriteClick } = useFavoriteToggle(product.id);
 
   return (
     <Link
@@ -35,6 +37,9 @@ export default function ProductCard({ product }: ProductCardProps) {
         condition={product.condition}
         region={product.vendorRegion}
         disabled={product.sold}
+        isFavorite={isFavorite}
+        animating={animating}
+        onFavoriteClick={handleFavoriteClick}
         price={
           <span className="text-base font-bold text-gray-900">{product.priceLabel}</span>
         }

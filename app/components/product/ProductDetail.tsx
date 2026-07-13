@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, Heart } from 'lucide-react';
 import ProductDescription from './ProductDescription';
 import HomeProductSection, { type Product as HomeProduct } from '@/app/components/ui/HomeProductSection';
 import RecentlyViewedClient from '@/app/components/home/RecentlyViewedClient';
@@ -38,10 +38,13 @@ interface ProductDetailProps {
   relatedProducts?: HomeProduct[];
 }
 
-const HeartIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-  </svg>
+const HeartIcon = ({ filled, animating }: { filled?: boolean; animating?: boolean }) => (
+  <Heart
+    className={`h-5 w-5 transition-all duration-200 ${
+      filled ? 'fill-red-500 text-red-500' : 'text-current'
+    } ${animating ? 'scale-125' : ''}`}
+    strokeWidth={1.5}
+  />
 );
 
 const ChevronUp = () => (
@@ -63,6 +66,7 @@ import { useAuth } from '@/app/context/AuthContext';
 import { useChat } from '@/app/context/ChatContext';
 import { VENDOR_DASHBOARD_URL } from '@/lib/vendor-dashboard';
 import OfferModal from '@/app/components/offers/OfferModal';
+import { useFavoriteToggle } from '@/app/hooks/useFavoriteToggle';
 
 export default function ProductDetail({ product, relatedProducts = [] }: ProductDetailProps) {
   const { addItem } = useCart();
@@ -71,6 +75,7 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
   const { user, isLoggedIn } = useAuth();
   const { openChatWithVendor, starting: chatStarting } = useChat();
   const [offerModalOpen, setOfferModalOpen] = useState(false);
+  const { isFavorite, animating, handleFavoriteClick } = useFavoriteToggle(product.id);
 
   const isOwnProduct =
     user?.role === 'VENDOR' &&
@@ -182,8 +187,8 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
               {isSold && <SoldBadge />}
               {!isOwnProduct && (
                 <div className="absolute top-0 right-0 p-4 flex items-center gap-1 z-10">
-                  <button type="button" className="hover:text-red-500">
-                    <HeartIcon />
+                  <button type="button" className="hover:text-red-500" onClick={handleFavoriteClick}>
+                    <HeartIcon filled={isFavorite} animating={animating} />
                   </button>
                 </div>
               )}
@@ -199,8 +204,8 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
             {isSold && <SoldBadge />}
             {!isOwnProduct && (
               <div className="absolute top-4 right-4 z-10 flex items-center gap-1 bg-white/80 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm">
-                <button type="button" className="text-gray-900 hover:text-red-500">
-                  <HeartIcon />
+                <button type="button" className="text-gray-900 hover:text-red-500" onClick={handleFavoriteClick}>
+                  <HeartIcon filled={isFavorite} animating={animating} />
                 </button>
               </div>
             )}

@@ -35,6 +35,68 @@ function formatCompactFcfa(value: number): string {
   return `${new Intl.NumberFormat('fr-FR').format(Math.round(value))} FCFA`;
 }
 
+function resolveNotificationImage(metadata: Record<string, unknown> | null): string {
+  return (
+    getMetadataString(metadata, 'product_image') ??
+    getMetadataString(metadata, 'productImage') ??
+    getMetadataString(metadata, 'image') ??
+    PRODUCT_IMAGE_PLACEHOLDER
+  );
+}
+
+function NotificationThumbnail({
+  src,
+  productId,
+  alt,
+}: {
+  src: string;
+  productId: string | null;
+  alt: string;
+}) {
+  const [displaySrc, setDisplaySrc] = useState(src);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    setDisplaySrc(src);
+    setFailed(false);
+  }, [src]);
+
+  useEffect(() => {
+    if (src !== PRODUCT_IMAGE_PLACEHOLDER || !productId) return;
+
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:9000';
+    void fetch(`${apiUrl}/api/store/products/${productId}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then(
+        (json: {
+          data?: {
+            primary_image?: string | null;
+            images?: { url: string; is_primary: boolean }[];
+          };
+        } | null) => {
+          const image =
+            json?.data?.primary_image ??
+            json?.data?.images?.find((item) => item.is_primary)?.url ??
+            json?.data?.images?.[0]?.url;
+          if (image) setDisplaySrc(image);
+        },
+      )
+      .catch(() => undefined);
+  }, [src, productId]);
+
+  const finalSrc = failed ? PRODUCT_IMAGE_PLACEHOLDER : displaySrc;
+
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={finalSrc}
+      alt={alt}
+      className="h-full w-full object-cover"
+      onError={() => setFailed(true)}
+    />
+  );
+}
+
 function displayBody(n: StoreNotification): string {
   const metadata = n.metadata as Record<string, unknown> | null;
   const priceValue = getMetadataNumber(metadata, 'counterAmount') ?? getMetadataNumber(metadata, 'amount');
@@ -133,7 +195,6 @@ export default function NotificationPanel() {
     return () => observer.disconnect();
   }, [notifOpen, tab, loadMore, notifications.length]);
 
-  const important = useMemo(() => notifications.filter((n) => !n.is_read), [notifications]);
   const chats = useMemo(() => conversations.slice(0, 20), [conversations]);
 
   const onNotificationClick = async (notification: StoreNotification) => {
@@ -223,16 +284,11 @@ export default function NotificationPanel() {
                 <p className="px-5 py-10 text-center text-sm text-gray-500">Aucune mise à jour</p>
               ) : (
                 <>
-                  {important.length > 0 && (
-                    <div className="border-b border-gray-100 px-5 py-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
-                      Important
-                    </div>
-                  )}
-
                   <ul className="divide-y divide-gray-100">
                     {notifications.map((n) => {
                       const metadata = n.metadata as Record<string, unknown> | null;
-                      const image = getMetadataString(metadata, 'product_image') ?? PRODUCT_IMAGE_PLACEHOLDER;
+                      const image = resolveNotificationImage(metadata);
+                      const productId = getMetadataString(metadata, 'productId');
                       return (
                         <li key={n.id}>
                           <button
@@ -245,14 +301,13 @@ export default function NotificationPanel() {
                                 <span className="absolute -left-2.5 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-red-600" />
                               )}
                               <span className="block h-10 w-10 overflow-hidden rounded-md bg-gray-100">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src={image} alt="" className="h-full w-full object-cover" />
+                                <NotificationThumbnail src={image} productId={productId} alt="" />
                               </span>
                             </span>
                             <span className="min-w-0 flex-1">
                               <span
-                                className={`block text-[30px] leading-tight text-gray-900 lg:text-[26px] ${
-                                  n.is_read ? 'font-normal' : 'font-bold'
+                                className={`block text-sm leading-snug text-gray-900 ${
+                                  n.is_read ? 'font-normal' : 'font-semibold'
                                 }`}
                               >
                                 {displayBody(n)}

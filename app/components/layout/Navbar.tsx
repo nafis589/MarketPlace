@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Bell } from 'lucide-react';
+import { Bell, Heart } from 'lucide-react';
 import MenuLink from '../ui/MenuLink';
 import MegaMenu, { CategoryWithChildren } from './MegaMenu';
 
@@ -148,6 +148,7 @@ const Navbar: React.FC<NavbarProps> = ({ categories = [] }) => {
                                         <button
                                             onClick={() => isUserMenuOpen ? closeUserMenu() : openUserMenu()}
                                             className="flex items-center hover:opacity-80 transition-opacity"
+                                            aria-label="Mon compte"
                                         >
                                             <div className="w-9 h-9 rounded-full bg-gray-200 text-gray-700 flex items-center justify-center hover:bg-gray-300 transition-colors">
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -171,7 +172,18 @@ const Navbar: React.FC<NavbarProps> = ({ categories = [] }) => {
                                 )}
                             </div>
 
-                            <div className="relative">
+                            {isLoggedIn && (
+                                <Link
+                                    href="/favoris"
+                                    className="hidden lg:flex p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                    aria-label="Mes favoris"
+                                >
+                                    <Heart className="w-6 h-6" strokeWidth={1.75} />
+                                </Link>
+                            )}
+
+                            {isLoggedIn && (
+                            <div className="relative hidden lg:block">
                                 <button
                                     onClick={handleNotifClick}
                                     className="p-2 hover:bg-gray-100 rounded-full transition-colors relative"
@@ -185,6 +197,7 @@ const Navbar: React.FC<NavbarProps> = ({ categories = [] }) => {
                                     )}
                                 </button>
                             </div>
+                            )}
 
                             <div className="relative">
                                 <button
