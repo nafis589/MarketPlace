@@ -17,6 +17,7 @@ interface CartContextType {
   count: number;
   isLoading: boolean;
   addItem: (productId: string, quantity?: number) => Promise<void>;
+  addOfferItem: (offerId: string) => Promise<void>;
   removeItem: (itemId: string) => Promise<void>;
   updateQuantity: (itemId: string, qty: number) => Promise<void>;
   clearCart: () => Promise<void>;
@@ -75,6 +76,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const addOfferItem = useCallback(async (offerId: string) => {
+    const { data } = await cartApi.addOfferItem(offerId);
+    applyCartData(data, setItems, setTotal, setCount);
+  }, []);
+
   const removeItem = useCallback(async (itemId: string) => {
     const { data } = await cartApi.removeItem(itemId);
     applyCartData(data, setItems, setTotal, setCount);
@@ -103,6 +109,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         count,
         isLoading,
         addItem,
+        addOfferItem,
         removeItem,
         updateQuantity,
         clearCart,

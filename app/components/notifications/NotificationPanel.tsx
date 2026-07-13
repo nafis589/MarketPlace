@@ -110,8 +110,8 @@ function displayBody(n: StoreNotification): string {
       return "🤝 Offre acceptée : c'est parti !";
     case 'OFFER_COUNTER':
       return priceValue
-        ? `Le vendeur propose ${formatCompactFcfa(priceValue)}. Faites une offre !`
-        : 'Le vendeur propose une contre-offre. Faites une offre !';
+        ? `Le vendeur propose ${formatCompactFcfa(priceValue)} — votre offre a été refusée`
+        : 'Le vendeur a refusé votre offre et propose une contre-offre';
     case 'OFFER_DECLINED':
       return 'Votre offre a été refusée';
     case 'PRICE_DROP':

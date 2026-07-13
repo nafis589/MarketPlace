@@ -19,6 +19,7 @@ export interface ShippingAddress {
   latitude: number;
   longitude: number;
   region_id: string;
+  address_label?: string | null;
 }
 
 export interface OrderItemSnapshot {
@@ -33,6 +34,8 @@ export interface StoreOrderItem {
   product_id: string | null;
   quantity: number;
   unit_price: number;
+  offer_id: string | null;
+  original_price: number | null;
   product_snapshot: OrderItemSnapshot;
 }
 

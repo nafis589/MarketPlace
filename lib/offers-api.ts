@@ -22,6 +22,7 @@ export interface StoreOffer {
   };
   shop_name: string;
   final_amount: number | null;
+  consumed: boolean;
 }
 
 async function parseResponse<T>(res: Response): Promise<T> {

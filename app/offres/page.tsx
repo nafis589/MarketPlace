@@ -2,11 +2,15 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Tag, Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Tag, Loader2, Check } from 'lucide-react';
 import Header from '@/app/components/sections/Header';
 import Footer from '@/app/components/sections/Footer';
 import { useAuth } from '@/app/context/AuthContext';
 import { useUI } from '@/app/context/UIContext';
+import { useCart } from '@/app/context/CartContext';
+import { useToast } from '@/app/components/ui/Toast';
+import { useNotifications } from '@/app/context/NotificationContext';
 import { offersApi, type OfferStatus, type StoreOffer } from '@/lib/offers-api';
 import { formatPrice } from '@/app/utils/formatPrice';
 import { PRODUCT_IMAGE_PLACEHOLDER } from '@/app/lib/mapHomeProduct';
@@ -32,7 +36,7 @@ function formatOfferDate(iso: string): string {
   }).format(date);
 }
 
-function getOfferStatusLabel(status: OfferStatus, counterAmount: number | null): string {
+function getOfferStatusLabel(status: OfferStatus): string {
   switch (status) {
     case 'PENDING':
       return 'En attente';
@@ -41,7 +45,7 @@ function getOfferStatusLabel(status: OfferStatus, counterAmount: number | null):
     case 'DECLINED':
       return 'Refusée';
     case 'COUNTER':
-      return counterAmount != null ? `Contre-offre : ${formatPrice(counterAmount)}` : 'Contre-offre';
+      return 'Contre-offre reçue';
     case 'EXPIRED':
       return 'Expirée';
     default:
@@ -70,6 +74,10 @@ function getOfferStatusBadgeClass(status: OfferStatus): string {
 export default function OffresPage() {
   const { user, isLoading: authLoading } = useAuth();
   const { openLogin } = useUI();
+  const { addOfferItem } = useCart();
+  const { showToast } = useToast();
+  const { notifications } = useNotifications();
+  const router = useRouter();
   const [offers, setOffers] = useState<StoreOffer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -101,20 +109,55 @@ export default function OffresPage() {
     if (user) void load();
   }, [user, load]);
 
-  const handleAcceptCounter = async (offerId: string) => {
-    setActionId(offerId);
-    try {
-      await offersApi.acceptCounter(offerId);
-      await load();
-    } finally {
-      setActionId(null);
+  // Reload when an offer-related notification arrives (counter / accept / decline)
+  useEffect(() => {
+    if (!user || notifications.length === 0) return;
+    const latest = notifications[0];
+    if (
+      latest?.type === 'OFFER_COUNTER' ||
+      latest?.type === 'OFFER_ACCEPTED' ||
+      latest?.type === 'OFFER_DECLINED'
+    ) {
+      void load();
     }
-  };
+  }, [notifications, user, load]);
+
+  // Refresh when returning to the tab (e.g. after a real-time counter notification)
+  useEffect(() => {
+    if (!user) return;
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void load();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', onVisible);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', onVisible);
+    };
+  }, [user, load]);
 
   const handleDeclineCounter = async (offerId: string) => {
     setActionId(offerId);
     try {
       await offersApi.declineCounter(offerId);
+      await load();
+    } catch {
+      showToast('Impossible de refuser cette contre-offre.');
+    } finally {
+      setActionId(null);
+    }
+  };
+
+  const handleOrderNow = async (offerId: string, options?: { acceptCounterFirst?: boolean }) => {
+    setActionId(offerId);
+    try {
+      if (options?.acceptCounterFirst) {
+        await offersApi.acceptCounter(offerId);
+      }
+      await addOfferItem(offerId);
+      router.push('/checkout');
+    } catch {
+      showToast('Impossible de commander cette offre pour le moment.');
       await load();
     } finally {
       setActionId(null);
@@ -214,36 +257,82 @@ export default function OffresPage() {
                             </p>
                           </div>
                           <span className={getOfferStatusBadgeClass(offer.status)}>
-                            {getOfferStatusLabel(offer.status, offer.counter_amount)}
+                            {getOfferStatusLabel(offer.status)}
                           </span>
                         </div>
 
                         <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
-                          <span className="text-gray-500">
-                            Votre offre :{' '}
-                            <span className="font-medium text-black">{formatPrice(offer.amount)}</span>
-                            <span className="mx-1 text-gray-300">·</span>
-                            Prix : {formatPrice(offer.product.price)}
-                          </span>
+                          <div className="min-w-0 text-gray-500">
+                            {offer.status === 'ACCEPTED' ? (
+                              <>
+                                Offre acceptée :{' '}
+                                <span className="font-semibold text-black">
+                                  {formatPrice(offer.final_amount ?? offer.amount)}
+                                </span>
+                                <span className="mx-1 text-gray-300">·</span>
+                                <span className="text-gray-400 line-through">
+                                  {formatPrice(offer.product.price)}
+                                </span>
+                              </>
+                            ) : offer.status === 'COUNTER' && offer.counter_amount != null ? (
+                              <div className="space-y-1">
+                                <p>
+                                  Contre-offre :{' '}
+                                  <span className="font-semibold text-black">
+                                    {formatPrice(offer.counter_amount)}
+                                  </span>
+                                  <span className="mx-1 text-gray-300">·</span>
+                                  <span className="text-gray-400 line-through">
+                                    {formatPrice(offer.product.price)}
+                                  </span>
+                                </p>
+                                <p className="text-xs text-gray-400">
+                                  Votre offre de {formatPrice(offer.amount)} a été refusée
+                                </p>
+                              </div>
+                            ) : (
+                              <>
+                                Votre offre :{' '}
+                                <span className="font-medium text-black">
+                                  {formatPrice(offer.amount)}
+                                </span>
+                                <span className="mx-1 text-gray-300">·</span>
+                                Prix : {formatPrice(offer.product.price)}
+                              </>
+                            )}
+                          </div>
 
                           <div className="flex flex-wrap gap-2">
-                            {offer.status === 'ACCEPTED' && (
-                              <Link
-                                href={`/product/${offer.product_id}`}
-                                className="bg-black px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-gray-800"
-                              >
-                                Commander maintenant
-                              </Link>
-                            )}
+                            {offer.status === 'ACCEPTED' &&
+                              (offer.consumed ? (
+                                <Link
+                                  href="/commandes"
+                                  className="inline-flex items-center gap-1.5 border border-gray-300 px-4 py-2 text-xs font-bold text-gray-600 transition-colors hover:bg-gray-50"
+                                >
+                                  <Check className="h-3.5 w-3.5" />
+                                  Commandé
+                                </Link>
+                              ) : (
+                                <button
+                                  type="button"
+                                  disabled={busy}
+                                  onClick={() => void handleOrderNow(offer.id)}
+                                  className="bg-black px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-gray-800 disabled:opacity-60"
+                                >
+                                  {busy ? 'Redirection…' : 'Commander maintenant'}
+                                </button>
+                              ))}
                             {offer.status === 'COUNTER' && (
                               <>
                                 <button
                                   type="button"
                                   disabled={busy}
-                                  onClick={() => void handleAcceptCounter(offer.id)}
+                                  onClick={() =>
+                                    void handleOrderNow(offer.id, { acceptCounterFirst: true })
+                                  }
                                   className="bg-black px-4 py-2 text-xs font-bold text-white hover:bg-gray-800 disabled:opacity-60"
                                 >
-                                  Accepter
+                                  {busy ? 'Redirection…' : 'Commander maintenant'}
                                 </button>
                                 <button
                                   type="button"

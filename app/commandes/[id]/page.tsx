@@ -177,10 +177,22 @@ export default function CommandeDetailPage({ params }: PageProps) {
                           <p className="text-xs text-gray-500 mt-0.5">{item.product_snapshot.brand}</p>
                         )}
                         <p className="text-xs text-gray-500 mt-1">Qté : {item.quantity}</p>
+                        {item.offer_id && item.original_price != null && (
+                          <span className="mt-1.5 inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-700">
+                            Offre acceptée
+                          </span>
+                        )}
                       </div>
-                      <p className="text-sm font-semibold shrink-0">
-                        {formatPrice(item.unit_price * item.quantity)}
-                      </p>
+                      <div className="shrink-0 text-right">
+                        <p className="text-sm font-semibold">
+                          {formatPrice(item.unit_price * item.quantity)}
+                        </p>
+                        {item.offer_id && item.original_price != null && (
+                          <p className="text-xs text-gray-400 line-through">
+                            {formatPrice(item.original_price * item.quantity)}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>

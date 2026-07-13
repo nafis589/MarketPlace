@@ -18,7 +18,7 @@ import { useCart } from '@/app/context/CartContext';
 import { useAuth } from '@/app/context/AuthContext';
 import { useUI } from '@/app/context/UIContext';
 import { useToast } from '@/app/components/ui/Toast';
-import { getLineTotal, cartApi, type CartItem, type CartItemVendor } from '@/lib/cart-api';
+import { getLineTotal, hasOfferDiscount, cartApi, type CartItem, type CartItemVendor } from '@/lib/cart-api';
 import { ordersApi, type StoreOrder } from '@/lib/orders-api';
 import { ApiClientError } from '@/lib/api-client';
 import { formatOrderRef } from '@/app/lib/order-utils';
@@ -40,6 +40,7 @@ function cx(...classes: (string | boolean | undefined | null)[]) {
 
 import { formatPrice as formatFcfa } from '@/app/utils/formatPrice';
 import { PRODUCT_IMAGE_PLACEHOLDER } from '@/app/lib/mapHomeProduct';
+import { reverseGeocode } from '@/lib/nominatim';
 
 export default function CheckoutPage() {
     const router = useRouter();
@@ -63,6 +64,7 @@ export default function CheckoutPage() {
     const [shippingRegionId, setShippingRegionId]     = useState<string | null>(null);
     const [shippingError, setShippingError]           = useState<string | null>(null);
     const [selectedCoords, setSelectedCoords]         = useState<{ lat: number; lng: number } | null>(null);
+    const [placeName, setPlaceName]                   = useState<string>('');
     const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
     const [geolocateSignal, setGeolocateSignal]       = useState(0);
     const [isGeolocating, setIsGeolocating]           = useState(false);
@@ -166,6 +168,20 @@ export default function CheckoutPage() {
         }
     };
 
+    useEffect(() => {
+        if (!selectedCoords) {
+            setPlaceName('');
+            return;
+        }
+        let cancelled = false;
+        void reverseGeocode(selectedCoords.lat, selectedCoords.lng).then((name) => {
+            if (!cancelled) setPlaceName(name);
+        });
+        return () => {
+            cancelled = true;
+        };
+    }, [selectedCoords]);
+
     const totalItemsPrice = total;
     const grandTotal = shippingFee !== null ? totalItemsPrice + shippingFee : null;
     const recapLineCount = orderSnapshot?.lineCount ?? items.length;
@@ -218,6 +234,7 @@ export default function CheckoutPage() {
                     latitude: selectedCoords.lat,
                     longitude: selectedCoords.lng,
                     region_id: shippingRegionId,
+                    address_label: placeName || null,
                 },
                 shipping_fee: shippingFee,
                 shipping_method: shippingMethod,
@@ -395,10 +412,15 @@ export default function CheckoutPage() {
                                                         </button>
                                                     </div>
                                                     {/* Bas : prix */}
-                                                    <div className="flex items-center gap-2">
+                                                    <div className="flex items-center gap-2 flex-wrap">
                                                         <span className="text-[13px] sm:text-[15px] font-semibold text-[#C0392B]">
                                                             {formatFcfa(getLineTotal(item))}
                                                         </span>
+                                                        {hasOfferDiscount(item) && (
+                                                            <span className="text-[12px] sm:text-[13px] text-[#AAAAAA] line-through">
+                                                                {formatFcfa(item.product.price * item.quantity)}
+                                                            </span>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
@@ -505,7 +527,14 @@ export default function CheckoutPage() {
                                                 {item.product.title}
                                                 {item.quantity > 1 ? ` × ${item.quantity}` : ''}
                                             </span>
-                                            <span className="font-medium shrink-0">{formatFcfa(lineTotal)}</span>
+                                            <span className="shrink-0 text-right">
+                                                {hasOfferDiscount(item) && (
+                                                    <span className="mr-1.5 text-[12px] text-[#AAAAAA] line-through">
+                                                        {formatFcfa(item.product.price * item.quantity)}
+                                                    </span>
+                                                )}
+                                                <span className="font-medium">{formatFcfa(lineTotal)}</span>
+                                            </span>
                                         </div>
                                     );
                                 })}
@@ -733,8 +762,8 @@ export default function CheckoutPage() {
                                     {selectedCoords && (
                                         <div className="bg-white border border-[#EBEBEB] px-4 py-3">
                                             <p className="text-[10px] font-bold uppercase tracking-widest text-[#BBBBBB] mb-1">Position de livraison</p>
-                                            <p className="text-[13px] font-medium text-emerald-700">
-                                                {selectedCoords.lat.toFixed(4)}, {selectedCoords.lng.toFixed(4)}
+                                            <p className="text-[13px] font-medium text-[#1A1A1A]">
+                                                {placeName || 'Localisation en cours…'}
                                             </p>
                                         </div>
                                     )}

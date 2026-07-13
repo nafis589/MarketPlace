@@ -22,6 +22,7 @@ export interface CartItem {
   product_id: string;
   quantity: number;
   price_snapshot: number;
+  offer_id: string | null;
   product: CartItemProduct;
 }
 
@@ -72,6 +73,12 @@ export const cartApi = {
       body: JSON.stringify({ product_id: productId, quantity }),
     }),
 
+  addOfferItem: (offerId: string) =>
+    cartRequest<CartResponse>('/offer-items', {
+      method: 'POST',
+      body: JSON.stringify({ offer_id: offerId }),
+    }),
+
   updateItem: (itemId: string, quantity: number) =>
     cartRequest<CartResponse>(`/items/${itemId}`, {
       method: 'PATCH',
@@ -86,4 +93,9 @@ export const cartApi = {
 
 export function getLineTotal(item: CartItem): number {
   return item.price_snapshot * item.quantity;
+}
+
+/** True when the line comes from an accepted offer with a genuine discount. */
+export function hasOfferDiscount(item: CartItem): boolean {
+  return item.offer_id != null && item.product.price > item.price_snapshot;
 }

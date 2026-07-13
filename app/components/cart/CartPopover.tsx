@@ -8,7 +8,7 @@ import { useCart } from '@/app/context/CartContext';
 import { useAuth } from '@/app/context/AuthContext';
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
 import { formatPrice } from '@/app/utils/formatPrice';
-import { getLineTotal } from '@/lib/cart-api';
+import { getLineTotal, hasOfferDiscount } from '@/lib/cart-api';
 import { PRODUCT_IMAGE_PLACEHOLDER } from '@/app/lib/mapHomeProduct';
 
 interface CartPopoverProps {
@@ -86,7 +86,19 @@ const CartPopover: React.FC<CartPopoverProps> = ({ isOpen, onClose }) => {
                                 <div className="flex justify-between items-start gap-2">
                                     <div className="min-w-0">
                                         <h3 className="text-sm font-bold text-gray-900 truncate">{item.product.title}</h3>
-                                        <p className="text-sm text-gray-500 mt-0.5">{formatPrice(item.price_snapshot)}</p>
+                                        <p className="text-sm text-gray-500 mt-0.5">
+                                            {formatPrice(item.price_snapshot)}
+                                            {hasOfferDiscount(item) && (
+                                                <>
+                                                    <span className="ml-1.5 text-xs text-gray-400 line-through">
+                                                        {formatPrice(item.product.price)}
+                                                    </span>
+                                                    <span className="ml-1.5 text-xs font-semibold text-green-700">
+                                                        Offre
+                                                    </span>
+                                                </>
+                                            )}
+                                        </p>
                                     </div>
                                     <button
                                         onClick={() => removeItem(item.id)}
