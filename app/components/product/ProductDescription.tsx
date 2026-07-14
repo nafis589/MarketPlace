@@ -4,6 +4,9 @@ import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Info } from 'lucide-react';
 
+import VendorAvatar from './VendorAvatar';
+import { vendorHandle } from '@/app/utils/vendorHandle';
+
 interface ProductDescriptionProps {
   product: {
     id: string;
@@ -16,6 +19,7 @@ interface ProductDescriptionProps {
     color?: string;
     createdAt?: string;
     vendorName?: string;
+    vendorLogo?: string | null;
     vendorRegion?: string;
     vendorRating?: number;
     vendorTotalSales?: number;
@@ -34,16 +38,6 @@ function formatOnlineDate(value?: string): string | null {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return null;
   return date.toISOString().slice(0, 10);
-}
-
-function vendorHandle(name?: string): string {
-  if (!name) return '@vendeur';
-  const slug = name
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '');
-  return `@${slug || 'vendeur'}`;
 }
 
 function DetailLine({
@@ -110,9 +104,7 @@ export default function ProductDescription({ product }: ProductDescriptionProps)
             <div className="p-6">
               {product.vendorId ? (
                 <Link href={`/vendeur/${product.vendorId}`} className="group/seller flex items-center gap-4 mb-6">
-                  <div className="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-lg font-serif shrink-0">
-                    {sellerName.charAt(0).toUpperCase()}
-                  </div>
+                  <VendorAvatar name={sellerName} logo={product.vendorLogo} />
                   <div>
                     <p className="font-bold text-gray-900 group-hover/seller:underline">{sellerName}</p>
                     <p className="text-sm text-gray-500">{sellerHandle}</p>
@@ -120,9 +112,7 @@ export default function ProductDescription({ product }: ProductDescriptionProps)
                 </Link>
               ) : (
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-lg font-serif shrink-0">
-                    {sellerName.charAt(0).toUpperCase()}
-                  </div>
+                  <VendorAvatar name={sellerName} logo={product.vendorLogo} />
                   <div>
                     <p className="font-bold text-gray-900">{sellerName}</p>
                     <p className="text-sm text-gray-500">{sellerHandle}</p>

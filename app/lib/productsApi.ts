@@ -11,7 +11,7 @@ export interface ApiProductDetail extends ApiProductListItem {
   views_count: number;
   created_at: string;
   images: { id: string; url: string; position: number; is_primary: boolean }[];
-  vendor: { shop_name: string; rating: number; total_sales: number };
+  vendor: { shop_name: string; shop_logo: string | null; rating: number; total_sales: number };
   vendor_region?: string | null;
   category_path?: {
     universe: string | null;

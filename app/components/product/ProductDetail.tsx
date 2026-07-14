@@ -4,9 +4,11 @@ import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { MessageCircle, Heart } from 'lucide-react';
 import ProductDescription from './ProductDescription';
+import VendorAvatar from './VendorAvatar';
 import HomeProductSection, { type Product as HomeProduct } from '@/app/components/ui/HomeProductSection';
 import RecentlyViewedClient from '@/app/components/home/RecentlyViewedClient';
 import { PRODUCT_IMAGE_PLACEHOLDER } from '@/app/lib/mapHomeProduct';
+import { vendorHandle } from '@/app/utils/vendorHandle';
 
 export interface ProductDetailData {
   id: string;
@@ -30,7 +32,7 @@ export interface ProductDetailData {
     category: string | null;
     subcategory: string | null;
   };
-  vendor: { shop_name: string; rating: number; total_sales: number };
+  vendor: { shop_name: string; shop_logo: string | null; rating: number; total_sales: number };
 }
 
 interface ProductDetailProps {
@@ -144,6 +146,45 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
     .filter(Boolean)
     .join(', ');
 
+  const vendorAvatarLink = product.vendor_id ? (
+    <Link
+      href={`/vendeur/${product.vendor_id}`}
+      className="group/vendor shrink-0"
+      aria-label={`Voir la boutique ${product.vendor.shop_name}`}
+    >
+      <VendorAvatar name={product.vendor.shop_name} logo={product.vendor.shop_logo} />
+    </Link>
+  ) : (
+    <VendorAvatar name={product.vendor.shop_name} logo={product.vendor.shop_logo} />
+  );
+
+  const vendorAvatarDesktop = product.vendor_id ? (
+    <Link
+      href={`/vendeur/${product.vendor_id}`}
+      className="group/vendor hidden shrink-0 lg:block"
+      aria-label={`Voir la boutique ${product.vendor.shop_name}`}
+    >
+      <VendorAvatar name={product.vendor.shop_name} logo={product.vendor.shop_logo} />
+    </Link>
+  ) : (
+    <div className="hidden shrink-0 lg:block">
+      <VendorAvatar name={product.vendor.shop_name} logo={product.vendor.shop_logo} />
+    </div>
+  );
+
+  const vendorHandleDesktop = product.vendor_id ? (
+    <Link
+      href={`/vendeur/${product.vendor_id}`}
+      className="group/vendor hidden shrink-0 text-xs text-gray-500 lg:block"
+    >
+      {vendorHandle(product.vendor.shop_name)}
+    </Link>
+  ) : (
+    <span className="hidden shrink-0 text-xs text-gray-500 lg:inline">
+      {vendorHandle(product.vendor.shop_name)}
+    </span>
+  );
+
   return (
     <div className="bg-white font-sans text-gray-900">
       <div className="max-w-7xl mx-auto px-4 pt-8 pb-4 hidden md:block">
@@ -156,12 +197,12 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
         </nav>
       </div>
 
-      <div className="text-center py-2 mb-2 md:py-4 md:mb-4 px-4">
-        <h1 className="font-serif text-3xl md:text-5xl mb-2 text-gray-900">{product.title}</h1>
+      <div className="mb-2 hidden px-4 py-2 text-center md:mb-4 md:py-4 lg:block">
+        <h1 className="mb-2 font-serif text-3xl text-gray-900 md:text-5xl">{product.title}</h1>
         {product.brand && <p className="text-lg text-gray-600">{product.brand}</p>}
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-8 pb-10 lg:pb-20">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 gap-0 px-4 pb-10 lg:grid-cols-12 lg:gap-8 lg:pb-20">
         <div className="lg:col-span-7">
           <div className="hidden lg:flex gap-4">
             <div className="flex flex-col items-center gap-2 w-20 shrink-0">
@@ -219,38 +260,40 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
           </div>
         </div>
 
-        <div className="lg:col-span-5 bg-gray-50/50 p-6 lg:pl-10">
-          <div className="flex justify-between items-start mb-6">
-            <span className="text-2xl font-medium">{product.priceLabel}</span>
-            {product.vendor_id ? (
-              <Link
-                href={`/vendeur/${product.vendor_id}`}
-                className="flex flex-col items-end text-right group/vendor"
-              >
-                <p className="text-sm font-medium text-gray-900 group-hover/vendor:underline">
-                  {product.vendor.shop_name}
+        <div className="lg:col-span-5">
+          {/* Titre mobile — sous l'image, aligné à gauche ; avatar chevauche la zone grise */}
+          <div className="relative bg-white px-4 pb-5 pt-5 lg:hidden">
+            <div className="pr-16">
+              {product.brand && (
+                <p className="mb-1 font-serif text-2xl font-semibold leading-tight text-gray-900">
+                  {product.brand}
                 </p>
-                <p className="text-xs text-gray-500">
-                  {product.vendor.total_sales} ventes · ★ {product.vendor.rating.toFixed(1)}
-                </p>
-              </Link>
-            ) : (
-              <div className="flex flex-col items-end text-right">
-                <p className="text-sm font-medium text-gray-900">{product.vendor.shop_name}</p>
-                <p className="text-xs text-gray-500">
-                  {product.vendor.total_sales} ventes · ★ {product.vendor.rating.toFixed(1)}
-                </p>
-              </div>
-            )}
+              )}
+              <h1 className="text-base font-normal leading-snug text-gray-900">{product.title}</h1>
+            </div>
+            <div className="absolute bottom-0 right-4 z-10 translate-y-1/2">{vendorAvatarLink}</div>
           </div>
 
-          {attributes && (
-            <div className="space-y-2 mb-8 text-sm text-gray-800">
-              <p className="font-medium text-base">{attributes}</p>
-            </div>
-          )}
+          <div className="bg-gray-50/50 px-3 pb-6 pt-6 lg:p-6 lg:pl-10 lg:pt-6">
+            <div className="mb-6 space-y-3">
+              <div className="flex items-start justify-between gap-4">
+                <span className="text-2xl font-medium leading-none">{product.priceLabel}</span>
+                {vendorAvatarDesktop}
+              </div>
 
-          <div className="space-y-3 mb-8">
+              <div
+                className={`${attributes ? 'flex' : 'hidden lg:flex'} items-end justify-between gap-6`}
+              >
+                {attributes ? (
+                  <p className="min-w-0 text-base font-medium leading-snug text-gray-800">{attributes}</p>
+                ) : (
+                  <span aria-hidden className="min-w-0" />
+                )}
+                {vendorHandleDesktop}
+              </div>
+            </div>
+
+            <div className="mb-8 space-y-3">
             {isOwnProduct ? (
               <div className="p-4">
                 <p className="text-sm text-gray-700">
@@ -270,7 +313,7 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
                   type="button"
                   onClick={handleAddToCart}
                   disabled={isSold}
-                  className={`w-full py-3 font-medium uppercase text-sm tracking-wide transition-colors ${
+                  className={`w-full py-3.5 font-medium uppercase text-sm tracking-wide transition-colors ${
                     isSold
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       : 'bg-black text-white hover:bg-gray-800'
@@ -278,12 +321,12 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
                 >
                   Ajouter au panier
                 </button>
-                <div className="flex gap-3">
+                <div className="flex gap-2.5">
                   <button
                     type="button"
                     onClick={handleStartOffer}
                     disabled={isSold}
-                    className={`flex-1 py-3 font-medium uppercase text-sm tracking-wide transition-colors border ${
+                    className={`min-w-0 flex-1 py-3.5 font-medium uppercase text-sm tracking-wide transition-colors border ${
                       isSold
                         ? 'bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed'
                         : 'bg-white text-black border-black hover:bg-gray-50'
@@ -297,7 +340,7 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
                     disabled={chatStarting}
                     aria-label="Contacter le vendeur"
                     title="Contacter le vendeur"
-                    className="flex w-14 shrink-0 items-center justify-center border border-black text-black transition-colors hover:bg-gray-50 disabled:opacity-60"
+                    className="flex w-[4.75rem] shrink-0 items-center justify-center border border-black py-3.5 text-black transition-colors hover:bg-gray-50 disabled:opacity-60 lg:w-16"
                   >
                     <MessageCircle className="h-5 w-5" strokeWidth={1.5} />
                   </button>
@@ -320,6 +363,7 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
               </>
             )}
           </div>
+          </div>
         </div>
       </div>
 
@@ -335,6 +379,7 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
           color: product.color,
           createdAt: product.createdAt,
           vendorName: product.vendor.shop_name,
+          vendorLogo: product.vendor.shop_logo,
           vendorRegion: product.vendorRegion,
           vendorRating: product.vendor.rating,
           vendorTotalSales: product.vendor.total_sales,
