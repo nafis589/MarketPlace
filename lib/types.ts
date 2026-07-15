@@ -49,12 +49,47 @@ export interface ShippingFeeResult {
   error?: ShippingFeeError;
 }
 
+export interface CartShippingItemSummary {
+  product_id: string;
+  title: string;
+  quantity: number;
+  price: number;
+}
+
+export interface CartVendorShipping {
+  vendor_id: string;
+  shop_name: string;
+  items: CartShippingItemSummary[];
+  items_total: number;
+  shipping: {
+    fee: number;
+    method: ShippingMethod;
+    distanceKm?: number;
+    detail: string;
+    error?: ShippingFeeError;
+  };
+}
+
+export interface CartShippingSummary {
+  items_total: number;
+  shipping_total: number;
+  grand_total: number;
+  has_errors: boolean;
+  can_checkout: boolean;
+}
+
+export interface CartShippingCalculateResult {
+  vendors: CartVendorShipping[];
+  summary: CartShippingSummary;
+}
+
 export interface ShippingCalculateResponse {
-  data: ShippingFeeResult;
+  data: CartShippingCalculateResult;
 }
 
 export interface LocationSelectResult {
   lat: number;
   lng: number;
-  shippingResult: ShippingFeeResult;
+  shipping: CartShippingCalculateResult;
+  regionId: string | null;
 }

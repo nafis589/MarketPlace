@@ -3,21 +3,28 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { Loader2 } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
-import { api, ApiClientError } from '@/lib/api-client';
+import { ApiClientError } from '@/lib/api-client';
+import type { ApiError } from '@/lib/types';
 import type {
   LocationSelectResult,
   ShippingCalculateResponse,
   ShippingFeeError,
+  CartShippingCalculateResult,
 } from '@/lib/types';
-import ShippingInfoCard from './ShippingInfoCard';
+import CartShippingSummaryCard from './CartShippingSummaryCard';
 import MapSearchBar from './MapSearchBar';
 
 const LOME_CENTER: [number, number] = [6.1375, 1.2123];
 
+interface ValidateLocationResponse {
+  data: {
+    isInTogo: boolean;
+    region?: { id: string; name: string; capital: string };
+  };
+}
+
 interface DeliveryMapProps {
-  vendorId: string;
   onLocationSelect: (result: LocationSelectResult) => void;
   onError?: (error: ShippingFeeError | null) => void;
   onCalculatingChange?: (isCalculating: boolean) => void;
@@ -33,7 +40,6 @@ function MapClickHandler({ onSelect }: { onSelect: (lat: number, lng: number) =>
   return null;
 }
 
-/** Expose l'instance Leaflet au parent via ref. */
 function MapRefBinder({ mapRef }: { mapRef: React.MutableRefObject<L.Map | null> }) {
   const map = useMap();
   useEffect(() => {
@@ -46,7 +52,6 @@ function MapRefBinder({ mapRef }: { mapRef: React.MutableRefObject<L.Map | null>
 }
 
 export default function DeliveryMap({
-  vendorId,
   onLocationSelect,
   onError,
   onCalculatingChange,
@@ -55,10 +60,31 @@ export default function DeliveryMap({
   fullscreen = false,
 }: DeliveryMapProps) {
   const [position, setPosition] = useState<[number, number] | null>(null);
-  const [successResult, setSuccessResult] = useState<LocationSelectResult['shippingResult'] | null>(null);
+  const [successResult, setSuccessResult] = useState<CartShippingCalculateResult | null>(null);
+  const [isOutsideTogo, setIsOutsideTogo] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(false);
 
   const mapRef = useRef<L.Map | null>(null);
+
+  async function shippingPost<T>(path: string, body: unknown): Promise<T> {
+    const res = await fetch(`/api/shipping${path}`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const json = (await res.json()) as T | ApiError;
+    if (!res.ok) {
+      const err = json as ApiError;
+      throw new ApiClientError(
+        err.error?.code ?? 'UNKNOWN_ERROR',
+        err.error?.message ?? 'Erreur serveur',
+        res.status,
+      );
+    }
+    return json as T;
+  }
 
   useEffect(() => {
     delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl;
@@ -72,21 +98,55 @@ export default function DeliveryMap({
   const calculateShipping = useCallback(
     async (lat: number, lng: number) => {
       setIsCalculating(true);
+      setPanelOpen(true);
       onCalculatingChange?.(true);
       setSuccessResult(null);
+      setIsOutsideTogo(false);
+
       try {
-        const { data } = await api.post<ShippingCalculateResponse>(
-          '/api/store/shipping/calculate',
-          { vendor_id: vendorId, client_lat: lat, client_lng: lng },
-        );
-        if (data.error) {
-          onError?.(data.error);
+        const [{ data: shippingData }, { data: locationData }] = await Promise.all([
+          shippingPost<ShippingCalculateResponse>('/calculate', {
+            client_lat: lat,
+            client_lng: lng,
+          }),
+          shippingPost<ValidateLocationResponse>('/validate-location', {
+            lat,
+            lng,
+          }),
+        ]);
+
+        const regionId = locationData.region?.id ?? null;
+        const outsideTogo =
+          !locationData.isInTogo ||
+          (shippingData.vendors.length > 0 &&
+            shippingData.vendors.every(
+              (v) => v.shipping.error?.code === 'LOCATION_OUTSIDE_TOGO',
+            ));
+
+        setIsOutsideTogo(outsideTogo);
+        setSuccessResult(outsideTogo ? null : shippingData);
+
+        if (outsideTogo || !shippingData.summary.can_checkout) {
+          const blockedMessage = outsideTogo
+            ? 'Votre position est hors du Togo.'
+            : (shippingData.vendors.find((v) => v.shipping.error)?.shipping.error?.message ??
+              'Aucun vendeur ne peut livrer à cette adresse.');
+          onError?.({
+            code: outsideTogo ? 'LOCATION_OUTSIDE_TOGO' : 'REGION_NOT_COVERED',
+            message: blockedMessage,
+          });
         } else {
           onError?.(null);
-          setSuccessResult(data);
-          onLocationSelect({ lat, lng, shippingResult: data });
         }
+
+        onLocationSelect({
+          lat,
+          lng,
+          shipping: shippingData,
+          regionId,
+        });
       } catch (err) {
+        setPanelOpen(false);
         const message =
           err instanceof ApiClientError
             ? err.message
@@ -100,7 +160,7 @@ export default function DeliveryMap({
         onCalculatingChange?.(false);
       }
     },
-    [vendorId, onLocationSelect, onError, onCalculatingChange],
+    [onLocationSelect, onError, onCalculatingChange],
   );
 
   const selectPosition = useCallback(
@@ -154,14 +214,13 @@ export default function DeliveryMap({
   };
 
   const mapHeight = fullscreen ? 'calc(100vh - 62px)' : '380px';
+  const showPanel = panelOpen && (isCalculating || isOutsideTogo || successResult);
 
   return (
-    <div className="relative w-full h-full" style={{ height: mapHeight }}>
-      {/* Barre de recherche — décalée après les contrôles zoom Leaflet (≈46px) */}
+    <div className="relative w-full h-full overflow-hidden" style={{ height: mapHeight }}>
       <div
         className={[
           'absolute top-3 sm:top-4 z-[1000] pointer-events-auto',
-          /* left: zoom + marge · right: bord carte (ou bouton flèche mobile) · max-w pour ne pas traverser la colonne */
           'left-[3.25rem] sm:left-14',
           fullscreen
             ? 'right-4 max-lg:right-[4.25rem] lg:max-w-md xl:max-w-lg'
@@ -185,27 +244,20 @@ export default function DeliveryMap({
         </MapContainer>
       </div>
 
-      {/* Overlay bas de carte : chargement ou carte d'infos */}
-      {(isCalculating || successResult) && (
+      {showPanel && (
         <div
           className={[
             'absolute bottom-0 left-0 z-[500] p-4 pointer-events-none',
+            'max-h-[45%] flex flex-col justify-end',
             fullscreen ? 'right-20 lg:right-0' : 'right-0',
           ].join(' ')}
         >
-          {isCalculating && (
-            <div className="pointer-events-auto bg-white/95 rounded-lg shadow-md border border-[#EBEBEB] px-4 py-3 text-sm text-[#666] flex items-center gap-2">
-              <Loader2 size={16} className="animate-spin shrink-0 text-[#1A1A1A]" />
-              Calcul des frais en cours…
-            </div>
-          )}
-
-          {!isCalculating && successResult && (
-            <ShippingInfoCard
-              result={successResult}
-              onClose={() => setSuccessResult(null)}
-            />
-          )}
+          <CartShippingSummaryCard
+            result={successResult}
+            isCalculating={isCalculating}
+            isOutsideTogo={isOutsideTogo}
+            onClose={() => setPanelOpen(false)}
+          />
         </div>
       )}
     </div>

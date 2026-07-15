@@ -13,6 +13,7 @@ import { useAuth } from './AuthContext';
 
 interface CartContextType {
   items: CartItem[];
+  cartId: string | null;
   total: number;
   count: number;
   isLoading: boolean;
@@ -29,11 +30,13 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 function applyCartData(
-  data: { items: CartItem[]; total: number; itemCount: number },
+  data: { id: string; items: CartItem[]; total: number; itemCount: number },
+  setCartId: (id: string | null) => void,
   setItems: (items: CartItem[]) => void,
   setTotal: (total: number) => void,
   setCount: (count: number) => void,
 ) {
+  setCartId(data.id);
   setItems(data.items);
   setTotal(data.total);
   setCount(data.itemCount);
@@ -42,6 +45,7 @@ function applyCartData(
 export function CartProvider({ children }: { children: ReactNode }) {
   const { isLoggedIn, isLoading: authLoading } = useAuth();
   const [items, setItems] = useState<CartItem[]>([]);
+  const [cartId, setCartId] = useState<string | null>(null);
   const [total, setTotal] = useState(0);
   const [count, setCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -50,8 +54,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const refresh = useCallback(async () => {
     try {
       const { data } = await cartApi.getCart();
-      applyCartData(data, setItems, setTotal, setCount);
+      applyCartData(data, setCartId, setItems, setTotal, setCount);
     } catch {
+      setCartId(null);
       setItems([]);
       setTotal(0);
       setCount(0);
@@ -71,7 +76,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const addItem = useCallback(
     async (productId: string, quantity = 1) => {
       const { data } = await cartApi.addItem(productId, quantity);
-      applyCartData(data, setItems, setTotal, setCount);
+      applyCartData(data, setCartId, setItems, setTotal, setCount);
     },
     [],
   );
@@ -89,7 +94,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const updateQuantity = useCallback(async (itemId: string, qty: number) => {
     if (qty < 1) {
       const { data } = await cartApi.removeItem(itemId);
-      applyCartData(data, setItems, setTotal, setCount);
+      applyCartData(data, setCartId, setItems, setTotal, setCount);
       return;
     }
     const { data } = await cartApi.updateItem(itemId, qty);
@@ -105,6 +110,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     <CartContext.Provider
       value={{
         items,
+        cartId,
         total,
         count,
         isLoading,

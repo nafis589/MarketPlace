@@ -93,6 +93,9 @@ export function formatShippingMethodLabel(order: StoreOrder | StoreOrderDetail):
 }
 
 export function formatShippingSummary(order: StoreOrder | StoreOrderDetail): string {
+  if (order.shipping_detail) {
+    return `${order.shipping_detail} — ${formatPrice(order.shipping_fee)}`;
+  }
   return `${formatShippingMethodLabel(order)} — ${formatPrice(order.shipping_fee)}`;
 }
 

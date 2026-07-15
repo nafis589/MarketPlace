@@ -22,8 +22,8 @@ import { getLineTotal, hasOfferDiscount, cartApi, type CartItem, type CartItemVe
 import { ordersApi, type StoreOrder } from '@/lib/orders-api';
 import { ApiClientError } from '@/lib/api-client';
 import { formatOrderRef } from '@/app/lib/order-utils';
-import { DEMO_VENDOR_ID } from '@/lib/demo-vendor';
-import type { LocationSelectResult, ShippingFeeError, ShippingMethod } from '@/lib/types';
+import type { LocationSelectResult, ShippingFeeError, CartShippingCalculateResult } from '@/lib/types';
+import CheckoutOrderSummary from '@/app/components/checkout/CheckoutOrderSummary';
 
 const DeliveryMap = dynamic(() => import('@/app/components/checkout/DeliveryMap'), {
     ssr: false,
@@ -58,24 +58,16 @@ export default function CheckoutPage() {
     const [notes, setNotes]         = useState('');
 
     // Step 2 shipping (carte + calcul backend)
-    const [shippingFee, setShippingFee]               = useState<number | null>(null);
-    const [shippingMethod, setShippingMethod]         = useState<ShippingMethod | null>(null);
-    const [shippingDistanceKm, setShippingDistanceKm] = useState<number | null>(null);
+    const [shippingResult, setShippingResult]         = useState<CartShippingCalculateResult | null>(null);
+    const [selectedPosition, setSelectedPosition]     = useState<{ lat: number; lng: number; addressLabel: string | null } | null>(null);
     const [shippingRegionId, setShippingRegionId]     = useState<string | null>(null);
     const [shippingError, setShippingError]           = useState<string | null>(null);
-    const [selectedCoords, setSelectedCoords]         = useState<{ lat: number; lng: number } | null>(null);
-    const [placeName, setPlaceName]                   = useState<string>('');
     const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
     const [geolocateSignal, setGeolocateSignal]       = useState(0);
     const [isGeolocating, setIsGeolocating]           = useState(false);
     const [isSubmitting, setIsSubmitting]             = useState(false);
     const [placedOrder, setPlacedOrder]               = useState<StoreOrder | null>(null);
-    const [orderSnapshot, setOrderSnapshot]           = useState<{
-        lineCount: number;
-        itemsSubtotal: number;
-        shippingFee: number;
-        grandTotal: number;
-    } | null>(null);
+    const [confirmedShippingResult, setConfirmedShippingResult] = useState<CartShippingCalculateResult | null>(null);
 
     const [sellerOpen, setSellerOpen] = useState<Record<string, boolean>>({});
     const isSellerOpen = (id: string) => sellerOpen[id] ?? false;
@@ -104,10 +96,7 @@ export default function CheckoutPage() {
         return groups;
     }, [items]);
 
-    const shippingVendorId =
-        itemsByVendor[0]?.vendorId && !itemsByVendor[0].vendorId.startsWith('unknown-')
-            ? itemsByVendor[0].vendorId
-            : DEMO_VENDOR_ID;
+    const recapShippingResult = step === 3 ? (confirmedShippingResult ?? shippingResult) : shippingResult;
 
     useEffect(() => {
         if (!user) return;
@@ -147,63 +136,47 @@ export default function CheckoutPage() {
     }, [step, items.length]);
 
     const handleLocationSelect = (result: LocationSelectResult) => {
-        setSelectedCoords({ lat: result.lat, lng: result.lng });
-        setShippingFee(result.shippingResult.fee);
-        setShippingMethod(result.shippingResult.method);
-        setShippingDistanceKm(result.shippingResult.distanceKm ?? null);
-        setShippingRegionId(result.shippingResult.regionId ?? null);
-        setShippingError(null);
-    };
-
-    const handleShippingError = (error: ShippingFeeError | null) => {
-        if (error) {
-            setShippingFee(null);
-            setShippingMethod(null);
-            setShippingDistanceKm(null);
-            setShippingRegionId(null);
-            setSelectedCoords(null);
-            setShippingError(error.message);
-        } else {
+        setSelectedPosition({ lat: result.lat, lng: result.lng, addressLabel: null });
+        setShippingResult(result.shipping);
+        setShippingRegionId(result.regionId);
+        if (result.shipping.summary.can_checkout) {
             setShippingError(null);
         }
     };
 
+    const handleShippingError = (error: ShippingFeeError | null) => {
+        setShippingError(error?.message ?? null);
+    };
+
     useEffect(() => {
-        if (!selectedCoords) {
-            setPlaceName('');
-            return;
-        }
+        if (!selectedPosition) return;
         let cancelled = false;
-        void reverseGeocode(selectedCoords.lat, selectedCoords.lng).then((name) => {
-            if (!cancelled) setPlaceName(name);
+        void reverseGeocode(selectedPosition.lat, selectedPosition.lng).then((name) => {
+            if (!cancelled) {
+                setSelectedPosition((prev) =>
+                    prev ? { ...prev, addressLabel: name || null } : prev,
+                );
+            }
         });
         return () => {
             cancelled = true;
         };
-    }, [selectedCoords]);
+    }, [selectedPosition?.lat, selectedPosition?.lng]);
 
     const totalItemsPrice = total;
-    const grandTotal = shippingFee !== null ? totalItemsPrice + shippingFee : null;
-    const recapLineCount = orderSnapshot?.lineCount ?? items.length;
-    const recapItemsSubtotal = orderSnapshot?.itemsSubtotal ?? totalItemsPrice;
-    const recapShippingFee = orderSnapshot?.shippingFee ?? shippingFee;
-    const recapGrandTotal =
-        orderSnapshot?.grandTotal ??
-        (placedOrder ? placedOrder.total_amount : grandTotal);
+
     const canConfirm =
-        shippingFee !== null &&
-        shippingFee > 0 &&
-        !shippingError &&
-        selectedCoords !== null &&
+        shippingResult?.summary.can_checkout === true &&
+        selectedPosition !== null &&
         !!firstName.trim() &&
         !!lastName.trim() &&
         !!phone.trim() &&
-        !!shippingRegionId &&
-        shippingMethod !== null;
+        !!shippingRegionId;
 
     const confirmHint = (() => {
-        if (shippingError) return null;
-        if (shippingFee === null) return 'Sélectionnez votre adresse sur la carte';
+        if (shippingError && !shippingResult?.summary.can_checkout) return null;
+        if (!shippingResult) return 'Sélectionnez votre adresse sur la carte';
+        if (!shippingResult.summary.can_checkout) return 'Aucun vendeur ne peut livrer à cette adresse';
         if (!firstName.trim() || !lastName.trim()) return 'Renseignez votre prénom et votre nom';
         if (!phone.trim()) return 'Renseignez votre numéro de téléphone';
         if (!shippingRegionId) return 'Adresse de livraison invalide — recliquez sur la carte';
@@ -211,7 +184,7 @@ export default function CheckoutPage() {
     })();
 
     const handleConfirmOrder = async () => {
-        if (!canConfirm || !selectedCoords || shippingFee === null || !shippingMethod || !shippingRegionId) return;
+        if (!canConfirm || !selectedPosition || !shippingResult || !shippingRegionId) return;
         if (!isLoggedIn) {
             openLogin();
             return;
@@ -224,6 +197,16 @@ export default function CheckoutPage() {
                 return;
             }
 
+            const vendor_shippings = shippingResult.vendors
+                .filter((v) => !v.shipping.error)
+                .map((v) => ({
+                    vendor_id: v.vendor_id,
+                    shipping_fee: v.shipping.fee,
+                    shipping_method: v.shipping.method,
+                    shipping_distance_km: v.shipping.distanceKm ?? null,
+                    shipping_detail: v.shipping.detail,
+                }));
+
             const { data } = await ordersApi.placeOrder({
                 payment_method: 'CASH_ON_DELIVERY',
                 shipping_address: {
@@ -231,22 +214,15 @@ export default function CheckoutPage() {
                     last_name: lastName,
                     phone,
                     notes: notes || null,
-                    latitude: selectedCoords.lat,
-                    longitude: selectedCoords.lng,
+                    latitude: selectedPosition.lat,
+                    longitude: selectedPosition.lng,
                     region_id: shippingRegionId,
-                    address_label: placeName || null,
+                    address_label: selectedPosition.addressLabel || null,
                 },
-                shipping_fee: shippingFee,
-                shipping_method: shippingMethod,
-                shipping_distance_km: shippingDistanceKm,
+                vendor_shippings,
             });
             const order = data.orders[0] ?? null;
-            setOrderSnapshot({
-                lineCount: items.length,
-                itemsSubtotal: total,
-                shippingFee,
-                grandTotal: total + shippingFee,
-            });
+            setConfirmedShippingResult(shippingResult);
             setPlacedOrder(order);
             await refreshCart();
             setShowMobileForm(false);
@@ -442,7 +418,6 @@ export default function CheckoutPage() {
                             showMobileForm && 'max-lg:hidden',
                         )}>
                             <DeliveryMap
-                                vendorId={shippingVendorId}
                                 onLocationSelect={handleLocationSelect}
                                 onError={handleShippingError}
                                 onCalculatingChange={setIsCalculatingShipping}
@@ -667,42 +642,12 @@ export default function CheckoutPage() {
 
                                 <hr className="border-[#E0E0E0]" />
 
-                                {/* Order summary */}
+                                <CheckoutOrderSummary
+                                    shippingResult={shippingResult}
+                                    isCalculating={isCalculatingShipping}
+                                />
+
                                 <div className="space-y-4">
-                                    <h3 className="text-[16px] font-bold text-[#1A1A1A]">
-                                        Récapitulatif commande
-                                    </h3>
-                                    <div className="space-y-3">
-                                        <div className="flex justify-between text-[14px] text-[#1A1A1A]">
-                                            <span>
-                                                Articles ({items.length} article{items.length > 1 ? 's' : ''})
-                                            </span>
-                                            <span className="font-medium">{formatFcfa(totalItemsPrice)}</span>
-                                        </div>
-
-                                        <div className="flex justify-between text-[14px] text-[#1A1A1A]">
-                                            <span>Livraison</span>
-                                            {isCalculatingShipping ? (
-                                                <span className="flex items-center gap-1.5 text-[#777]">
-                                                    <Loader2 size={13} className="animate-spin" /> Calcul…
-                                                </span>
-                                            ) : shippingFee !== null ? (
-                                                <span className="font-medium">{formatFcfa(shippingFee)}</span>
-                                            ) : (
-                                                <span className="text-[13px] text-[#999]">Sélectionnez une adresse</span>
-                                            )}
-                                        </div>
-
-                                        <hr className="border-[#E0E0E0]" />
-
-                                        <div className="flex justify-between items-baseline">
-                                            <span className="text-[15px] font-bold text-[#1A1A1A]">Total</span>
-                                            <span className="text-[24px] font-bold text-[#1A1A1A]">
-                                                {grandTotal !== null ? formatFcfa(grandTotal) : '—'}
-                                            </span>
-                                        </div>
-                                    </div>
-
                                     <button
                                         onClick={handleConfirmOrder}
                                         disabled={!canConfirm || isSubmitting}
@@ -715,6 +660,13 @@ export default function CheckoutPage() {
                                     {!canConfirm && confirmHint && (
                                         <p className="text-center text-[12px] text-[#999]">
                                             {confirmHint}
+                                        </p>
+                                    )}
+                                    {shippingResult?.summary.has_errors && shippingResult.summary.can_checkout && (
+                                        <p className="text-center text-[12px] text-amber-600 leading-relaxed">
+                                            ⚠️ Certains vendeurs ne livrent pas à cette adresse.
+                                            <br />
+                                            Seuls les articles livrables seront commandés.
                                         </p>
                                     )}
                                     {shippingError && (
@@ -759,11 +711,11 @@ export default function CheckoutPage() {
                                         <p className="text-[14px] font-medium text-[#1A1A1A]">{phone || '—'}</p>
                                     </div>
 
-                                    {selectedCoords && (
+                                    {selectedPosition && (
                                         <div className="bg-white border border-[#EBEBEB] px-4 py-3">
                                             <p className="text-[10px] font-bold uppercase tracking-widest text-[#BBBBBB] mb-1">Position de livraison</p>
                                             <p className="text-[13px] font-medium text-[#1A1A1A]">
-                                                {placeName || 'Localisation en cours…'}
+                                                {selectedPosition.addressLabel || 'Localisation en cours…'}
                                             </p>
                                         </div>
                                     )}
@@ -778,33 +730,10 @@ export default function CheckoutPage() {
 
                                 <hr className="border-[#E0E0E0]" />
 
-                                {/* Récapitulatif final */}
-                                <div className="space-y-4">
-                                    <h3 className="text-[16px] font-bold text-[#1A1A1A]">
-                                        Récapitulatif final
-                                    </h3>
-                                    <div className="space-y-3">
-                                        <div className="flex justify-between text-[14px] text-[#1A1A1A]">
-                                            <span>
-                                                Articles ({recapLineCount} article{recapLineCount > 1 ? 's' : ''})
-                                            </span>
-                                            <span className="font-medium">{formatFcfa(recapItemsSubtotal)}</span>
-                                        </div>
-                                        <div className="flex justify-between text-[14px] text-[#1A1A1A]">
-                                            <span>Livraison</span>
-                                            <span className="font-medium">
-                                                {recapShippingFee !== null ? formatFcfa(recapShippingFee) : '—'}
-                                            </span>
-                                        </div>
-                                        <hr className="border-[#E0E0E0]" />
-                                        <div className="flex justify-between items-baseline">
-                                            <span className="text-[15px] font-bold text-[#1A1A1A]">Total</span>
-                                            <span className="text-[24px] font-bold text-[#1A1A1A]">
-                                                {recapGrandTotal !== null ? formatFcfa(recapGrandTotal) : '—'}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
+                                <CheckoutOrderSummary
+                                    shippingResult={recapShippingResult}
+                                    title="Récapitulatif final"
+                                />
                             </div>
                         </div>
                     )}

@@ -56,6 +56,7 @@ export interface StoreOrder {
   shipping_region_id: string;
   shipping_method: ShippingMethod;
   shipping_distance_km: number | null;
+  shipping_detail: string | null;
   tracking_number: string | null;
   created_at: string;
   updated_at: string;
@@ -74,12 +75,18 @@ export interface StoreOrderDetail extends StoreOrder {
   vendor: OrderVendorSummary;
 }
 
-export interface PlaceOrderPayload {
-  payment_method: 'CASH_ON_DELIVERY' | 'BANK_TRANSFER';
-  shipping_address: ShippingAddress;
+export interface VendorShippingPayload {
+  vendor_id: string;
   shipping_fee: number;
   shipping_method: ShippingMethod;
   shipping_distance_km?: number | null;
+  shipping_detail: string;
+}
+
+export interface PlaceOrderPayload {
+  payment_method: 'CASH_ON_DELIVERY' | 'BANK_TRANSFER';
+  shipping_address: ShippingAddress;
+  vendor_shippings: VendorShippingPayload[];
 }
 
 interface PaginationMeta {

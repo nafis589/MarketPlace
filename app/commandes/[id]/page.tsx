@@ -213,17 +213,20 @@ export default function CommandeDetailPage({ params }: PageProps) {
               </section>
 
               <section className="border border-gray-200 rounded-2xl p-5 md:p-7 mb-6">
-                <div className="flex flex-col gap-2 text-sm max-w-sm ml-auto">
-                  <div className="flex justify-between text-gray-600">
-                    <span>Sous-total articles</span>
+                <div className="flex flex-col gap-2 text-sm max-w-md ml-auto">
+                  <div className="flex justify-between gap-4 text-gray-600">
+                    <span>Articles</span>
                     <span>{formatPrice(subtotal)}</span>
                   </div>
-                  <div className="flex justify-between text-gray-600">
-                    <span>Livraison</span>
-                    <span>{formatPrice(order.shipping_fee)}</span>
+                  <div className="flex justify-between gap-4 text-gray-600">
+                    <span className="min-w-0 pr-2">
+                      Livraison
+                      {order.shipping_detail ? ` (${order.shipping_detail})` : ''}
+                    </span>
+                    <span className="shrink-0">{formatPrice(order.shipping_fee)}</span>
                   </div>
                   <div className="flex justify-between font-bold text-base pt-2 border-t border-gray-200">
-                    <span>Total</span>
+                    <span>Total commande</span>
                     <span>{formatPrice(order.total_amount)}</span>
                   </div>
                 </div>
