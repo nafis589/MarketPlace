@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000';
 const ACCESS_TOKEN = 'access_token';
 const SESSION_COOKIE = 'session_id';
 const SESSION_MAX_AGE = 30 * 24 * 60 * 60;

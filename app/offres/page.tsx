@@ -12,6 +12,7 @@ import { useCart } from '@/app/context/CartContext';
 import { useToast } from '@/app/components/ui/Toast';
 import { useNotifications } from '@/app/context/NotificationContext';
 import { offersApi, type OfferStatus, type StoreOffer } from '@/lib/offers-api';
+import { ApiClientError } from '@/lib/api-client';
 import { formatPrice } from '@/app/utils/formatPrice';
 import { PRODUCT_IMAGE_PLACEHOLDER } from '@/app/lib/mapHomeProduct';
 
@@ -151,13 +152,18 @@ export default function OffresPage() {
   const handleOrderNow = async (offerId: string, options?: { acceptCounterFirst?: boolean }) => {
     setActionId(offerId);
     try {
-      if (options?.acceptCounterFirst) {
+      const current = offers.find((o) => o.id === offerId);
+      if (options?.acceptCounterFirst && current?.status === 'COUNTER') {
         await offersApi.acceptCounter(offerId);
       }
       await addOfferItem(offerId);
       router.push('/checkout');
-    } catch {
-      showToast('Impossible de commander cette offre pour le moment.');
+    } catch (err) {
+      const message =
+        err instanceof ApiClientError
+          ? err.message
+          : 'Impossible de commander cette offre pour le moment.';
+      showToast(message);
       await load();
     } finally {
       setActionId(null);

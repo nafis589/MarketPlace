@@ -37,9 +37,9 @@ function applyCartData(
   setCount: (count: number) => void,
 ) {
   setCartId(data.id);
-  setItems(data.items);
-  setTotal(data.total);
-  setCount(data.itemCount);
+  setItems(Array.isArray(data.items) ? data.items : []);
+  setTotal(typeof data.total === 'number' ? data.total : 0);
+  setCount(typeof data.itemCount === 'number' ? data.itemCount : 0);
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
@@ -83,12 +83,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addOfferItem = useCallback(async (offerId: string) => {
     const { data } = await cartApi.addOfferItem(offerId);
-    applyCartData(data, setItems, setTotal, setCount);
+    applyCartData(data, setCartId, setItems, setTotal, setCount);
   }, []);
 
   const removeItem = useCallback(async (itemId: string) => {
     const { data } = await cartApi.removeItem(itemId);
-    applyCartData(data, setItems, setTotal, setCount);
+    applyCartData(data, setCartId, setItems, setTotal, setCount);
   }, []);
 
   const updateQuantity = useCallback(async (itemId: string, qty: number) => {
@@ -98,12 +98,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return;
     }
     const { data } = await cartApi.updateItem(itemId, qty);
-    applyCartData(data, setItems, setTotal, setCount);
+    applyCartData(data, setCartId, setItems, setTotal, setCount);
   }, []);
 
   const clearCart = useCallback(async () => {
     const { data } = await cartApi.clearCart();
-    applyCartData(data, setItems, setTotal, setCount);
+    applyCartData(data, setCartId, setItems, setTotal, setCount);
   }, []);
 
   return (

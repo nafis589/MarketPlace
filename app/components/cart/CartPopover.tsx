@@ -18,10 +18,12 @@ interface CartPopoverProps {
 
 const CartPopover: React.FC<CartPopoverProps> = ({ isOpen, onClose }) => {
     const router = useRouter();
-    const { items, total, updateQuantity, removeItem } = useCart();
+    const { items, total, updateQuantity, removeItem, refresh } = useCart();
     const { user } = useAuth();
     const [mounted, setMounted] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
+
+    const cartItems = Array.isArray(items) ? items : [];
 
     useEffect(() => {
         setMounted(true);
@@ -31,11 +33,15 @@ const CartPopover: React.FC<CartPopoverProps> = ({ isOpen, onClose }) => {
         return () => window.removeEventListener('resize', check);
     }, []);
 
+    useEffect(() => {
+        if (isOpen) void refresh();
+    }, [isOpen, refresh]);
+
     // Un vendeur ne peut pas acheter ses propres articles : on les retire du panier à l'ouverture.
     useEffect(() => {
         if (!isOpen) return;
         if (user?.role !== 'VENDOR' || !user?.vendorId) return;
-        const ownItems = items.filter((item) => item.product?.vendor?.id === user.vendorId);
+        const ownItems = cartItems.filter((item) => item.product?.vendor?.id === user.vendorId);
         if (ownItems.length === 0) return;
         (async () => {
             for (const item of ownItems) {
@@ -46,7 +52,7 @@ const CartPopover: React.FC<CartPopoverProps> = ({ isOpen, onClose }) => {
                 }
             }
         })();
-    }, [isOpen, items, user, removeItem]);
+    }, [isOpen, cartItems, user, removeItem]);
 
     useLockBodyScroll(isOpen && isMobile);
 
@@ -70,11 +76,11 @@ const CartPopover: React.FC<CartPopoverProps> = ({ isOpen, onClose }) => {
                 </button>
             </div>
             <div className="flex-1 overflow-y-auto px-5 py-2 md:max-h-[400px]">
-                {items.length === 0 ? (
+                {cartItems.length === 0 ? (
                     <div className="py-10 text-center text-gray-500 text-sm">Votre panier est vide</div>
                 ) : (
-                    items.map((item, index) => (
-                        <div key={item.id} className={`flex gap-4 py-4 ${index !== items.length - 1 ? 'border-b border-gray-100' : ''}`}>
+                    cartItems.map((item, index) => (
+                        <div key={item.id} className={`flex gap-4 py-4 ${index !== cartItems.length - 1 ? 'border-b border-gray-100' : ''}`}>
                             <div className="h-20 w-16 shrink-0 bg-gray-50">
                                 <img
                                     src={item.product.primary_image || PRODUCT_IMAGE_PLACEHOLDER}
@@ -140,7 +146,7 @@ const CartPopover: React.FC<CartPopoverProps> = ({ isOpen, onClose }) => {
                     <span className="font-bold text-gray-900">Total</span>
                     <span className="font-bold text-gray-900">{formatPrice(total)}</span>
                 </div>
-                {items.length > 0 && (
+                {cartItems.length > 0 && (
                     <button
                         type="button"
                         onClick={handleCheckout}
