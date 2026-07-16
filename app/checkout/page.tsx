@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import {
-    LocateFixed,
     CircleCheckBig,
     ChevronDown,
     ChevronUp,
@@ -22,8 +21,11 @@ import { getLineTotal, hasOfferDiscount, cartApi, type CartItem, type CartItemVe
 import { ordersApi, type StoreOrder } from '@/lib/orders-api';
 import { ApiClientError } from '@/lib/api-client';
 import { formatOrderRef } from '@/app/lib/order-utils';
-import type { LocationSelectResult, ShippingFeeError, CartShippingCalculateResult } from '@/lib/types';
+import type { LocationSelectResult, CartShippingCalculateResult } from '@/lib/types';
 import CheckoutOrderSummary from '@/app/components/checkout/CheckoutOrderSummary';
+import { formatPrice as formatFcfa } from '@/app/utils/formatPrice';
+import { PRODUCT_IMAGE_PLACEHOLDER } from '@/app/lib/mapHomeProduct';
+import { reverseGeocode } from '@/lib/nominatim';
 
 const DeliveryMap = dynamic(() => import('@/app/components/checkout/DeliveryMap'), {
     ssr: false,
@@ -38,9 +40,42 @@ function cx(...classes: (string | boolean | undefined | null)[]) {
     return classes.filter(Boolean).join(' ');
 }
 
-import { formatPrice as formatFcfa } from '@/app/utils/formatPrice';
-import { PRODUCT_IMAGE_PLACEHOLDER } from '@/app/lib/mapHomeProduct';
-import { reverseGeocode } from '@/lib/nominatim';
+type DeliveryFieldErrors = {
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+};
+
+function validateDeliveryInfo(
+    firstName: string,
+    lastName: string,
+    phone: string,
+): DeliveryFieldErrors {
+    const errors: DeliveryFieldErrors = {};
+    const trimmedFirstName = firstName.trim();
+    const trimmedLastName = lastName.trim();
+    const normalizedPhone = phone.trim().replace(/\s/g, '');
+
+    if (!trimmedFirstName) {
+        errors.firstName = 'Le prénom est requis';
+    } else if (trimmedFirstName.length < 2) {
+        errors.firstName = 'Minimum 2 caractères';
+    }
+
+    if (!trimmedLastName) {
+        errors.lastName = 'Le nom est requis';
+    } else if (trimmedLastName.length < 2) {
+        errors.lastName = 'Minimum 2 caractères';
+    }
+
+    if (!normalizedPhone) {
+        errors.phone = 'Le téléphone est requis';
+    } else if (!/^(\+228|228)?[0-9]{8}$/.test(normalizedPhone)) {
+        errors.phone = 'Numéro invalide (8 chiffres)';
+    }
+
+    return errors;
+}
 
 export default function CheckoutPage() {
     const router = useRouter();
@@ -61,10 +96,8 @@ export default function CheckoutPage() {
     const [shippingResult, setShippingResult]         = useState<CartShippingCalculateResult | null>(null);
     const [selectedPosition, setSelectedPosition]     = useState<{ lat: number; lng: number; addressLabel: string | null } | null>(null);
     const [shippingRegionId, setShippingRegionId]     = useState<string | null>(null);
-    const [shippingError, setShippingError]           = useState<string | null>(null);
     const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
-    const [geolocateSignal, setGeolocateSignal]       = useState(0);
-    const [isGeolocating, setIsGeolocating]           = useState(false);
+    const [fieldErrors, setFieldErrors]               = useState<DeliveryFieldErrors>({});
     const [isSubmitting, setIsSubmitting]             = useState(false);
     const [placedOrder, setPlacedOrder]               = useState<StoreOrder | null>(null);
     const [confirmedShippingResult, setConfirmedShippingResult] = useState<CartShippingCalculateResult | null>(null);
@@ -139,13 +172,6 @@ export default function CheckoutPage() {
         setSelectedPosition({ lat: result.lat, lng: result.lng, addressLabel: null });
         setShippingResult(result.shipping);
         setShippingRegionId(result.regionId);
-        if (result.shipping.summary.can_checkout) {
-            setShippingError(null);
-        }
-    };
-
-    const handleShippingError = (error: ShippingFeeError | null) => {
-        setShippingError(error?.message ?? null);
     };
 
     useEffect(() => {
@@ -173,17 +199,11 @@ export default function CheckoutPage() {
         !!phone.trim() &&
         !!shippingRegionId;
 
-    const confirmHint = (() => {
-        if (shippingError && !shippingResult?.summary.can_checkout) return null;
-        if (!shippingResult) return 'Sélectionnez votre adresse sur la carte';
-        if (!shippingResult.summary.can_checkout) return 'Aucun vendeur ne peut livrer à cette adresse';
-        if (!firstName.trim() || !lastName.trim()) return 'Renseignez votre prénom et votre nom';
-        if (!phone.trim()) return 'Renseignez votre numéro de téléphone';
-        if (!shippingRegionId) return 'Adresse de livraison invalide — recliquez sur la carte';
-        return null;
-    })();
-
     const handleConfirmOrder = async () => {
+        const errors = validateDeliveryInfo(firstName, lastName, phone);
+        setFieldErrors(errors);
+        if (Object.keys(errors).length > 0) return;
+
         if (!canConfirm || !selectedPosition || !shippingResult || !shippingRegionId) return;
         if (!isLoggedIn) {
             openLogin();
@@ -419,10 +439,7 @@ export default function CheckoutPage() {
                         )}>
                             <DeliveryMap
                                 onLocationSelect={handleLocationSelect}
-                                onError={handleShippingError}
                                 onCalculatingChange={setIsCalculatingShipping}
-                                onGeolocatingChange={setIsGeolocating}
-                                geolocateSignal={geolocateSignal}
                                 fullscreen
                             />
 
@@ -565,53 +582,86 @@ export default function CheckoutPage() {
                                     {/* Prénom + Nom */}
                                     <div className="grid grid-cols-2 gap-3">
                                         <div className="space-y-1.5">
-                                            <label className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wide">
+                                            <label className="flex items-center gap-1.5 text-[13px] font-semibold text-[#1A1A1A]">
                                                 Prénom <span className="text-red-400">*</span>
                                             </label>
                                             <input
                                                 type="text"
                                                 required
                                                 value={firstName}
-                                                onChange={(e) => setFirstName(e.target.value)}
+                                                onChange={(e) => {
+                                                    setFirstName(e.target.value);
+                                                    if (fieldErrors.firstName) {
+                                                        setFieldErrors((prev) => ({ ...prev, firstName: undefined }));
+                                                    }
+                                                }}
                                                 placeholder="Entrez votre prénom"
-                                                className="w-full border border-[#D5D5D5] px-3.5 py-2.5 text-[14px] focus:outline-none focus:border-black transition-all bg-white text-[#1A1A1A] placeholder-[#C5C5C5]"
+                                                className={cx(
+                                                    'w-full border px-3.5 py-2.5 text-[14px] focus:outline-none focus:border-black transition-all bg-white text-[#1A1A1A] placeholder-[#C5C5C5]',
+                                                    fieldErrors.firstName ? 'border-red-400' : 'border-[#D5D5D5]',
+                                                )}
                                             />
+                                            {fieldErrors.firstName && (
+                                                <p className="text-[12px] text-red-600">{fieldErrors.firstName}</p>
+                                            )}
                                         </div>
                                         <div className="space-y-1.5">
-                                            <label className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wide">
+                                            <label className="flex items-center gap-1.5 text-[13px] font-semibold text-[#1A1A1A]">
                                                 Nom <span className="text-red-400">*</span>
                                             </label>
                                             <input
                                                 type="text"
                                                 required
                                                 value={lastName}
-                                                onChange={(e) => setLastName(e.target.value)}
+                                                onChange={(e) => {
+                                                    setLastName(e.target.value);
+                                                    if (fieldErrors.lastName) {
+                                                        setFieldErrors((prev) => ({ ...prev, lastName: undefined }));
+                                                    }
+                                                }}
                                                 placeholder="Entrez votre nom"
-                                                className="w-full border border-[#D5D5D5] px-3.5 py-2.5 text-[14px] focus:outline-none focus:border-black transition-all bg-white text-[#1A1A1A] placeholder-[#C5C5C5]"
+                                                className={cx(
+                                                    'w-full border px-3.5 py-2.5 text-[14px] focus:outline-none focus:border-black transition-all bg-white text-[#1A1A1A] placeholder-[#C5C5C5]',
+                                                    fieldErrors.lastName ? 'border-red-400' : 'border-[#D5D5D5]',
+                                                )}
                                             />
+                                            {fieldErrors.lastName && (
+                                                <p className="text-[12px] text-red-600">{fieldErrors.lastName}</p>
+                                            )}
                                         </div>
                                     </div>
 
                                     {/* Téléphone */}
                                     <div className="space-y-1.5">
-                                        <label className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wide">
+                                        <label className="flex items-center gap-1.5 text-[13px] font-semibold text-[#1A1A1A]">
                                             Téléphone <span className="text-red-400">*</span>
                                         </label>
                                         <input
                                             type="tel"
                                             required
                                             value={phone}
-                                            onChange={(e) => setPhone(e.target.value)}
+                                            onChange={(e) => {
+                                                setPhone(e.target.value);
+                                                if (fieldErrors.phone) {
+                                                    setFieldErrors((prev) => ({ ...prev, phone: undefined }));
+                                                }
+                                            }}
                                             placeholder="Entrez votre numéro de téléphone"
-                                            className="w-full border border-[#D5D5D5] px-3.5 py-2.5 text-[14px] focus:outline-none focus:border-black transition-all bg-white text-[#1A1A1A] placeholder-[#C5C5C5]"
+                                            className={cx(
+                                                'w-full border px-3.5 py-2.5 text-[14px] focus:outline-none focus:border-black transition-all bg-white text-[#1A1A1A] placeholder-[#C5C5C5]',
+                                                fieldErrors.phone ? 'border-red-400' : 'border-[#D5D5D5]',
+                                            )}
                                         />
+                                        {fieldErrors.phone && (
+                                            <p className="text-[12px] text-red-600">{fieldErrors.phone}</p>
+                                        )}
                                     </div>
 
                                     {/* Notes */}
                                     <div className="space-y-1.5">
-                                        <label className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wide">
+                                        <label className="flex items-center gap-1.5 text-[13px] font-semibold text-[#1A1A1A]">
                                             Notes{' '}
-                                            <span className="font-normal normal-case text-[11px]">
+                                            <span className="font-normal normal-case text-[12px] text-[#999]">
                                                 (optionnel)
                                             </span>
                                         </label>
@@ -623,21 +673,6 @@ export default function CheckoutPage() {
                                             className="w-full border border-[#D5D5D5] px-3.5 py-2.5 text-[14px] focus:outline-none focus:border-black transition-all resize-none bg-white text-[#1A1A1A] placeholder-[#C5C5C5]"
                                         />
                                     </div>
-
-                                    {/* Ma position actuelle → déclenche la géoloc dans la carte */}
-                                    <button
-                                        type="button"
-                                        onClick={() => setGeolocateSignal((s) => s + 1)}
-                                        disabled={isGeolocating}
-                                        className="w-full flex items-center justify-center gap-2 border border-[#D5D5D5] bg-white py-2.5 px-4 text-[14px] font-medium text-[#1A1A1A] hover:border-black transition-all disabled:cursor-wait disabled:opacity-70"
-                                    >
-                                        {isGeolocating ? (
-                                            <Loader2 size={14} className="animate-spin" />
-                                        ) : (
-                                            <LocateFixed size={14} strokeWidth={1.5} />
-                                        )}
-                                        Ma position actuelle
-                                    </button>
                                 </div>
 
                                 <hr className="border-[#E0E0E0]" />
@@ -647,37 +682,22 @@ export default function CheckoutPage() {
                                     isCalculating={isCalculatingShipping}
                                 />
 
-                                <div className="space-y-4">
+                                <div className="flex gap-3">
                                     <button
+                                        type="button"
+                                        onClick={() => setStep(1)}
+                                        className="flex-1 border border-black bg-white text-black text-[15px] font-semibold py-4 hover:bg-gray-50 transition-colors"
+                                    >
+                                        ← Retour au panier
+                                    </button>
+                                    <button
+                                        type="button"
                                         onClick={handleConfirmOrder}
                                         disabled={!canConfirm || isSubmitting}
-                                        className="w-full bg-black text-white text-[15px] font-semibold py-4 hover:opacity-90 disabled:bg-[#CCCCCC] disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                                        className="flex-1 bg-black text-white text-[15px] font-semibold py-4 hover:opacity-90 disabled:bg-[#CCCCCC] disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
                                     >
                                         {isSubmitting && <Loader2 size={16} className="animate-spin" />}
                                         Confirmer la commande
-                                    </button>
-
-                                    {!canConfirm && confirmHint && (
-                                        <p className="text-center text-[12px] text-[#999]">
-                                            {confirmHint}
-                                        </p>
-                                    )}
-                                    {shippingResult?.summary.has_errors && shippingResult.summary.can_checkout && (
-                                        <p className="text-center text-[12px] text-amber-600 leading-relaxed">
-                                            ⚠️ Certains vendeurs ne livrent pas à cette adresse.
-                                            <br />
-                                            Seuls les articles livrables seront commandés.
-                                        </p>
-                                    )}
-                                    {shippingError && (
-                                        <p className="text-center text-[12px] text-red-500">{shippingError}</p>
-                                    )}
-
-                                    <button
-                                        onClick={() => setStep(1)}
-                                        className="w-full text-center text-[13px] text-[#BBBBBB] hover:text-[#1A1A1A] hover:underline underline-offset-2 py-1 transition-colors"
-                                    >
-                                        ← Retour au panier
                                     </button>
                                 </div>
                             </div>

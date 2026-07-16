@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { Loader2, LocateFixed, Minus, Plus } from 'lucide-react';
 import { ApiClientError } from '@/lib/api-client';
 import type { ApiError } from '@/lib/types';
 import type {
@@ -63,6 +64,7 @@ export default function DeliveryMap({
   const [successResult, setSuccessResult] = useState<CartShippingCalculateResult | null>(null);
   const [isOutsideTogo, setIsOutsideTogo] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [isGeolocating, setIsGeolocating] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
 
   const mapRef = useRef<L.Map | null>(null);
@@ -183,14 +185,17 @@ export default function DeliveryMap({
 
   const handleGeolocate = useCallback(() => {
     if (!navigator.geolocation) return;
+    setIsGeolocating(true);
     onGeolocatingChange?.(true);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
         selectPosition(latitude, longitude, 15);
+        setIsGeolocating(false);
         onGeolocatingChange?.(false);
       },
       () => {
+        setIsGeolocating(false);
         onGeolocatingChange?.(false);
       },
     );
@@ -218,20 +223,55 @@ export default function DeliveryMap({
 
   return (
     <div className="relative w-full h-full overflow-hidden" style={{ height: mapHeight }}>
-      <div
-        className={[
-          'absolute top-3 sm:top-4 z-[1000] pointer-events-auto',
-          'left-[3.25rem] sm:left-14',
-          fullscreen
-            ? 'right-4 max-lg:right-[4.25rem] lg:max-w-md xl:max-w-lg'
-            : 'right-4 max-w-md',
-        ].join(' ')}
-      >
-        <MapSearchBar onSelect={handleSearchSelect} />
+      <div className="absolute top-3 left-3 right-3 z-[1000] flex items-center gap-2 pointer-events-none">
+        <div className="pointer-events-auto min-w-0 flex-1 max-w-md">
+          <MapSearchBar onSelect={handleSearchSelect} />
+        </div>
+      </div>
+
+      <div className="absolute right-3 top-3 z-[1200] flex flex-col gap-2">
+        <button
+          type="button"
+          onClick={handleGeolocate}
+          disabled={isGeolocating}
+          className="flex size-10 items-center justify-center rounded-sm border border-[#D5D5D5] bg-white text-[#1A1A1A] shadow-sm transition-colors hover:bg-[#F5F5F5] disabled:cursor-wait disabled:opacity-70"
+          aria-label="Ma position actuelle"
+        >
+          {isGeolocating ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <LocateFixed className="size-4" strokeWidth={2} />
+          )}
+        </button>
+
+        <div className="flex flex-col overflow-hidden rounded-sm border border-[#D5D5D5] bg-white shadow-sm">
+          <button
+            type="button"
+            onClick={() => mapRef.current?.zoomIn()}
+            className="flex size-10 items-center justify-center text-[#1A1A1A] transition-colors hover:bg-[#F5F5F5]"
+            aria-label="Zoom avant"
+          >
+            <Plus className="size-4" />
+          </button>
+          <div className="h-px bg-[#E5E5E5]" />
+          <button
+            type="button"
+            onClick={() => mapRef.current?.zoomOut()}
+            className="flex size-10 items-center justify-center text-[#1A1A1A] transition-colors hover:bg-[#F5F5F5]"
+            aria-label="Zoom arrière"
+          >
+            <Minus className="size-4" />
+          </button>
+        </div>
       </div>
 
       <div className="absolute inset-0">
-        <MapContainer center={LOME_CENTER} zoom={8} style={{ height: '100%', width: '100%' }}>
+        <MapContainer
+          center={LOME_CENTER}
+          zoom={8}
+          zoomControl={false}
+          style={{ height: '100%', width: '100%' }}
+        >
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -245,13 +285,7 @@ export default function DeliveryMap({
       </div>
 
       {showPanel && (
-        <div
-          className={[
-            'absolute bottom-0 left-0 z-[500] p-4 pointer-events-none',
-            'max-h-[45%] flex flex-col justify-end',
-            fullscreen ? 'right-20 lg:right-0' : 'right-0',
-          ].join(' ')}
-        >
+        <div className="absolute bottom-3 left-3 right-16 z-[500] flex max-h-[45%] flex-col justify-end pointer-events-none">
           <CartShippingSummaryCard
             result={successResult}
             isCalculating={isCalculating}

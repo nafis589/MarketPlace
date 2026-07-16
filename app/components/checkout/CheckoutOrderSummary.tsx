@@ -81,15 +81,17 @@ export default function CheckoutOrderSummary({
 
       {!isCalculating && shippingResult && (
         <div className="space-y-4">
-          {shippingResult.vendors.map((vendor) => {
+          {shippingResult.vendors.map((vendor, index) => {
             const hasError = !!vendor.shipping.error;
             const subtotal = vendorSubtotal(vendor);
+            const isLast = index === shippingResult.vendors.length - 1;
 
             return (
               <div
                 key={vendor.vendor_id}
                 className={[
-                  'space-y-2.5 pb-4 border-b border-[#E0E0E0] last:border-b-0 last:pb-0',
+                  'space-y-2.5 pb-4',
+                  !isLast ? 'border-b border-[#E0E0E0]' : '',
                   hasError ? 'opacity-60' : '',
                 ].join(' ')}
               >
@@ -98,7 +100,7 @@ export default function CheckoutOrderSummary({
                     {vendor.shop_name}
                   </p>
                   {hasError && (
-                    <span className="shrink-0 text-[10px] font-medium px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
+                    <span className="shrink-0 text-[10px] font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700">
                       Non livrable
                     </span>
                   )}
@@ -120,7 +122,7 @@ export default function CheckoutOrderSummary({
                   ))}
 
                   {hasError ? (
-                    <p className="text-[12px] text-orange-600 pt-1">
+                    <p className="text-[12px] text-red-600 pt-1">
                       {vendor.shipping.error?.message}
                     </p>
                   ) : (
@@ -141,9 +143,7 @@ export default function CheckoutOrderSummary({
             );
           })}
 
-          <hr className="border-[#E0E0E0]" />
-
-          <div className="flex justify-between items-baseline gap-3">
+          <div className="flex justify-between items-baseline gap-3 pt-4 border-t border-[#E0E0E0]">
             <span className="text-[15px] font-bold text-[#1A1A1A]">TOTAL GÉNÉRAL</span>
             <span className="text-[24px] font-bold text-[#1A1A1A]">
               {grandTotal !== null ? formatFcfa(grandTotal) : '—'}

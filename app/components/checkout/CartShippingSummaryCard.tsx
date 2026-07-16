@@ -67,12 +67,11 @@ function VendorShippingBlock({
 
       {hasError ? (
         <div className="space-y-1">
-          {!showShopName && (
-            <p className="text-[14px] font-semibold text-[#1A1A1A] mb-2">{vendor.shop_name}</p>
-          )}
-          <p className="text-[12px] text-orange-600 leading-relaxed">{vendor.shipping.error?.message}</p>
+          <p className="text-[12px] font-medium leading-relaxed text-[#1A1A1A]">
+            {vendor.shipping.error?.message}
+          </p>
           {vendor.shipping.error?.code === 'REGION_NOT_COVERED' && (
-            <p className="text-[12px] text-orange-600 leading-relaxed">
+            <p className="text-[12px] font-medium leading-relaxed text-[#1A1A1A]">
               {formatCoveredRegions(vendor.shipping.error.coveredRegions)}
             </p>
           )}
