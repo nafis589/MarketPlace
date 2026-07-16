@@ -61,13 +61,13 @@ export default async function RootLayout({
           <CartProvider>
             <UIProvider>
               <ChatProvider>
-                <NotificationProvider>
-                  <FavoritesProvider>
-                    <ToastProvider>
+                <ToastProvider>
+                  <NotificationProvider>
+                    <FavoritesProvider>
                       <AppFrame categories={categories}>{children}</AppFrame>
-                    </ToastProvider>
-                  </FavoritesProvider>
-                </NotificationProvider>
+                    </FavoritesProvider>
+                  </NotificationProvider>
+                </ToastProvider>
               </ChatProvider>
             </UIProvider>
           </CartProvider>

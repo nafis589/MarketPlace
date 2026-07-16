@@ -1,13 +1,16 @@
 'use client';
 
-import React, { use, useCallback, useEffect, useState } from 'react';
+import React, { use, useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, MessageCircle, ShoppingCart } from 'lucide-react';
 import Header from '@/app/components/sections/Header';
 import Footer from '@/app/components/sections/Footer';
 import ConfirmModal from '@/app/components/ui/ConfirmModal';
+import { useChat } from '@/app/context/ChatContext';
+import { useToast } from '@/app/components/ui/Toast';
 import { PRODUCT_IMAGE_PLACEHOLDER } from '@/app/lib/mapHomeProduct';
+import { cartApi } from '@/lib/cart-api';
 import { ordersApi, type StoreOrderDetail } from '@/lib/orders-api';
 import {
   TIMELINE_STEPS,
@@ -28,10 +31,13 @@ interface PageProps {
 export default function CommandeDetailPage({ params }: PageProps) {
   const { id } = use(params);
   const router = useRouter();
+  const { openChatWithVendor } = useChat();
+  const { showToast } = useToast();
   const [order, setOrder] = useState<StoreOrderDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [isReordering, setIsReordering] = useState(false);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
 
   const loadOrder = useCallback(async () => {
@@ -68,6 +74,39 @@ export default function CommandeDetailPage({ params }: PageProps) {
 
   const activeStep = order ? getTimelineStep(order.status) : 0;
   const subtotal = order ? getItemsSubtotal(order) : 0;
+
+  const refuseReason = useMemo(() => {
+    if (!order || order.status !== 'REFUSED') return null;
+    const refusedEntry = [...order.status_history]
+      .reverse()
+      .find((entry) => entry.status === 'REFUSED');
+    return refusedEntry?.note?.trim() || null;
+  }, [order]);
+
+  const handleReorder = async () => {
+    if (!order) return;
+    setIsReordering(true);
+    try {
+      for (const item of order.items) {
+        if (!item.product_id) continue;
+        await cartApi.addItem(item.product_id, item.quantity);
+      }
+      router.push('/panier');
+    } catch {
+      showToast('Impossible de remettre les articles au panier');
+    } finally {
+      setIsReordering(false);
+    }
+  };
+
+  const handleContactVendor = async () => {
+    if (!order) return;
+    try {
+      await openChatWithVendor(order.vendor.id);
+    } catch {
+      showToast('Impossible d\'ouvrir la conversation');
+    }
+  };
 
   return (
     <main>
@@ -114,7 +153,44 @@ export default function CommandeDetailPage({ params }: PageProps) {
                 </span>
               </div>
 
-              {order.status !== 'CANCELLED' && (
+              {order.status === 'REFUSED' && (
+                <section className="border border-red-200 rounded-2xl p-5 md:p-7 mb-6 bg-red-50">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="inline-flex size-3 rounded-full bg-[#7F1D1D]" />
+                    <h2 className="text-base font-semibold text-[#7F1D1D]">
+                      Refusée par le vendeur
+                    </h2>
+                  </div>
+                  {refuseReason && (
+                    <p className="text-sm italic text-gray-600 mb-3">Raison : {refuseReason}</p>
+                  )}
+                  <p className="text-sm text-gray-700 mb-4">
+                    Cette commande a été refusée par le vendeur. Le montant ne vous a pas été
+                    débité. Vous pouvez repasser commande ou contacter le vendeur.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <button
+                      type="button"
+                      onClick={() => void handleContactVendor()}
+                      className="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-red-300 text-red-700 text-sm font-medium hover:bg-red-100 transition-colors"
+                    >
+                      <MessageCircle className="size-4" />
+                      Contacter le vendeur
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handleReorder()}
+                      disabled={isReordering}
+                      className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-black text-white text-sm font-medium hover:bg-gray-800 disabled:opacity-50 transition-colors"
+                    >
+                      <ShoppingCart className="size-4" />
+                      {isReordering ? 'Ajout au panier…' : 'Repasser commande'}
+                    </button>
+                  </div>
+                </section>
+              )}
+
+              {order.status !== 'CANCELLED' && order.status !== 'REFUSED' && (
                 <section className="border border-gray-200 rounded-2xl p-5 md:p-7 mb-6">
                   <h2 className="text-base font-semibold mb-6">Suivi de commande</h2>
                   <div className="flex items-center justify-between relative px-2">

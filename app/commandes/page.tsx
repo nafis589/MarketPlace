@@ -24,6 +24,7 @@ const STATUS_TABS: { key: StatusFilter; label: string }[] = [
   { key: 'ACTIVE', label: 'En cours' },
   { key: 'DELIVERED', label: 'Livrées' },
   { key: 'CANCELLED', label: 'Annulées' },
+  { key: 'REFUSED', label: 'Refusées' },
 ];
 
 const ACTIVE_STATUSES: OrderStatus[] = ['CONFIRMED', 'PREPARING', 'SHIPPED'];

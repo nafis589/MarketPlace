@@ -4,6 +4,8 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import { io, type Socket } from 'socket.io-client';
 import { useAuth } from './AuthContext';
 import { notificationsApi, type StoreNotification } from '@/lib/notifications-api';
+import { useToast } from '@/app/components/ui/Toast';
+import { formatOrderRef } from '@/app/lib/order-utils';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000';
 
@@ -36,6 +38,7 @@ const PAGE_SIZE = 20;
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
   const { isLoggedIn, isLoading: authLoading } = useAuth();
+  const { showToast } = useToast();
   const [notifications, setNotifications] = useState<StoreNotification[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -151,6 +154,25 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           prependNotification(payload.notification);
         }
       });
+
+      socket.on(
+        'order:refused',
+        (payload: { orderId?: string; reason?: string | null; orderRef?: string }) => {
+          if (!payload.orderId) return;
+
+          const ref = payload.orderRef ?? formatOrderRef(payload.orderId);
+          const toastMessage = payload.reason
+            ? `Votre commande ${ref} a été refusée par le vendeur : ${payload.reason}`
+            : `Votre commande ${ref} a été refusée par le vendeur`;
+
+          showToast(toastMessage, {
+            variant: 'danger',
+            duration: 6000,
+            href: `/commandes/${payload.orderId}`,
+            hrefLabel: 'Voir la commande',
+          });
+        },
+      );
     })();
 
     void loadInitial();
@@ -160,7 +182,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       if (socket) socket.disconnect();
       socketRef.current = null;
     };
-  }, [authLoading, isLoggedIn, loadInitial, prependNotification]);
+  }, [authLoading, isLoggedIn, loadInitial, prependNotification, showToast]);
 
   return (
     <NotificationContext.Provider

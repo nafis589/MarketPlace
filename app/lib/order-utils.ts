@@ -14,6 +14,7 @@ const STATUS_LABELS: Record<OrderStatus, string> = {
   DELIVERED: 'Livrée',
   CANCELLED: 'Annulée',
   RETURNED: 'Retournée',
+  REFUSED: 'Refusée',
 };
 
 export function getOrderStatusLabel(status: OrderStatus): string {
@@ -35,6 +36,8 @@ export function getOrderStatusBadgeClass(status: OrderStatus): string {
     case 'CANCELLED':
     case 'RETURNED':
       return `${base} bg-red-100 text-red-600`;
+    case 'REFUSED':
+      return `${base} bg-red-100 text-[#7F1D1D]`;
     default:
       return `${base} bg-gray-100 text-gray-600`;
   }
@@ -54,6 +57,7 @@ export function getTimelineStep(status: OrderStatus): number {
       return 3;
     case 'CANCELLED':
     case 'RETURNED':
+    case 'REFUSED':
       return -1;
     default:
       return 0;

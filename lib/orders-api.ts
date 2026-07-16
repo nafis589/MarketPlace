@@ -9,7 +9,8 @@ export type OrderStatus =
   | 'SHIPPED'
   | 'DELIVERED'
   | 'CANCELLED'
-  | 'RETURNED';
+  | 'RETURNED'
+  | 'REFUSED';
 
 export interface ShippingAddress {
   first_name: string;
