@@ -78,13 +78,11 @@ export default function VendorProfile({ vendorId }: VendorProfileProps) {
       setFollowersCount(data.followers_count);
       setProfileLoading(false);
 
-      const [activeRes, soldRes] = await Promise.all([
+      const [activeRes] = await Promise.all([
         fetchVendorProducts(vendorId, 'ACTIVE', 1, 1),
-        fetchVendorProducts(vendorId, 'SOLD', 1, 1),
       ]);
       if (cancelled) return;
       setActiveTotal(activeRes.total);
-      setSoldTotal(soldRes.total);
     };
 
     void load();
@@ -232,7 +230,8 @@ export default function VendorProfile({ vendorId }: VendorProfileProps) {
                   <p className="mt-2 text-sm text-gray-900">
                     <span className="font-bold">{activeTotal ?? '…'}</span> articles en vente
                     <span className="mx-2 text-gray-300">·</span>
-                    <span className="font-bold">{soldTotal ?? '…'}</span> vendu
+                    <span className="font-bold">{profile?.total_sales ?? '…'}</span> vendu
+                    {(profile?.total_sales ?? 0) > 1 ? 's' : ''}
                   </p>
                   {profile?.description && (
                     <p className="mt-3 max-w-xl text-sm leading-relaxed text-gray-600">
