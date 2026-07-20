@@ -661,9 +661,7 @@ export default function CheckoutPage() {
                                     <div className="space-y-1.5">
                                         <label className="flex items-center gap-1.5 text-[13px] font-semibold text-[#1A1A1A]">
                                             Notes{' '}
-                                            <span className="font-normal normal-case text-[12px] text-[#999]">
-                                                (optionnel)
-                                            </span>
+                                            
                                         </label>
                                         <textarea
                                             rows={2}

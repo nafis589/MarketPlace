@@ -26,12 +26,17 @@ export function handleSellArticleClick(options: {
 
 /** Après login réussi depuis le flux « vendre » (utilisateur était déconnecté). */
 export function handlePostLoginSellIntent(user: User, clearLoginIntent: () => void): boolean {
+  clearLoginIntent();
+
   if (user.role === 'VENDOR') {
-    clearLoginIntent();
     redirectToVendorDashboard();
     return true;
   }
 
-  clearLoginIntent();
+  if (user.role === 'BUYER') {
+    redirectToVendorDashboardAuth();
+    return true;
+  }
+
   return false;
 }

@@ -28,7 +28,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ category }) => {
             </div>
 
             {/* Nom en dessous */}
-            <h3 className="mt-3 text-center text-lg font-serif font-medium">
+            <h3 className="mt-2 truncate px-1 text-center font-serif text-sm font-medium sm:mt-3 sm:text-base md:text-lg">
                 {category.name}
             </h3>
         </Link>

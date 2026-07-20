@@ -96,7 +96,8 @@ export default async function Home() {
       <Header />
       <div className="pt-[72px] md:pt-[88px]">
         <HeroBanner />
-        {categories.length > 0 && <HomeCategorySection categories={categories} />}        {bestsellerProducts.length > 0 && (
+        {categories.length > 0 && <HomeCategorySection categories={categories} />}
+        {bestsellerProducts.length > 0 && (
           <BestsellersSection products={bestsellerProducts} />
         )}
         <RecentlyViewedClient />
