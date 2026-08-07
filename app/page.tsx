@@ -1,5 +1,6 @@
 import Header from './components/sections/Header';
-import HeroBanner from './components/sections/HeroBanner';import BestsellersSection from './components/sections/BestsellersSection';
+import HeroBanner from './components/sections/HeroBanner';
+import BestsellersSection from './components/sections/BestsellersSection';
 import TopDeals from './components/sections/TopDeals';
 import TrendingNow from './components/sections/TrendingNow';
 import UserNewItems from './components/sections/UserNewItems';
@@ -7,6 +8,7 @@ import WeLoveSection from './components/sections/WeLoveSection';
 import Footer from './components/sections/Footer';
 import HomeCategorySection from './components/home/HomeCategorySection';
 import RecentlyViewedClient from './components/home/RecentlyViewedClient';
+import AIRecommendationsClient from './components/home/AIRecommendationsClient';
 import type { ApiCategory, ApiProductListItem } from '@/app/lib/homeApi';
 import { API_URL, safeServerFetch } from '@/app/lib/homeApi';
 import { mapApiProductsToHomeProducts } from '@/app/lib/mapHomeProduct';
@@ -100,6 +102,7 @@ export default async function Home() {
         {bestsellerProducts.length > 0 && (
           <BestsellersSection products={bestsellerProducts} />
         )}
+        <AIRecommendationsClient />
         <RecentlyViewedClient />
         {offerProducts.length > 0 && <TopDeals products={offerProducts} />}
         {trendingProducts.length > 0 && <TrendingNow products={trendingProducts} />}

@@ -5,6 +5,12 @@ import Navbar from './Navbar';
 import SearchPanel from '@/app/components/search/SearchPanel';
 import ChatDrawer from '@/app/components/chat/ChatDrawer';
 import NotificationPanel from '@/app/components/notifications/NotificationPanel';
+import dynamic from 'next/dynamic';
+
+const ShoppingAssistant = dynamic(
+  () => import('@/components/ai/ShoppingAssistant').then((m) => ({ default: m.ShoppingAssistant })),
+  { ssr: false },
+);
 import type { CategoryWithChildren } from './MegaMenu';
 
 interface AppFrameProps {
@@ -25,6 +31,7 @@ export default function AppFrame({ categories, children }: AppFrameProps) {
       {!hideChrome && <NotificationPanel />}
       {children}
       <ChatDrawer />
+      <ShoppingAssistant />
     </>
   );
 }

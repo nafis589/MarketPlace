@@ -51,7 +51,7 @@ const ProductBadge = ({ type }: { type: BadgeType }) => {
 };
 
 interface HomeProductSectionProps {
-  title: string;
+  title: React.ReactNode;
   products: Product[];
   viewAllHref?: string;
 }

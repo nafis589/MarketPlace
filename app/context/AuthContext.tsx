@@ -1,7 +1,9 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { api, ApiClientError } from '@/lib/api-client';
+import { ApiClientError } from '@/lib/api-client';
+import { recommendationsApi } from '@/lib/recommendations-api';
+import { clearProductHistory, getProductHistory } from '@/hooks/useProductHistory';
 import type { AuthResponse, ProfileResponse, User } from '@/lib/types';
 
 export interface RegisterData {
@@ -87,6 +89,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await storeToken(data.accessToken);
     const enriched = (await fetchSessionUser()) ?? data.user;
     setUser(enriched);
+
+    const localHistory = getProductHistory();
+    if (localHistory.length > 0) {
+      try {
+        await recommendationsApi.syncHistory(localHistory);
+        clearProductHistory();
+      } catch {
+        // Ne pas bloquer la connexion si la sync échoue
+      }
+    }
+
     return enriched;
   }, [fetchSessionUser]);
 

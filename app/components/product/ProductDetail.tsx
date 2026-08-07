@@ -69,6 +69,7 @@ import { useChat } from '@/app/context/ChatContext';
 import { VENDOR_DASHBOARD_URL } from '@/lib/vendor-dashboard';
 import OfferModal from '@/app/components/offers/OfferModal';
 import { useFavoriteToggle } from '@/app/hooks/useFavoriteToggle';
+import AIRecommendations from '@/app/components/recommendations/AIRecommendations';
 
 export default function ProductDetail({ product, relatedProducts = [] }: ProductDetailProps) {
   const { addItem } = useCart();
@@ -386,6 +387,8 @@ export default function ProductDetail({ product, relatedProducts = [] }: Product
           categoryPath: product.categoryPath,
         }}
       />
+
+      <AIRecommendations contextProductId={product.id} limit={6} variant="product" />
 
       {hasRelated && (
         <div id="similar-products" className="scroll-mt-[120px]">
