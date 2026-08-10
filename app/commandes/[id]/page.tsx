@@ -2,8 +2,8 @@
 
 import React, { use, useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { ArrowLeft, Loader2, MessageCircle, ShoppingCart } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { ArrowLeft, CheckCircle2, Loader2, MessageCircle, ShoppingCart, XCircle } from 'lucide-react';
 import Header from '@/app/components/sections/Header';
 import Footer from '@/app/components/sections/Footer';
 import ConfirmModal from '@/app/components/ui/ConfirmModal';
@@ -31,6 +31,8 @@ interface PageProps {
 export default function CommandeDetailPage({ params }: PageProps) {
   const { id } = use(params);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const paymentSuccess = searchParams.get('payment') === 'success';
   const { openChatWithVendor } = useChat();
   const { showToast } = useToast();
   const [order, setOrder] = useState<StoreOrderDetail | null>(null);
@@ -57,6 +59,15 @@ export default function CommandeDetailPage({ params }: PageProps) {
   useEffect(() => {
     void loadOrder();
   }, [loadOrder]);
+
+  useEffect(() => {
+    if (!order) return;
+    if (paymentSuccess) {
+      showToast('Paiement confirmé — Votre commande a été payée avec succès.');
+    } else if (order.payment_status === 'FAILED') {
+      showToast('Le paiement a échoué. Veuillez réessayer dans la section commande.');
+    }
+  }, [paymentSuccess, order, showToast]);
 
   const handleCancel = async () => {
     if (!order || order.status !== 'PENDING') return;
@@ -139,6 +150,7 @@ export default function CommandeDetailPage({ params }: PageProps) {
             </div>
           ) : (
             <>
+
               <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
                 <div>
                   <h1 className="text-2xl md:text-3xl font-serif font-medium tracking-tight">
@@ -148,9 +160,16 @@ export default function CommandeDetailPage({ params }: PageProps) {
                     Passée le {formatOrderDateLong(order.created_at)} · {order.vendor.shop_name}
                   </p>
                 </div>
-                <span className={getOrderStatusBadgeClass(order.status)}>
-                  {getOrderStatusLabel(order.status)}
-                </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className={getOrderStatusBadgeClass(order.status)}>
+                    {getOrderStatusLabel(order.status)}
+                  </span>
+                  {(paymentSuccess || order.payment_status === 'PAID') && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-800">
+                      <CheckCircle2 className="size-3" /> Payée
+                    </span>
+                  )}
+                </div>
               </div>
 
               {order.status === 'REFUSED' && (
@@ -304,6 +323,37 @@ export default function CommandeDetailPage({ params }: PageProps) {
                   <div className="flex justify-between font-bold text-base pt-2 border-t border-gray-200">
                     <span>Total commande</span>
                     <span>{formatPrice(order.total_amount)}</span>
+                  </div>
+                  {/* Payment section */}
+                  <div className="pt-3 border-t border-gray-100 space-y-2">
+                    <div className="flex justify-between gap-4 text-sm">
+                      <span className="text-gray-600">Mode de paiement</span>
+                      <span className="font-medium">
+                        {order.payment_method === 'CARD' ? 'Carte bancaire (Stripe)' : 'Paiement à la livraison'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between gap-4 text-sm items-center">
+                      <span className="text-gray-600">Statut paiement</span>
+                      <span>
+                        {order.payment_status === 'PAID' && (
+                          <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-semibold text-green-700">Payé ✓</span>
+                        )}
+                        {order.payment_status === 'UNPAID' && (
+                          <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-700">Non payé</span>
+                        )}
+                        {order.payment_status === 'FAILED' && (
+                          <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-700">Échec paiement</span>
+                        )}
+                        {order.payment_status === 'REFUNDED' && (
+                          <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-600">Remboursé</span>
+                        )}
+                      </span>
+                    </div>
+                    {order.payment_method === 'CARD' && order.payment_status === 'REFUNDED' && (
+                      <p className="text-xs text-gray-500 italic">
+                        Un remboursement a été initié. Délai : 5 à 10 jours ouvrés.
+                      </p>
+                    )}
                   </div>
                 </div>
               </section>

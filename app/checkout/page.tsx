@@ -12,6 +12,8 @@ import {
     X,
     Loader2,
     ArrowRight,
+    CreditCard,
+    Truck,
 } from 'lucide-react';
 import { useCart } from '@/app/context/CartContext';
 import { useAuth } from '@/app/context/AuthContext';
@@ -23,6 +25,7 @@ import { ApiClientError } from '@/lib/api-client';
 import { formatOrderRef } from '@/app/lib/order-utils';
 import type { LocationSelectResult, CartShippingCalculateResult } from '@/lib/types';
 import CheckoutOrderSummary from '@/app/components/checkout/CheckoutOrderSummary';
+import { CardPaymentForm } from '@/app/components/checkout/CardPaymentForm';
 import { formatPrice as formatFcfa } from '@/app/utils/formatPrice';
 import { PRODUCT_IMAGE_PLACEHOLDER } from '@/app/lib/mapHomeProduct';
 import { reverseGeocode } from '@/lib/nominatim';
@@ -88,18 +91,24 @@ export default function CheckoutPage() {
 
     // Step 2 form fields
     const [firstName, setFirstName] = useState('');
-    const [lastName, setLastName]   = useState('');
-    const [phone, setPhone]         = useState('');
-    const [notes, setNotes]         = useState('');
+    const [lastName, setLastName] = useState('');
+    const [phone, setPhone] = useState('');
+    const [notes, setNotes] = useState('');
+
+    // Payment method selection
+    type PaymentMethodType = 'CASH_ON_DELIVERY' | 'CARD';
+    const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>('CARD');
+    const [cardOrderId, setCardOrderId] = useState<string | null>(null);
+    const [paymentError, setPaymentError] = useState<string | null>(null);
 
     // Step 2 shipping (carte + calcul backend)
-    const [shippingResult, setShippingResult]         = useState<CartShippingCalculateResult | null>(null);
-    const [selectedPosition, setSelectedPosition]     = useState<{ lat: number; lng: number; addressLabel: string | null } | null>(null);
-    const [shippingRegionId, setShippingRegionId]     = useState<string | null>(null);
+    const [shippingResult, setShippingResult] = useState<CartShippingCalculateResult | null>(null);
+    const [selectedPosition, setSelectedPosition] = useState<{ lat: number; lng: number; addressLabel: string | null } | null>(null);
+    const [shippingRegionId, setShippingRegionId] = useState<string | null>(null);
     const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
-    const [fieldErrors, setFieldErrors]               = useState<DeliveryFieldErrors>({});
-    const [isSubmitting, setIsSubmitting]             = useState(false);
-    const [placedOrder, setPlacedOrder]               = useState<StoreOrder | null>(null);
+    const [fieldErrors, setFieldErrors] = useState<DeliveryFieldErrors>({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [placedOrder, setPlacedOrder] = useState<StoreOrder | null>(null);
     const [confirmedShippingResult, setConfirmedShippingResult] = useState<CartShippingCalculateResult | null>(null);
 
     const [sellerOpen, setSellerOpen] = useState<Record<string, boolean>>({});
@@ -210,6 +219,7 @@ export default function CheckoutPage() {
             return;
         }
         setIsSubmitting(true);
+        setPaymentError(null);
         try {
             const { data: cartData } = await cartApi.getCart();
             if (cartData.items.length === 0) {
@@ -228,7 +238,7 @@ export default function CheckoutPage() {
                 }));
 
             const { data } = await ordersApi.placeOrder({
-                payment_method: 'CASH_ON_DELIVERY',
+                payment_method: paymentMethod,
                 shipping_address: {
                     first_name: firstName,
                     last_name: lastName,
@@ -246,7 +256,13 @@ export default function CheckoutPage() {
             setPlacedOrder(order);
             await refreshCart();
             setShowMobileForm(false);
-            setStep(3);
+
+            if (paymentMethod === 'CARD' && order) {
+                // Monter le formulaire de paiement Stripe
+                setCardOrderId(order.id);
+            } else {
+                setStep(3);
+            }
         } catch (err) {
             const message =
                 err instanceof ApiClientError
@@ -256,6 +272,16 @@ export default function CheckoutPage() {
         } finally {
             setIsSubmitting(false);
         }
+    };
+
+    const handlePaymentSuccess = () => {
+        if (placedOrder) {
+            router.push(`/commandes/${placedOrder.id}?payment=success`);
+        }
+    };
+
+    const handlePaymentError = (message: string) => {
+        setPaymentError(message);
     };
 
     /* ─── MAIN ─── */
@@ -318,112 +344,112 @@ export default function CheckoutPage() {
                                         const sellerInitial = sellerName.charAt(0).toUpperCase();
 
                                         return (
-                                        <div key={group.vendorId} className="py-3 space-y-4">
+                                            <div key={group.vendorId} className="py-3 space-y-4">
 
-                                            {/* ── Seller (une fois par vendeur) ── */}
-                                            <div className="space-y-3">
-                                                <div className="flex items-start justify-between">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="w-[48px] h-[48px] rounded-full bg-[#E5E5E5] flex items-center justify-center shrink-0 overflow-hidden">
-                                                            <span className="text-[18px] font-bold text-[#888]">
-                                                                {sellerInitial}
-                                                            </span>
-                                                        </div>
-                                                        <div>
-                                                            <p className="font-bold text-[16px] text-[#1A1A1A] leading-tight">
-                                                                {sellerName}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-
-                                                    <button
-                                                        onClick={() => toggleSeller(group.vendorId)}
-                                                        className="flex items-center gap-1 text-[13px] text-[#1A1A1A] hover:opacity-60 transition-opacity whitespace-nowrap"
-                                                    >
-                                                        <span>
-                                                            {isSellerOpen(group.vendorId) ? "Moins d'infos" : "Plus d'infos"}
-                                                        </span>
-                                                        {isSellerOpen(group.vendorId) ? (
-                                                            <ChevronUp size={14} />
-                                                        ) : (
-                                                            <ChevronDown size={14} />
-                                                        )}
-                                                    </button>
-                                                </div>
-
-                                                {isSellerOpen(group.vendorId) && vendor && (
-                                                    <div className="space-y-2 text-[12px] sm:text-[13px] text-[#555] pl-[64px]">
-                                                        <div className="flex gap-8">
-                                                            <span>{vendor.active_products} produit{vendor.active_products > 1 ? 's' : ''} en vente</span>
-                                                            <span>{vendor.total_sales} produit{vendor.total_sales > 1 ? 's' : ''} vendu{vendor.total_sales > 1 ? 's' : ''}</span>
-                                                        </div>
-                                                        {vendor.region && (
-                                                            <div className="flex items-center gap-1.5">
-                                                                <svg className="w-3.5 h-3.5 text-[#555]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                                </svg>
-                                                                <span>{vendor.region}</span>
+                                                {/* ── Seller (une fois par vendeur) ── */}
+                                                <div className="space-y-3">
+                                                    <div className="flex items-start justify-between">
+                                                        <div className="flex items-center gap-4">
+                                                            <div className="w-[48px] h-[48px] rounded-full bg-[#E5E5E5] flex items-center justify-center shrink-0 overflow-hidden">
+                                                                <span className="text-[18px] font-bold text-[#888]">
+                                                                    {sellerInitial}
+                                                                </span>
                                                             </div>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            {/* ── Produits du vendeur ── */}
-                                            <div className="space-y-4">
-                                            {group.items.map((item) => (
-                                            <div key={item.id} className="flex gap-4 sm:gap-5">
-
-                                                {/* Image seule à gauche */}
-                                                <div className="shrink-0">
-                                                    <div className="w-[80px] h-[100px] sm:w-[96px] sm:h-[120px] bg-[#F8F8F8] border border-[#EBEBEB] overflow-hidden">
-                                                        <img
-                                                            src={item.product.primary_image || PRODUCT_IMAGE_PLACEHOLDER}
-                                                            alt={item.product.title}
-                                                            className="w-full h-full object-cover"
-                                                        />
-                                                    </div>
-                                                </div>
-
-                                                {/* Droite : infos + X en haut, prix en bas */}
-                                                <div className="flex-1 min-w-0 flex flex-col justify-between min-h-[100px] sm:min-h-[120px]">
-                                                    {/* Haut : texte + croix */}
-                                                    <div className="flex items-start justify-between gap-2">
-                                                        <div className="space-y-0.5 sm:space-y-1 min-w-0">
-                                                            <h3 className="font-bold text-[13px] sm:text-[15px] tracking-wide text-[#1A1A1A]">
-                                                                {item.product.title}
-                                                            </h3>
-                                                            {item.quantity > 1 && (
-                                                                <p className="text-[12px] sm:text-[14px] text-[#777]">Quantité : {item.quantity}</p>
-                                                            )}
+                                                            <div>
+                                                                <p className="font-bold text-[16px] text-[#1A1A1A] leading-tight">
+                                                                    {sellerName}
+                                                                </p>
+                                                            </div>
                                                         </div>
-                                                        {/* Croix de suppression */}
+
                                                         <button
-                                                            onClick={() => removeItem(item.id)}
-                                                            className="shrink-0 w-6 h-6 flex items-center justify-center text-[#C0C0C0] hover:text-[#1A1A1A] transition-colors mt-0.5"
-                                                            aria-label="Supprimer l'article"
+                                                            onClick={() => toggleSeller(group.vendorId)}
+                                                            className="flex items-center gap-1 text-[13px] text-[#1A1A1A] hover:opacity-60 transition-opacity whitespace-nowrap"
                                                         >
-                                                            <X size={15} strokeWidth={2} />
+                                                            <span>
+                                                                {isSellerOpen(group.vendorId) ? "Moins d'infos" : "Plus d'infos"}
+                                                            </span>
+                                                            {isSellerOpen(group.vendorId) ? (
+                                                                <ChevronUp size={14} />
+                                                            ) : (
+                                                                <ChevronDown size={14} />
+                                                            )}
                                                         </button>
                                                     </div>
-                                                    {/* Bas : prix */}
-                                                    <div className="flex items-center gap-2 flex-wrap">
-                                                        <span className="text-[13px] sm:text-[15px] font-semibold text-[#C0392B]">
-                                                            {formatFcfa(getLineTotal(item))}
-                                                        </span>
-                                                        {hasOfferDiscount(item) && (
-                                                            <span className="text-[12px] sm:text-[13px] text-[#AAAAAA] line-through">
-                                                                {formatFcfa(item.product.price * item.quantity)}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            ))}
-                                            </div>
 
-                                        </div>
+                                                    {isSellerOpen(group.vendorId) && vendor && (
+                                                        <div className="space-y-2 text-[12px] sm:text-[13px] text-[#555] pl-[64px]">
+                                                            <div className="flex gap-8">
+                                                                <span>{vendor.active_products} produit{vendor.active_products > 1 ? 's' : ''} en vente</span>
+                                                                <span>{vendor.total_sales} produit{vendor.total_sales > 1 ? 's' : ''} vendu{vendor.total_sales > 1 ? 's' : ''}</span>
+                                                            </div>
+                                                            {vendor.region && (
+                                                                <div className="flex items-center gap-1.5">
+                                                                    <svg className="w-3.5 h-3.5 text-[#555]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                                    </svg>
+                                                                    <span>{vendor.region}</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* ── Produits du vendeur ── */}
+                                                <div className="space-y-4">
+                                                    {group.items.map((item) => (
+                                                        <div key={item.id} className="flex gap-4 sm:gap-5">
+
+                                                            {/* Image seule à gauche */}
+                                                            <div className="shrink-0">
+                                                                <div className="w-[80px] h-[100px] sm:w-[96px] sm:h-[120px] bg-[#F8F8F8] border border-[#EBEBEB] overflow-hidden">
+                                                                    <img
+                                                                        src={item.product.primary_image || PRODUCT_IMAGE_PLACEHOLDER}
+                                                                        alt={item.product.title}
+                                                                        className="w-full h-full object-cover"
+                                                                    />
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Droite : infos + X en haut, prix en bas */}
+                                                            <div className="flex-1 min-w-0 flex flex-col justify-between min-h-[100px] sm:min-h-[120px]">
+                                                                {/* Haut : texte + croix */}
+                                                                <div className="flex items-start justify-between gap-2">
+                                                                    <div className="space-y-0.5 sm:space-y-1 min-w-0">
+                                                                        <h3 className="font-bold text-[13px] sm:text-[15px] tracking-wide text-[#1A1A1A]">
+                                                                            {item.product.title}
+                                                                        </h3>
+                                                                        {item.quantity > 1 && (
+                                                                            <p className="text-[12px] sm:text-[14px] text-[#777]">Quantité : {item.quantity}</p>
+                                                                        )}
+                                                                    </div>
+                                                                    {/* Croix de suppression */}
+                                                                    <button
+                                                                        onClick={() => removeItem(item.id)}
+                                                                        className="shrink-0 w-6 h-6 flex items-center justify-center text-[#C0C0C0] hover:text-[#1A1A1A] transition-colors mt-0.5"
+                                                                        aria-label="Supprimer l'article"
+                                                                    >
+                                                                        <X size={15} strokeWidth={2} />
+                                                                    </button>
+                                                                </div>
+                                                                {/* Bas : prix */}
+                                                                <div className="flex items-center gap-2 flex-wrap">
+                                                                    <span className="text-[13px] sm:text-[15px] font-semibold text-[#C0392B]">
+                                                                        {formatFcfa(getLineTotal(item))}
+                                                                    </span>
+                                                                    {hasOfferDiscount(item) && (
+                                                                        <span className="text-[12px] sm:text-[13px] text-[#AAAAAA] line-through">
+                                                                            {formatFcfa(item.product.price * item.quantity)}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+
+                                            </div>
                                         );
                                     })}
                                 </div>
@@ -573,6 +599,71 @@ export default function CheckoutPage() {
                             </div>
                             <div className="flex-1 overflow-y-auto px-4 sm:px-6 md:px-9 lg:px-11 py-4 lg:py-10 space-y-7">
 
+                                {/* Payment method selection */}
+                                <div className="space-y-3">
+                                    <h3 className="text-[16px] font-bold text-[#1A1A1A]">
+                                        Mode de paiement
+                                    </h3>
+
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {/* CARD option */}
+                                        <button
+                                            type="button"
+                                            onClick={() => setPaymentMethod('CARD')}
+                                            className={`relative flex flex-col items-center justify-center gap-2 px-4 py-6 border-2 rounded-xl transition-all ${paymentMethod === 'CARD'
+                                                    ? 'border-[#1A1A1A] bg-[#1A1A1A]/[0.04]'
+                                                    : 'border-[#E0E0E0] bg-white hover:border-[#AAAAAA]'
+                                                }`}
+                                        >
+                                            {paymentMethod === 'CARD' && (
+                                                <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#1A1A1A] flex items-center justify-center">
+                                                    <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                                                        <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                                                    </svg>
+                                                </span>
+                                            )}
+                                            <CreditCard size={32} className={paymentMethod === 'CARD' ? 'text-[#1A1A1A]' : 'text-[#CCCCCC]'} strokeWidth={1.5} />
+                                            <p className={`text-[11px] font-semibold tracking-wide ${paymentMethod === 'CARD' ? 'text-[#1A1A1A]' : 'text-[#AAAAAA]'}`}>
+                                                Payer par carte
+                                            </p>
+                                        </button>
+
+                                        {/* CASH_ON_DELIVERY option */}
+                                        <button
+                                            type="button"
+                                            onClick={() => setPaymentMethod('CASH_ON_DELIVERY')}
+                                            className={`relative flex flex-col items-center justify-center gap-2 px-4 py-6 border-2 rounded-xl transition-all ${paymentMethod === 'CASH_ON_DELIVERY'
+                                                    ? 'border-[#1A1A1A] bg-[#1A1A1A]/[0.04]'
+                                                    : 'border-[#E0E0E0] bg-white hover:border-[#AAAAAA]'
+                                                }`}
+                                        >
+                                            {paymentMethod === 'CASH_ON_DELIVERY' && (
+                                                <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#1A1A1A] flex items-center justify-center">
+                                                    <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                                                        <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                                                    </svg>
+                                                </span>
+                                            )}
+                                            <Truck size={32} className={paymentMethod === 'CASH_ON_DELIVERY' ? 'text-[#1A1A1A]' : 'text-[#CCCCCC]'} strokeWidth={1.5} />
+                                            <p className={`text-[11px] font-semibold tracking-wide ${paymentMethod === 'CASH_ON_DELIVERY' ? 'text-[#1A1A1A]' : 'text-[#AAAAAA]'}`}>
+                                                Payer à la livraison
+                                            </p>
+                                        </button>
+                                    </div>
+
+                                    {/* Stripe form shown inline when CARD selected and order placed */}
+                                    {paymentMethod === 'CARD' && cardOrderId && placedOrder && (
+                                        <CardPaymentForm
+                                            orderId={cardOrderId}
+                                            totalAmount={placedOrder.total_amount}
+                                            onPaymentSuccess={handlePaymentSuccess}
+                                            onPaymentError={handlePaymentError}
+                                        />
+                                    )}
+                                </div>
+
+                                <hr className="border-[#E0E0E0]" />
+
                                 {/* Personal info */}
                                 <div className="space-y-4">
                                     <h3 className="text-[16px] font-bold text-[#1A1A1A]">
@@ -661,7 +752,7 @@ export default function CheckoutPage() {
                                     <div className="space-y-1.5">
                                         <label className="flex items-center gap-1.5 text-[13px] font-semibold text-[#1A1A1A]">
                                             Notes{' '}
-                                            
+
                                         </label>
                                         <textarea
                                             rows={2}
@@ -680,24 +771,27 @@ export default function CheckoutPage() {
                                     isCalculating={isCalculatingShipping}
                                 />
 
-                                <div className="flex gap-3">
-                                    <button
-                                        type="button"
-                                        onClick={() => setStep(1)}
-                                        className="flex-1 border border-black bg-white text-black text-[15px] font-semibold py-4 hover:bg-gray-50 transition-colors"
-                                    >
-                                        ← Retour au panier
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={handleConfirmOrder}
-                                        disabled={!canConfirm || isSubmitting}
-                                        className="flex-1 bg-black text-white text-[15px] font-semibold py-4 hover:opacity-90 disabled:bg-[#CCCCCC] disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
-                                    >
-                                        {isSubmitting && <Loader2 size={16} className="animate-spin" />}
-                                        Confirmer la commande
-                                    </button>
-                                </div>
+                                {/* Show action buttons only when no card order is awaiting payment */}
+                                {!cardOrderId && (
+                                    <div className="flex gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => setStep(1)}
+                                            className="flex-1 border border-black bg-white text-black text-[15px] font-semibold py-4 hover:bg-gray-50 transition-colors"
+                                        >
+                                            ← Retour au panier
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => void handleConfirmOrder()}
+                                            disabled={!canConfirm || isSubmitting}
+                                            className="flex-1 bg-black text-white text-[15px] font-semibold py-4 hover:opacity-90 disabled:bg-[#CCCCCC] disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                                        >
+                                            {isSubmitting && <Loader2 size={16} className="animate-spin" />}
+                                            {paymentMethod === 'CARD' ? 'Continuer vers le paiement' : 'Confirmer la commande'}
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}

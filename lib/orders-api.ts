@@ -53,6 +53,8 @@ export interface StoreOrder {
   total_amount: number;
   shipping_fee: number;
   payment_method: string;
+  payment_status: string;
+  payment_intent_id: string | null;
   shipping_address: ShippingAddress;
   shipping_region_id: string;
   shipping_method: ShippingMethod;
@@ -85,7 +87,7 @@ export interface VendorShippingPayload {
 }
 
 export interface PlaceOrderPayload {
-  payment_method: 'CASH_ON_DELIVERY' | 'BANK_TRANSFER';
+  payment_method: 'CASH_ON_DELIVERY' | 'BANK_TRANSFER' | 'CARD';
   shipping_address: ShippingAddress;
   vendor_shippings: VendorShippingPayload[];
 }

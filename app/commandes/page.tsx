@@ -145,12 +145,28 @@ export default function CommandesPage() {
                       </p>
                       <p className="text-xs text-gray-500 mt-1">{formatOrderDate(order.created_at)}</p>
                     </div>
-                    <span className={getOrderStatusBadgeClass(order.status)}>
-                      {getOrderStatusLabel(order.status)}
-                    </span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className={getOrderStatusBadgeClass(order.status)}>
+                        {getOrderStatusLabel(order.status)}
+                      </span>
+                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                        order.payment_status === 'PAID'
+                          ? 'bg-green-100 text-green-700'
+                          : order.payment_status === 'REFUNDED'
+                          ? 'bg-gray-100 text-gray-600'
+                          : 'bg-red-100 text-red-700'
+                      }`}>
+                        {order.payment_status === 'PAID' && 'Payé ✓'}
+                        {order.payment_status === 'UNPAID' && 'Non payé'}
+                        {order.payment_status === 'FAILED' && 'Paiement échoué'}
+                        {order.payment_status === 'REFUNDED' && 'Remboursé'}
+                      </span>
+                    </div>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-500">Paiement à la livraison</span>
+                    <span className="text-gray-500">
+                      {order.payment_method === 'CARD' ? 'Carte bancaire (Stripe)' : 'Paiement à la livraison'}
+                    </span>
                     <span className="font-semibold text-black">{formatPrice(order.total_amount)}</span>
                   </div>
                 </Link>
