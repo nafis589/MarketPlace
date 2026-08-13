@@ -7,7 +7,7 @@ const HeroBanner = () => {
   return (
     <section className="relative mt-5 h-[200px] w-full overflow-hidden sm:mt-7 sm:h-[240px] md:mt-9 md:h-[280px] lg:h-[300px]">
       <Image
-        src="https://images.pexels.com/photos/5632371/pexels-photo-5632371.jpeg"
+        src="https://images.pexels.com/photos/12951883/pexels-photo-12951883.jpeg"
         alt="Marketplace — achetez et vendez entre particuliers"
         fill
         className="object-cover object-center"

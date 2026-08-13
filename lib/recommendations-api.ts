@@ -35,7 +35,10 @@ async function recommendationsRequest<T>(
 }
 
 export const recommendationsApi = {
-  getAi: async (params?: { limit?: number; contextProductId?: string }): Promise<RecoData | null> => {
+  getAi: async (
+    params?: { limit?: number; contextProductId?: string },
+    signal?: AbortSignal,
+  ): Promise<RecoData | null> => {
     const search = new URLSearchParams();
     if (params?.limit) search.set('limit', String(params.limit));
     if (params?.contextProductId) search.set('context_product_id', params.contextProductId);
@@ -44,6 +47,7 @@ export const recommendationsApi = {
     const res = await fetch(`/api/recommendations/ai${query ? `?${query}` : ''}`, {
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
+      signal,
     });
 
     const json = (await res.json()) as
@@ -63,15 +67,25 @@ export const recommendationsApi = {
     return payload.data;
   },
 
-  postVisitor: (productIds: string[], limit?: number) =>
+  postVisitor: (productIds: string[], limit?: number, signal?: AbortSignal) =>
     recommendationsRequest<RecoData>('/visitor', {
       method: 'POST',
       body: JSON.stringify({ product_ids: productIds, limit }),
+      signal,
     }),
 
-  syncHistory: (productIds: string[]) =>
+  /** Visiteur sans historique → déléguer au backend qui retourne les trending */
+  getTrending: (limit?: number, signal?: AbortSignal) =>
+    recommendationsRequest<RecoData>('/visitor', {
+      method: 'POST',
+      body: JSON.stringify({ product_ids: [], limit }),
+      signal,
+    }),
+
+  syncHistory: (productIds: string[], signal?: AbortSignal) =>
     recommendationsRequest<{ synced: number }>('/sync-history', {
       method: 'POST',
       body: JSON.stringify({ product_ids: productIds }),
+      signal,
     }),
 };

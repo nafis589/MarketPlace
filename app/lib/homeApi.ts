@@ -54,8 +54,10 @@ export async function safeFetchJson<T>(url: string, init?: RequestInit): Promise
 }
 
 export async function fetchRootCategories(): Promise<ApiCategory[]> {
+  const isDev = process.env.NODE_ENV === 'development';
   const json = await safeFetchJson<ApiCategoriesResponse>(`${API_URL}/api/store/categories`, {
-    next: { revalidate: 3600 },
+    next: isDev ? undefined : { revalidate: 3600 },
+    cache: isDev ? 'no-store' : undefined,
   });
   if (!json?.data?.length) return [];
   return json.data.filter((c) => c.parent_id === null);

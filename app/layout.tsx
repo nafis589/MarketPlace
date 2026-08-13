@@ -32,8 +32,10 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || "http:
 
 async function getCategories() {
   try {
+    const isDev = process.env.NODE_ENV === 'development';
     const res = await fetch(`${API_URL}/api/store/categories`, {
-      next: { revalidate: 3600 },
+      next: isDev ? undefined : { revalidate: 3600 },
+      cache: isDev ? 'no-store' : undefined,
     });
     if (!res.ok) {
       console.error(`Failed to fetch categories: ${res.status}`);
